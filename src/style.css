@@ -401,3 +401,33 @@ input[type="checkbox"]:checked::after {
   height: 8px;
   background: var(--border-color);
 }
+
+@media (max-width: 1024px) {
+  .dashboard-wrapper {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .panel {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .panel:last-child {
+    border-bottom: none;
+  }
+
+  .canvas-container {
+    max-height: none;
+    padding: 20px 0;
+  }
+  
+  body {
+    overflow-y: auto;
+    height: auto;
+  }
+}
+
