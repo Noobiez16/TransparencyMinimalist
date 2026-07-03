@@ -226,6 +226,13 @@ function updateCanvasDimensions() {
     }
   }
   viewport.style.aspectRatio = `${state.canvasWidth}/${state.canvasHeight}`;
+  if (state.canvasWidth >= state.canvasHeight) {
+    viewport.style.width = '100%';
+    viewport.style.height = 'auto';
+  } else {
+    viewport.style.width = 'auto';
+    viewport.style.height = '100%';
+  }
 }
 
 canvasRatioSelect.addEventListener('change', updateCanvasDimensions);
@@ -424,33 +431,48 @@ function updateUI() {
   });
 
   // 2. Render Canvas Viewport Layers
-  viewport.innerHTML = '';
-  
-  // Draw layers from bottom to top (reversed array)
-  [...state.layers].reverse().forEach((layer) => {
-    if (!layer.visible) return;
-    
-    let el: HTMLElement;
-    if (layer.type === 'image') {
-      const img = document.createElement('img');
-      img.src = layer.imageSrc || '';
-      img.style.display = layer.imageSrc ? 'block' : 'none';
-      el = img;
-    } else {
-      const div = document.createElement('div');
-      div.textContent = layer.textContent;
-      el = div;
+  // Get active visible layers in reversed order (bottom to top)
+  const activeVisibleLayers = [...state.layers].reverse().filter(l => l.visible);
+  const activeIds = new Set(activeVisibleLayers.map(l => l.id));
+
+  // Remove any elements that are no longer active or visible
+  Array.from(viewport.children).forEach((child) => {
+    const el = child as HTMLElement;
+    if (!activeIds.has(el.dataset.id || '')) {
+      viewport.removeChild(el);
     }
-    
-    el.className = 'layer-preview-el';
-    
-    // Styling offsets, scale, mix blends, and filters
-    el.style.opacity = (layer.opacity / 100).toString();
-    el.style.mixBlendMode = layer.blendMode;
-    el.style.transform = `translate(${layer.xOffset}%, ${layer.yOffset}%) scale(${layer.scale / 100})`;
-    
+  });
+
+  // Render/update elements in correct order
+  activeVisibleLayers.forEach((layer) => {
+    let el = viewport.querySelector(`[data-id="${layer.id}"]`) as HTMLElement | null;
+
+    if (!el) {
+      if (layer.type === 'image') {
+        const img = document.createElement('img');
+        img.className = 'layer-preview-el';
+        img.dataset.id = layer.id;
+        el = img;
+      } else {
+        const div = document.createElement('div');
+        div.className = 'layer-preview-el';
+        div.dataset.id = layer.id;
+        el = div;
+      }
+      viewport.appendChild(el);
+    } else {
+      // Re-append to maintain correct Z-order (bottom to top)
+      viewport.appendChild(el);
+    }
+
+    // Update properties in-place
     if (layer.type === 'image') {
-      el.style.filter = `
+      const img = el as HTMLImageElement;
+      if (img.src !== (layer.imageSrc || '')) {
+        img.src = layer.imageSrc || '';
+      }
+      img.style.display = layer.imageSrc ? 'block' : 'none';
+      img.style.filter = `
         blur(${layer.blur}px)
         contrast(${layer.contrast}%)
         saturate(${layer.saturation}%)
@@ -458,13 +480,19 @@ function updateUI() {
         ${layer.invert ? 'invert(1)' : ''}
       `.replace(/\s+/g, ' ').trim();
     } else {
-      el.style.fontFamily = layer.fontFamily;
-      el.style.fontSize = `${layer.fontSize}px`;
-      el.style.color = layer.textColor;
-      el.style.filter = `blur(${layer.blur}px) ${layer.invert ? 'invert(1)' : ''}`;
+      const div = el as HTMLDivElement;
+      if (div.textContent !== layer.textContent) {
+        div.textContent = layer.textContent;
+      }
+      div.style.fontFamily = layer.fontFamily;
+      div.style.fontSize = `${layer.fontSize}px`;
+      div.style.color = layer.textColor;
+      div.style.filter = `blur(${layer.blur}px) ${layer.invert ? 'invert(1)' : ''}`;
     }
 
-    viewport.appendChild(el);
+    el.style.opacity = (layer.opacity / 100).toString();
+    el.style.mixBlendMode = layer.blendMode;
+    el.style.transform = `translate(${layer.xOffset}%, ${layer.yOffset}%) scale(${layer.scale / 100})`;
   });
 
   // 3. Properties Panel Visibility
@@ -567,6 +595,54 @@ propTextColor.addEventListener('input', () => {
   }
 });
 
+// Clipboard Paste Support (Ctrl+V)
+document.addEventListener('paste', (e) => {
+  const activeEl = document.activeElement;
+  if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+    return;
+  }
+
+  const clipboardData = e.clipboardData;
+  if (!clipboardData) return;
+
+  const items = clipboardData.items;
+  const fileList: File[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) fileList.push(file);
+    }
+  }
+
+  if (fileList.length > 0) {
+    const targetFile = fileList[0];
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      const layer = getActiveLayer();
+      
+      if (layer && layer.type === 'image' && !layer.imageSrc) {
+        layer.imageSrc = dataUrl;
+        layer.imageName = `pasted_image_${Date.now()}.png`;
+      } else {
+        const newLayer = createNewLayer('image');
+        newLayer.imageSrc = dataUrl;
+        newLayer.imageName = `pasted_image_${Date.now()}.png`;
+        state.layers.unshift(newLayer);
+        state.activeLayerId = newLayer.id;
+      }
+      updateUI();
+    };
+    reader.onerror = () => {
+      alert('Failed to read pasted image.');
+    };
+    reader.readAsDataURL(targetFile);
+  }
+});
+
 // --- Canvas Background theme & Custom Color selection ---
 document.querySelectorAll('.btn-theme').forEach((btn) => {
   btn.addEventListener('click', (e) => {
@@ -615,6 +691,23 @@ function mapBlendModeToCompositeOp(blend: string): GlobalCompositeOperation {
     case 'lighten': return 'lighten';
     default: return 'source-over';
   }
+}
+
+// Helper to draw image using cover cropping bounds (mimicking CSS object-fit: cover)
+function drawCoverImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: number, h: number) {
+  const imgRatio = img.naturalWidth / img.naturalHeight;
+  const targetRatio = w / h;
+  let sx = 0, sy = 0, sWidth = img.naturalWidth, sHeight = img.naturalHeight;
+
+  if (imgRatio > targetRatio) {
+    sWidth = img.naturalHeight * targetRatio;
+    sx = (img.naturalWidth - sWidth) / 2;
+  } else {
+    sHeight = img.naturalWidth / targetRatio;
+    sy = (img.naturalHeight - sHeight) / 2;
+  }
+
+  ctx.drawImage(img, sx, sy, sWidth, sHeight, -w / 2, -h / 2, w, h);
 }
 
 $('btn-export').addEventListener('click', () => {
@@ -683,8 +776,8 @@ $('btn-export').addEventListener('click', () => {
       if (layer.type === 'image' && layer.imageSrc) {
         const img = new Image();
         img.onload = () => {
-          // Draw image centered
-          ctx.drawImage(img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+          // Draw image cropped-to-fit centered
+          drawCoverImage(ctx, img, canvas.width, canvas.height);
           ctx.restore();
           resolve();
         };
@@ -694,13 +787,22 @@ $('btn-export').addEventListener('click', () => {
         };
         img.src = layer.imageSrc;
       } else if (layer.type === 'text') {
-        // Draw scaled text
+        // Draw scaled text line-by-line to support multi-line newlines
         const scaledFontSize = Math.round(layer.fontSize * (canvas.width / 500));
         ctx.font = `${scaledFontSize}px ${layer.fontFamily}`;
         ctx.fillStyle = layer.textColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(layer.textContent, 0, 0);
+
+        const lines = layer.textContent.split('\n');
+        const lineHeight = scaledFontSize * 1.2;
+        const totalHeight = (lines.length - 1) * lineHeight;
+        const startingY = -totalHeight / 2;
+
+        lines.forEach((line, index) => {
+          ctx.fillText(line, 0, startingY + index * lineHeight);
+        });
+
         ctx.restore();
         resolve();
       } else {
