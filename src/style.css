@@ -105,6 +105,10 @@ h3 {
   background-color: var(--bg-secondary);
 }
 
+.upload-zone.dragover {
+  background-color: var(--bg-secondary);
+}
+
 .image-module {
   margin-bottom: 24px;
   padding: 16px;

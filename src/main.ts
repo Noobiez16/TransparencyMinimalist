@@ -53,24 +53,32 @@ const $ = <T extends HTMLElement>(id: string): T => {
   return el as T;
 };
 
-// Drag and Drop File Handlers
+// Drag and Drop File Handlers & Caching
 const uploadZone = $('upload-zone');
 const fileInput = $('file-input') as HTMLInputElement;
+
+const imgMain = $('layer-main') as HTMLImageElement;
+const previewBoxMain = $('preview-box-main');
+const fileInfoMain = $('file-info-main');
+
+const imgHidden = $('layer-hidden') as HTMLImageElement;
+const previewBoxHidden = $('preview-box-hidden');
+const fileInfoHidden = $('file-info-hidden');
 
 uploadZone.addEventListener('click', () => fileInput.click());
 
 uploadZone.addEventListener('dragover', (e) => {
   e.preventDefault();
-  uploadZone.style.backgroundColor = '#F5F5F5';
+  uploadZone.classList.add('dragover');
 });
 
 uploadZone.addEventListener('dragleave', () => {
-  uploadZone.style.backgroundColor = '#FFFFFF';
+  uploadZone.classList.remove('dragover');
 });
 
 uploadZone.addEventListener('drop', (e) => {
   e.preventDefault();
-  uploadZone.style.backgroundColor = '#FFFFFF';
+  uploadZone.classList.remove('dragover');
   const files = e.dataTransfer?.files;
   if (files && files.length > 0) {
     handleUploadedFiles(files);
@@ -104,10 +112,6 @@ function handleUploadedFiles(files: FileList) {
 
 function updateUI() {
   // Update main preview panel source
-  const imgMain = $('layer-main') as HTMLImageElement;
-  const previewBoxMain = $('preview-box-main');
-  const fileInfoMain = $('file-info-main');
-
   if (state.mainImage) {
     imgMain.src = state.mainImage;
     imgMain.style.display = 'block';
@@ -120,10 +124,6 @@ function updateUI() {
   }
 
   // Update hidden preview panel source
-  const imgHidden = $('layer-hidden') as HTMLImageElement;
-  const previewBoxHidden = $('preview-box-hidden');
-  const fileInfoHidden = $('file-info-hidden');
-
   if (state.hiddenImage) {
     imgHidden.src = state.hiddenImage;
     imgHidden.style.display = 'block';
