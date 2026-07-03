@@ -232,9 +232,42 @@ canvasRatioSelect.addEventListener('change', updateCanvasDimensions);
 canvasWidthInput.addEventListener('input', updateCanvasDimensions);
 canvasHeightInput.addEventListener('input', updateCanvasDimensions);
 
-// --- Drag and Drop Stub ---
-function bindDragAndDropEvents(_card: HTMLElement) {
-  // Stub for Task 5
+let draggedId: string | null = null;
+
+function bindDragAndDropEvents(card: HTMLElement) {
+  card.addEventListener('dragstart', (e) => {
+    draggedId = card.dataset.id || null;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  });
+
+  card.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+  });
+
+  card.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const targetId = card.dataset.id;
+    if (!draggedId || !targetId || draggedId === targetId) return;
+
+    const draggedIndex = state.layers.findIndex(l => l.id === draggedId);
+    const targetIndex = state.layers.findIndex(l => l.id === targetId);
+
+    if (draggedIndex !== -1 && targetIndex !== -1) {
+      const [removed] = state.layers.splice(draggedIndex, 1);
+      state.layers.splice(targetIndex, 0, removed);
+      updateUI();
+    }
+    draggedId = null;
+  });
+
+  card.addEventListener('dragend', () => {
+    draggedId = null;
+  });
 }
 
 // --- UI Rendering & Sync ---
@@ -531,6 +564,45 @@ propTextColor.addEventListener('input', () => {
   if (layer && layer.type === 'text') {
     layer.textColor = propTextColor.value;
     updateUI();
+  }
+});
+
+// --- Canvas Background theme & Custom Color selection ---
+document.querySelectorAll('.btn-theme').forEach((btn) => {
+  btn.addEventListener('click', (e) => {
+    const target = e.currentTarget as HTMLButtonElement;
+    const bg = target.dataset.bg as 'transparent' | 'white' | 'black' | 'custom';
+    
+    document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+    target.classList.add('active');
+
+    state.canvasBgType = bg;
+    const colorPicker = $<HTMLInputElement>('bg-color-picker');
+    
+    viewport.className = 'canvas-viewport';
+    viewport.style.backgroundColor = '';
+
+    if (bg === 'transparent') {
+      viewport.classList.add('checkerboard-bg');
+      colorPicker.style.display = 'none';
+    } else if (bg === 'white') {
+      viewport.style.backgroundColor = '#ffffff';
+      colorPicker.style.display = 'none';
+    } else if (bg === 'black') {
+      viewport.style.backgroundColor = '#000000';
+      colorPicker.style.display = 'none';
+    } else if (bg === 'custom') {
+      colorPicker.style.display = 'inline-block';
+      viewport.style.backgroundColor = colorPicker.value;
+    }
+  });
+});
+
+$('bg-color-picker').addEventListener('input', (e) => {
+  const val = (e.target as HTMLInputElement).value;
+  state.canvasBgColor = val;
+  if (state.canvasBgType === 'custom') {
+    viewport.style.backgroundColor = val;
   }
 });
 

@@ -6,6 +6,6 @@
 | Task 2: State Schema & Event Listeners | DONE | 334a657..410eee7 | Approved |
 | Task 3: Render Viewport Preview & Controls Sync | DONE | ff84b82..c0ffc94 | Approved |
 | Task 4: File Load, Clipboard Paste, & Text Layers | DONE | 248dbcb..ec2a0d0 | Approved |
-| Task 5: Z-Index Drag-and-Drop Card Reordering | TODO | - | - |
+| Task 5: Z-Index Drag-and-Drop Card Reordering | DONE | ec2a0d0..9d45975 | Approved |
 | Task 6: High-Resolution Canvas Export Engine | TODO | - | - |
 | Task 7: Initial Layer Seeding & Build Verification | TODO | - | - |
