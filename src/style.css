@@ -4,6 +4,7 @@
   --text-primary: #000000;
   --text-secondary: #A0A0A0;
   --bg-secondary: #F5F5F5;
+  --accent-color: #6366F1; /* Sleek Indigo/Violet */
 }
 
 * {
@@ -11,6 +12,11 @@
   margin: 0;
   padding: 0;
   border-radius: 0 !important; /* Strict B&W 0px border-radius */
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
 }
 
 body {
@@ -169,7 +175,8 @@ h3 {
 }
 
 .btn-theme.active {
-  background: var(--text-primary);
+  background: var(--accent-color);
+  border-color: var(--accent-color);
   color: var(--bg-main);
 }
 
@@ -240,7 +247,7 @@ h3 {
 .pulse-dot {
   width: 6px;
   height: 6px;
-  background-color: #000000;
+  background-color: var(--accent-color);
   display: inline-block;
   animation: pulse 1.5s infinite;
 }
@@ -275,6 +282,7 @@ h3 {
 
 .layer-item.active {
   background: var(--bg-secondary);
+  border-color: var(--accent-color);
 }
 
 .radio-container {
@@ -283,6 +291,28 @@ h3 {
   gap: 8px;
   font-size: 12px;
   cursor: pointer;
+  position: relative;
+}
+
+.radio-container input[type="radio"] {
+  opacity: 0;
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.checkmark {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-main);
+  cursor: pointer;
+}
+
+input[type="radio"]:checked + .checkmark {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 .layer-actions {
@@ -319,8 +349,8 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 12px;
   height: 12px;
-  background: var(--border-color);
-  border: 1px solid var(--border-color);
+  background: var(--accent-color);
+  border: 1px solid var(--accent-color);
   cursor: pointer;
 }
 
@@ -399,7 +429,7 @@ input[type="checkbox"]:checked::after {
   left: 2px;
   width: 8px;
   height: 8px;
-  background: var(--border-color);
+  background: var(--accent-color);
 }
 
 @media (max-width: 1024px) {
