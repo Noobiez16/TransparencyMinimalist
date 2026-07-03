@@ -120,6 +120,13 @@ h3 {
   padding: 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: border-color 0.15s, outline 0.15s;
+}
+
+.image-module.active {
+  border-color: var(--accent-color);
+  outline: 1px solid var(--accent-color);
 }
 
 .preview-box {

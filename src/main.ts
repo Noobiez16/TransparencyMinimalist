@@ -70,6 +70,8 @@ const fileInfoHidden = $('file-info-hidden');
 const viewport = $('canvas-viewport');
 const itemMain = $('layer-item-main');
 const itemHidden = $('layer-item-hidden');
+const moduleMain = $('module-main');
+const moduleHidden = $('module-hidden');
 
 // Drag and Drop File Handlers
 uploadZone.addEventListener('click', () => fileInput.click());
@@ -192,12 +194,16 @@ function updateActiveLayerControls() {
   if (isMain) {
     itemMain.classList.add('active');
     itemHidden.classList.remove('active');
+    moduleMain.classList.add('active');
+    moduleHidden.classList.remove('active');
     opacitySlider.value = state.mainOpacity.toString();
     opacityNumber.value = state.mainOpacity.toString();
     $('effects-section').classList.add('disabled');
   } else {
     itemMain.classList.remove('active');
     itemHidden.classList.add('active');
+    moduleMain.classList.remove('active');
+    moduleHidden.classList.add('active');
     opacitySlider.value = state.hiddenOpacity.toString();
     opacityNumber.value = state.hiddenOpacity.toString();
     $('effects-section').classList.remove('disabled');
@@ -211,6 +217,27 @@ document.querySelectorAll('input[name="active-layer"]').forEach((input) => {
     state.activeLayer = (e.target as HTMLInputElement).value as 'main' | 'hidden';
     updateActiveLayerControls();
   });
+});
+
+// Click on cards to select active layer
+moduleMain.addEventListener('click', (e) => {
+  // Avoid triggering selection when clicking swap button
+  if ((e.target as HTMLElement).closest('.btn-swap')) return;
+  
+  state.activeLayer = 'main';
+  const radio = document.querySelector('input[name="active-layer"][value="main"]') as HTMLInputElement;
+  if (radio) radio.checked = true;
+  updateActiveLayerControls();
+});
+
+moduleHidden.addEventListener('click', (e) => {
+  // Avoid triggering selection when clicking swap button
+  if ((e.target as HTMLElement).closest('.btn-swap')) return;
+  
+  state.activeLayer = 'hidden';
+  const radio = document.querySelector('input[name="active-layer"][value="hidden"]') as HTMLInputElement;
+  if (radio) radio.checked = true;
+  updateActiveLayerControls();
 });
 
 // Opacity change listeners
