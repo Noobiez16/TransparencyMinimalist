@@ -655,36 +655,47 @@ $('btn-export').addEventListener('click', () => {
     return;
   }
 
-  const canvas = document.createElement('canvas');
-  canvas.width = state.canvasWidth;
-  canvas.height = state.canvasHeight;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  // Pre-load all image layers asynchronously before drawing
+  const loadPromises = state.layers.map((layer) => {
+    if (layer.type === 'image' && layer.imageSrc) {
+      return new Promise<{ layer: LayerState; img: HTMLImageElement | null }>((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve({ layer, img });
+        img.onerror = () => resolve({ layer, img: null });
+        img.src = layer.imageSrc!;
+      });
+    } else {
+      return Promise.resolve({ layer, img: null });
+    }
+  });
 
-  // Draw background
-  if (state.canvasBgType === 'white') {
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  } else if (state.canvasBgType === 'black') {
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  } else if (state.canvasBgType === 'custom') {
-    ctx.fillStyle = state.canvasBgColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  } else {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+  Promise.all(loadPromises).then((loadedLayers) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = state.canvasWidth;
+    canvas.height = state.canvasHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-  // Scale multiplier for physical blur scaling (aspect-ratio aware)
-  const scaleFactor = Math.max(canvas.width, canvas.height) / 500;
+    // Draw background
+    if (state.canvasBgType === 'white') {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else if (state.canvasBgType === 'black') {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else if (state.canvasBgType === 'custom') {
+      ctx.fillStyle = state.canvasBgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
-  // Compile layers from bottom to top (reversed layers array)
-  const renderPromises = [...state.layers].reverse().map((layer) => {
-    return new Promise<void>((resolve) => {
-      if (!layer.visible) {
-        resolve();
-        return;
-      }
+    // Scale multiplier for physical blur scaling (aspect-ratio aware)
+    const scaleFactor = Math.max(canvas.width, canvas.height) / 500;
+
+    // Draw layers sequentially from bottom to top (reversed array)
+    [...loadedLayers].reverse().forEach(({ layer, img }) => {
+      if (!layer.visible) return;
 
       ctx.save();
       ctx.globalAlpha = layer.opacity / 100;
@@ -712,19 +723,9 @@ $('btn-export').addEventListener('click', () => {
         `.replace(/\s+/g, ' ').trim();
       }
 
-      if (layer.type === 'image' && layer.imageSrc) {
-        const img = new Image();
-        img.onload = () => {
-          // Draw image cropped-to-fit centered
-          drawCoverImage(ctx, img, canvas.width, canvas.height);
-          ctx.restore();
-          resolve();
-        };
-        img.onerror = () => {
-          ctx.restore();
-          resolve();
-        };
-        img.src = layer.imageSrc;
+      if (layer.type === 'image' && img) {
+        // Draw image cropped-to-fit centered
+        drawCoverImage(ctx, img, canvas.width, canvas.height);
       } else if (layer.type === 'text') {
         // Draw scaled text line-by-line to support multi-line newlines
         const scaledFontSize = Math.round(layer.fontSize * scaleFactor);
@@ -741,17 +742,11 @@ $('btn-export').addEventListener('click', () => {
         lines.forEach((line, index) => {
           ctx.fillText(line, 0, startingY + index * lineHeight);
         });
-
-        ctx.restore();
-        resolve();
-      } else {
-        ctx.restore();
-        resolve();
       }
-    });
-  });
 
-  Promise.all(renderPromises).then(() => {
+      ctx.restore();
+    });
+
     // Trigger download
     canvas.toBlob((blob) => {
       if (blob) {
