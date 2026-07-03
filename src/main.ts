@@ -744,9 +744,8 @@ $('btn-export').addEventListener('click', () => {
           resolve();
         };
         img.src = layer.imageSrc;
-      } else if (layer.type === 'text') {
         // Draw scaled text line-by-line to support multi-line newlines
-        const scaledFontSize = Math.round(layer.fontSize * (canvas.width / 500));
+        const scaledFontSize = Math.round(layer.fontSize * scaleFactor);
         ctx.font = `${scaledFontSize}px ${layer.fontFamily}`;
         ctx.fillStyle = layer.textColor;
         ctx.textAlign = 'center';
