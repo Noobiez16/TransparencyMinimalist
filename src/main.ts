@@ -606,6 +606,127 @@ $('bg-color-picker').addEventListener('input', (e) => {
   }
 });
 
+function mapBlendModeToCompositeOp(blend: string): GlobalCompositeOperation {
+  switch (blend) {
+    case 'multiply': return 'multiply';
+    case 'screen': return 'screen';
+    case 'overlay': return 'overlay';
+    case 'darken': return 'darken';
+    case 'lighten': return 'lighten';
+    default: return 'source-over';
+  }
+}
+
+$('btn-export').addEventListener('click', () => {
+  if (state.layers.length === 0) {
+    alert('Add at least one layer to export.');
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = state.canvasWidth;
+  canvas.height = state.canvasHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // Draw background
+  if (state.canvasBgType === 'white') {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (state.canvasBgType === 'black') {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (state.canvasBgType === 'custom') {
+    ctx.fillStyle = state.canvasBgColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Scale multiplier for physical blur scaling
+  const scaleFactor = canvas.width / 500;
+
+  // Compile layers from bottom to top (reversed layers array)
+  const renderPromises = [...state.layers].reverse().map((layer) => {
+    return new Promise<void>((resolve) => {
+      if (!layer.visible) {
+        resolve();
+        return;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = layer.opacity / 100;
+      ctx.globalCompositeOperation = mapBlendModeToCompositeOp(layer.blendMode);
+
+      // Apply transformations
+      const dx = (layer.xOffset / 100) * canvas.width;
+      const dy = (layer.yOffset / 100) * canvas.height;
+      ctx.translate(canvas.width / 2 + dx, canvas.height / 2 + dy);
+      ctx.scale(layer.scale / 100, layer.scale / 100);
+
+      // Apply filters
+      if (layer.type === 'image') {
+        ctx.filter = `
+          blur(${layer.blur * scaleFactor}px)
+          contrast(${layer.contrast}%)
+          saturate(${layer.saturation}%)
+          brightness(${layer.brightness}%)
+          ${layer.invert ? 'invert(1)' : ''}
+        `.replace(/\s+/g, ' ').trim();
+      } else {
+        ctx.filter = `
+          blur(${layer.blur * scaleFactor}px)
+          ${layer.invert ? 'invert(1)' : ''}
+        `.replace(/\s+/g, ' ').trim();
+      }
+
+      if (layer.type === 'image' && layer.imageSrc) {
+        const img = new Image();
+        img.onload = () => {
+          // Draw image centered
+          ctx.drawImage(img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+          ctx.restore();
+          resolve();
+        };
+        img.onerror = () => {
+          ctx.restore();
+          resolve();
+        };
+        img.src = layer.imageSrc;
+      } else if (layer.type === 'text') {
+        // Draw scaled text
+        const scaledFontSize = Math.round(layer.fontSize * (canvas.width / 500));
+        ctx.font = `${scaledFontSize}px ${layer.fontFamily}`;
+        ctx.fillStyle = layer.textColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(layer.textContent, 0, 0);
+        ctx.restore();
+        resolve();
+      } else {
+        ctx.restore();
+        resolve();
+      }
+    });
+  });
+
+  Promise.all(renderPromises).then(() => {
+    // Trigger download
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `composition_${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    }, 'image/png');
+  });
+});
+
 // Initialize canvas presets and UI
 updateCanvasDimensions();
 updateUI();
