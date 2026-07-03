@@ -8,4 +8,4 @@
 | Task 4: File Load, Clipboard Paste, & Text Layers | DONE | 248dbcb..ec2a0d0 | Approved |
 | Task 5: Z-Index Drag-and-Drop Card Reordering | DONE | 2b018c0..0dabfd4 | Approved |
 | Task 6: High-Resolution Canvas Export Engine | DONE | d689eaa..50541dd | Approved |
-| Task 7: Initial Layer Seeding & Build Verification | TODO | - | - |
+| Task 7: Initial Layer Seeding & Build Verification | DONE | 1449c04..8017ba6 | Approved |
