@@ -727,6 +727,19 @@ $('btn-export').addEventListener('click', () => {
   });
 });
 
+// Seed two default layers on startup
+const defaultImageLayer = createNewLayer('image');
+defaultImageLayer.name = "Background Image";
+state.layers.push(defaultImageLayer);
+
+const defaultTextLayer = createNewLayer('text');
+defaultTextLayer.name = "Text Overlay";
+defaultTextLayer.textContent = "Minimalist Editor";
+defaultTextLayer.yOffset = -10; // offset slightly
+state.layers.push(defaultTextLayer);
+
+state.activeLayerId = defaultTextLayer.id;
+
 // Initialize canvas presets and UI
 updateCanvasDimensions();
 updateUI();
