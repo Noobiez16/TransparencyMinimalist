@@ -45,7 +45,7 @@ const state: AppState = {
   exportRatio: '1:1',
   exportResolution: 2,
   theme: 'light',
-  layerOrder: ['hidden', 'main']
+  layerOrder: ['main', 'hidden']
 };
 
 // DOM Selection Helper
@@ -236,6 +236,22 @@ moduleHidden.addEventListener('click', (e) => {
   
   state.activeLayer = 'hidden';
   const radio = document.querySelector('input[name="active-layer"][value="hidden"]') as HTMLInputElement;
+  if (radio) radio.checked = true;
+  updateActiveLayerControls();
+});
+
+itemMain.addEventListener('click', (e) => {
+  if ((e.target as HTMLElement).closest('.layer-actions')) return;
+  state.activeLayer = 'main';
+  const radio = itemMain.querySelector('input[type="radio"]') as HTMLInputElement;
+  if (radio) radio.checked = true;
+  updateActiveLayerControls();
+});
+
+itemHidden.addEventListener('click', (e) => {
+  if ((e.target as HTMLElement).closest('.layer-actions')) return;
+  state.activeLayer = 'hidden';
+  const radio = itemHidden.querySelector('input[type="radio"]') as HTMLInputElement;
   if (radio) radio.checked = true;
   updateActiveLayerControls();
 });
