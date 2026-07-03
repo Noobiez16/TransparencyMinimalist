@@ -286,6 +286,136 @@ bindEffect(contrastSlider, 'contrast-value', 'contrast', '%');
 bindEffect(saturationSlider, 'saturation-value', 'saturation', '%');
 bindEffect(brightnessSlider, 'brightness-value', 'brightness', '%');
 
+// Export ratio and resolution selection listeners
+const exportRatioSelect = $('export-ratio') as HTMLSelectElement;
+const exportResolutionSlider = $('export-resolution') as HTMLInputElement;
+
+exportRatioSelect.addEventListener('change', () => {
+  state.exportRatio = exportRatioSelect.value as '1:1' | '4:5';
+});
+
+exportResolutionSlider.addEventListener('input', () => {
+  state.exportResolution = parseInt(exportResolutionSlider.value) as 1 | 2 | 3;
+});
+
+function mapBlendModeToCompositeOp(blend: 'normal' | 'multiply' | 'screen'): GlobalCompositeOperation {
+  switch (blend) {
+    case 'multiply': return 'multiply';
+    case 'screen': return 'screen';
+    case 'normal':
+    default: return 'source-over';
+  }
+}
+
+const btnExport = $('btn-export');
+
+btnExport.addEventListener('click', () => {
+  if (!state.mainImage && !state.hiddenImage) {
+    alert("Please upload at least one image first!");
+    return;
+  }
+
+  // Determine dimensions based on resolution settings
+  let width = 1024;
+  if (state.exportResolution === 1) width = 512;
+  if (state.exportResolution === 3) width = 2048;
+
+  let height = width;
+  if (state.exportRatio === '4:5') {
+    height = Math.round(width * 1.25);
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // Load elements to draw
+  const imgMain = $('layer-main') as HTMLImageElement;
+  const imgHidden = $('layer-hidden') as HTMLImageElement;
+
+  // Trigger sequential loading to ensure elements are ready
+  drawCanvasLayers(canvas, ctx, imgMain, imgHidden);
+});
+
+function drawCanvasLayers(
+  canvas: HTMLCanvasElement, 
+  ctx: CanvasRenderingContext2D, 
+  imgMain: HTMLImageElement, 
+  imgHidden: HTMLImageElement
+) {
+  const width = canvas.width;
+  const height = canvas.height;
+  
+  ctx.clearRect(0, 0, width, height);
+
+  // Scaling factor for physical pixel filters (e.g. blur scale)
+  const scaleFactor = width / 500; // Base width preview is roughly 500px
+
+  // Draw Hidden Layer First (if loaded and visible)
+  if (state.hiddenImage && state.hiddenVisible) {
+    ctx.save();
+    ctx.globalAlpha = state.hiddenOpacity / 100;
+    ctx.globalCompositeOperation = mapBlendModeToCompositeOp(state.hiddenEffects.blendMode);
+    
+    // Map filters to Canvas 2D filters
+    ctx.filter = `
+      blur(${state.hiddenEffects.blur * scaleFactor}px)
+      contrast(${state.hiddenEffects.contrast}%)
+      saturate(${state.hiddenEffects.saturation}%)
+      brightness(${state.hiddenEffects.brightness}%)
+      ${state.hiddenEffects.invert ? 'invert(1)' : ''}
+    `.replace(/\s+/g, ' ').trim();
+
+    // Cover scaling for aspect square/vertical
+    drawCoverImage(ctx, imgHidden, width, height);
+    ctx.restore();
+  }
+
+  // Draw Main Layer (if loaded and visible)
+  if (state.mainImage && state.mainVisible) {
+    ctx.save();
+    ctx.globalAlpha = state.mainOpacity / 100;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.filter = 'none';
+
+    drawCoverImage(ctx, imgMain, width, height);
+    ctx.restore();
+  }
+
+  // Download generated blob
+  canvas.toBlob((blob) => {
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `twitter_hidden_image_${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  }, 'image/png');
+}
+
+// Cover positioning helper similar to CSS object-fit: cover
+function drawCoverImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: number, h: number) {
+  const imgRatio = img.naturalWidth / img.naturalHeight;
+  const canvasRatio = w / h;
+  let sx = 0, sy = 0, sWidth = img.naturalWidth, sHeight = img.naturalHeight;
+
+  if (imgRatio > canvasRatio) {
+    sWidth = img.naturalHeight * canvasRatio;
+    sx = (img.naturalWidth - sWidth) / 2;
+  } else {
+    sHeight = img.naturalWidth / canvasRatio;
+    sy = (img.naturalHeight - sHeight) / 2;
+  }
+
+  ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, w, h);
+}
+
 function applyEffectsToPreview() {
   const imgMain = $('layer-main') as HTMLImageElement;
   const imgHidden = $('layer-hidden') as HTMLImageElement;
