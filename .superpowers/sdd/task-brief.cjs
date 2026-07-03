@@ -10,6 +10,12 @@ const planFile = path.resolve(process.argv[2]);
 const taskNumber = process.argv[3];
 let outFile = process.argv[4];
 
+// Sanitize input to prevent regex injection / ReDoS
+if (!/^\d+$/.test(taskNumber)) {
+  console.error("Security Error: Invalid task number. Must consist entirely of digits.");
+  process.exit(1);
+}
+
 if (!outFile) {
   const root = path.resolve(__dirname, '../..');
   outFile = path.join(root, '.superpowers', 'sdd', `task-${taskNumber}-brief.md`);
