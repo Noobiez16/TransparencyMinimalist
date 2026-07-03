@@ -151,48 +151,6 @@ function handleUploadedFiles(files: FileList) {
   });
 }
 
-// Clipboard Paste Support (Ctrl+V)
-document.addEventListener('paste', (e) => {
-  const clipboardData = e.clipboardData;
-  if (!clipboardData) return;
-
-  const items = clipboardData.items;
-  const fileList: File[] = [];
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (item.type.startsWith('image/')) {
-      const file = item.getAsFile();
-      if (file) fileList.push(file);
-    }
-  }
-
-  if (fileList.length > 0) {
-    const targetFile = fileList[0];
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      const layer = getActiveLayer();
-      
-      if (layer && layer.type === 'image' && !layer.imageSrc) {
-        layer.imageSrc = dataUrl;
-        layer.imageName = `pasted_image_${Date.now()}.png`;
-      } else {
-        const newLayer = createNewLayer('image');
-        newLayer.imageSrc = dataUrl;
-        newLayer.imageName = `pasted_image_${Date.now()}.png`;
-        state.layers.unshift(newLayer);
-        state.activeLayerId = newLayer.id;
-      }
-      updateUI();
-    };
-    reader.onerror = () => {
-      alert('Failed to read pasted image.');
-    };
-    reader.readAsDataURL(targetFile);
-  }
-});
 
 // --- Canvas Dimension & Presets ---
 const canvasRatioSelect = $('canvas-ratio') as HTMLSelectElement;
