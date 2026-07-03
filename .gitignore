@@ -111,3 +111,6 @@ dist-ssr/
 
 # Store double-entry ledger database file
 *.db
+
+# Superpowers task logs and scripts
+.superpowers/sdd/
