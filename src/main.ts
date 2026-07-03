@@ -524,3 +524,47 @@ const updateLayerOrderFromDOM = () => {
 updateActiveLayerControls();
 updateViewportAspectRatio();
 applyEffectsToPreview();
+
+// Clipboard Paste Support (Ctrl+V)
+document.addEventListener('paste', (e) => {
+  const clipboardData = e.clipboardData;
+  if (!clipboardData) return;
+
+  const items = clipboardData.items;
+  const fileList: File[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) {
+        fileList.push(file);
+      }
+    }
+  }
+
+  if (fileList.length > 0) {
+    const targetFile = fileList[0];
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      const isMain = state.activeLayer === 'main';
+
+      if (isMain) {
+        state.mainImage = dataUrl;
+        state.mainImageName = `pasted_image_${Date.now()}.png`;
+      } else {
+        state.hiddenImage = dataUrl;
+        state.hiddenImageName = `pasted_image_${Date.now()}.png`;
+      }
+      updateUI();
+    };
+
+    reader.onerror = () => {
+      alert('Failed to read pasted image.');
+    };
+
+    reader.readAsDataURL(targetFile);
+  }
+});
