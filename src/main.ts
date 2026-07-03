@@ -694,8 +694,8 @@ $('btn-export').addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
-  // Scale multiplier for physical blur scaling
-  const scaleFactor = canvas.width / 500;
+  // Scale multiplier for physical blur scaling (aspect-ratio aware)
+  const scaleFactor = Math.max(canvas.width, canvas.height) / 500;
 
   // Compile layers from bottom to top (reversed layers array)
   const renderPromises = [...state.layers].reverse().map((layer) => {
@@ -788,15 +788,15 @@ $('btn-export').addEventListener('click', () => {
 });
 
 // Seed two default layers on startup
-const defaultImageLayer = createNewLayer('image');
-defaultImageLayer.name = "Background Image";
-state.layers.push(defaultImageLayer);
-
 const defaultTextLayer = createNewLayer('text');
 defaultTextLayer.name = "Text Overlay";
 defaultTextLayer.textContent = "Minimalist Editor";
 defaultTextLayer.yOffset = -10; // offset slightly
 state.layers.push(defaultTextLayer);
+
+const defaultImageLayer = createNewLayer('image');
+defaultImageLayer.name = "Background Image";
+state.layers.push(defaultImageLayer);
 
 state.activeLayerId = defaultTextLayer.id;
 
