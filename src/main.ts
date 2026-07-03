@@ -134,6 +134,8 @@ function updateUI() {
     previewBoxHidden.innerHTML = `<span class="placeholder">No Image</span>`;
     fileInfoHidden.textContent = 'No file selected';
   }
+
+  applyEffectsToPreview();
 }
 
 // Swap Role Buttons
@@ -151,3 +153,158 @@ document.querySelectorAll('.btn-swap').forEach((btn) => {
     updateUI();
   });
 });
+
+// Theme selection
+document.querySelectorAll('.btn-theme').forEach((btn) => {
+  btn.addEventListener('click', (e) => {
+    const target = e.currentTarget as HTMLButtonElement;
+    const theme = target.dataset.theme as 'light' | 'dim' | 'dark';
+    
+    document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+    target.classList.add('active');
+
+    state.theme = theme;
+    
+    const viewport = $('canvas-viewport');
+    viewport.className = 'canvas-viewport';
+    if (theme === 'dim') viewport.classList.add('theme-dim');
+    if (theme === 'dark') viewport.classList.add('theme-dark');
+  });
+});
+
+// Layer selection, opacity sync, and visibility toggles
+const opacitySlider = $('opacity-slider') as HTMLInputElement;
+const opacityNumber = $('opacity-number') as HTMLInputElement;
+
+function updateActiveLayerControls() {
+  const isMain = state.activeLayer === 'main';
+  
+  // Highlight active layer item card
+  if (isMain) {
+    $('layer-item-main').classList.add('active');
+    $('layer-item-hidden').classList.remove('active');
+    opacitySlider.value = state.mainOpacity.toString();
+    opacityNumber.value = state.mainOpacity.toString();
+    $('effects-section').classList.add('disabled');
+  } else {
+    $('layer-item-main').classList.remove('active');
+    $('layer-item-hidden').classList.add('active');
+    opacitySlider.value = state.hiddenOpacity.toString();
+    opacityNumber.value = state.hiddenOpacity.toString();
+    $('effects-section').classList.remove('disabled');
+    syncEffectsUI();
+  }
+}
+
+// Radio selection listeners
+document.querySelectorAll('input[name="active-layer"]').forEach((input) => {
+  input.addEventListener('change', (e) => {
+    state.activeLayer = (e.target as HTMLInputElement).value as 'main' | 'hidden';
+    updateActiveLayerControls();
+  });
+});
+
+// Opacity change listeners
+function setOpacity(val: number) {
+  if (state.activeLayer === 'main') {
+    state.mainOpacity = val;
+  } else {
+    state.hiddenOpacity = val;
+  }
+  applyEffectsToPreview();
+}
+
+opacitySlider.addEventListener('input', () => {
+  opacityNumber.value = opacitySlider.value;
+  setOpacity(parseInt(opacitySlider.value));
+});
+
+opacityNumber.addEventListener('input', () => {
+  opacitySlider.value = opacityNumber.value;
+  setOpacity(parseInt(opacityNumber.value));
+});
+
+// Visibility toggle icons
+$('toggle-visibility-main').addEventListener('click', (e) => {
+  state.mainVisible = !state.mainVisible;
+  (e.target as HTMLElement).textContent = state.mainVisible ? '👁' : '❌';
+  applyEffectsToPreview();
+});
+
+$('toggle-visibility-hidden').addEventListener('click', (e) => {
+  state.hiddenVisible = !state.hiddenVisible;
+  (e.target as HTMLElement).textContent = state.hiddenVisible ? '👁' : '❌';
+  applyEffectsToPreview();
+});
+
+// Effects slider listeners and preview styling sync
+const blendSelect = $('blend-mode') as HTMLSelectElement;
+const blurSlider = $('blur-slider') as HTMLInputElement;
+const contrastSlider = $('contrast-slider') as HTMLInputElement;
+const saturationSlider = $('saturation-slider') as HTMLInputElement;
+const brightnessSlider = $('brightness-slider') as HTMLInputElement;
+const invertToggle = $('invert-toggle') as HTMLInputElement;
+
+function syncEffectsUI() {
+  blendSelect.value = state.hiddenEffects.blendMode;
+  blurSlider.value = state.hiddenEffects.blur.toString();
+  $('blur-value').textContent = `${state.hiddenEffects.blur}px`;
+  contrastSlider.value = state.hiddenEffects.contrast.toString();
+  $('contrast-value').textContent = `${state.hiddenEffects.contrast}%`;
+  saturationSlider.value = state.hiddenEffects.saturation.toString();
+  $('saturation-value').textContent = `${state.hiddenEffects.saturation}%`;
+  brightnessSlider.value = state.hiddenEffects.brightness.toString();
+  $('brightness-value').textContent = `${state.hiddenEffects.brightness}%`;
+  invertToggle.checked = state.hiddenEffects.invert;
+}
+
+function bindEffect(slider: HTMLInputElement, valueElId: string, effectKey: keyof HiddenEffects, suffix: string = '') {
+  slider.addEventListener('input', () => {
+    const val = slider.value;
+    $(valueElId).textContent = `${val}${suffix}`;
+    if (typeof state.hiddenEffects[effectKey] === 'boolean') {
+      (state.hiddenEffects as any)[effectKey] = slider.checked;
+    } else {
+      (state.hiddenEffects as any)[effectKey] = parseInt(val);
+    }
+    applyEffectsToPreview();
+  });
+}
+
+blendSelect.addEventListener('change', () => {
+  state.hiddenEffects.blendMode = blendSelect.value as 'normal' | 'multiply' | 'screen';
+  applyEffectsToPreview();
+});
+
+invertToggle.addEventListener('change', () => {
+  state.hiddenEffects.invert = invertToggle.checked;
+  applyEffectsToPreview();
+});
+
+bindEffect(blurSlider, 'blur-value', 'blur', 'px');
+bindEffect(contrastSlider, 'contrast-value', 'contrast', '%');
+bindEffect(saturationSlider, 'saturation-value', 'saturation', '%');
+bindEffect(brightnessSlider, 'brightness-value', 'brightness', '%');
+
+function applyEffectsToPreview() {
+  const imgMain = $('layer-main') as HTMLImageElement;
+  const imgHidden = $('layer-hidden') as HTMLImageElement;
+
+  // Apply visibility and opacity to Main Layer
+  imgMain.style.opacity = state.mainVisible ? (state.mainOpacity / 100).toString() : '0';
+
+  // Apply opacity, blending and filters to Hidden Layer
+  imgHidden.style.opacity = state.hiddenVisible ? (state.hiddenOpacity / 100).toString() : '0';
+  imgHidden.style.mixBlendMode = state.hiddenEffects.blendMode;
+  imgHidden.style.filter = `
+    blur(${state.hiddenEffects.blur}px)
+    contrast(${state.hiddenEffects.contrast}%)
+    saturate(${state.hiddenEffects.saturation}%)
+    brightness(${state.hiddenEffects.brightness}%)
+    ${state.hiddenEffects.invert ? 'invert(1)' : ''}
+  `.replace(/\s+/g, ' ').trim();
+}
+
+// Call initial updates on startup
+updateActiveLayerControls();
+applyEffectsToPreview();
