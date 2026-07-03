@@ -21,6 +21,7 @@ interface AppState {
   exportRatio: '1:1' | '4:5';
   exportResolution: 1 | 2 | 3;
   theme: 'light' | 'dim' | 'dark';
+  layerOrder: ('main' | 'hidden')[];
 }
 
 const state: AppState = {
@@ -43,7 +44,8 @@ const state: AppState = {
   },
   exportRatio: '1:1',
   exportResolution: 2,
-  theme: 'light'
+  theme: 'light',
+  layerOrder: ['hidden', 'main']
 };
 
 // DOM Selection Helper
@@ -53,7 +55,7 @@ const $ = <T extends HTMLElement>(id: string): T => {
   return el as T;
 };
 
-// Drag and Drop File Handlers & Caching
+// Cached DOM Elements
 const uploadZone = $('upload-zone');
 const fileInput = $('file-input') as HTMLInputElement;
 
@@ -65,6 +67,11 @@ const imgHidden = $('layer-hidden') as HTMLImageElement;
 const previewBoxHidden = $('preview-box-hidden');
 const fileInfoHidden = $('file-info-hidden');
 
+const viewport = $('canvas-viewport');
+const itemMain = $('layer-item-main');
+const itemHidden = $('layer-item-hidden');
+
+// Drag and Drop File Handlers
 uploadZone.addEventListener('click', () => fileInput.click());
 
 uploadZone.addEventListener('dragover', (e) => {
@@ -105,6 +112,9 @@ function handleUploadedFiles(files: FileList) {
         state.hiddenImageName = file.name;
       }
       updateUI();
+    };
+    reader.onerror = () => {
+      alert('Failed to read file.');
     };
     reader.readAsDataURL(file);
   });
@@ -165,7 +175,6 @@ document.querySelectorAll('.btn-theme').forEach((btn) => {
 
     state.theme = theme;
     
-    const viewport = $('canvas-viewport');
     viewport.className = 'canvas-viewport';
     if (theme === 'dim') viewport.classList.add('theme-dim');
     if (theme === 'dark') viewport.classList.add('theme-dark');
@@ -181,14 +190,14 @@ function updateActiveLayerControls() {
   
   // Highlight active layer item card
   if (isMain) {
-    $('layer-item-main').classList.add('active');
-    $('layer-item-hidden').classList.remove('active');
+    itemMain.classList.add('active');
+    itemHidden.classList.remove('active');
     opacitySlider.value = state.mainOpacity.toString();
     opacityNumber.value = state.mainOpacity.toString();
     $('effects-section').classList.add('disabled');
   } else {
-    $('layer-item-main').classList.remove('active');
-    $('layer-item-hidden').classList.add('active');
+    itemMain.classList.remove('active');
+    itemHidden.classList.add('active');
     opacitySlider.value = state.hiddenOpacity.toString();
     opacityNumber.value = state.hiddenOpacity.toString();
     $('effects-section').classList.remove('disabled');
@@ -216,12 +225,21 @@ function setOpacity(val: number) {
 
 opacitySlider.addEventListener('input', () => {
   opacityNumber.value = opacitySlider.value;
-  setOpacity(parseInt(opacitySlider.value));
+  setOpacity(parseInt(opacitySlider.value, 10));
 });
 
 opacityNumber.addEventListener('input', () => {
-  opacitySlider.value = opacityNumber.value;
-  setOpacity(parseInt(opacityNumber.value));
+  let val = parseInt(opacityNumber.value, 10);
+  if (isNaN(val)) {
+    val = 0;
+  }
+  if (val < 0) val = 0;
+  if (val > 100) val = 100;
+
+  opacitySlider.value = val.toString();
+  opacityNumber.value = val.toString();
+  
+  setOpacity(val);
 });
 
 // Visibility toggle icons
@@ -258,15 +276,15 @@ function syncEffectsUI() {
   invertToggle.checked = state.hiddenEffects.invert;
 }
 
-function bindEffect(slider: HTMLInputElement, valueElId: string, effectKey: keyof HiddenEffects, suffix: string = '') {
+function setNumericEffect(key: 'blur' | 'contrast' | 'saturation' | 'brightness', value: number) {
+  state.hiddenEffects[key] = value;
+}
+
+function bindEffect(slider: HTMLInputElement, valueElId: string, effectKey: 'blur' | 'contrast' | 'saturation' | 'brightness', suffix: string = '') {
   slider.addEventListener('input', () => {
     const val = slider.value;
     $(valueElId).textContent = `${val}${suffix}`;
-    if (typeof state.hiddenEffects[effectKey] === 'boolean') {
-      (state.hiddenEffects as any)[effectKey] = slider.checked;
-    } else {
-      (state.hiddenEffects as any)[effectKey] = parseInt(val);
-    }
+    setNumericEffect(effectKey, parseInt(val, 10));
     applyEffectsToPreview();
   });
 }
@@ -290,12 +308,21 @@ bindEffect(brightnessSlider, 'brightness-value', 'brightness', '%');
 const exportRatioSelect = $('export-ratio') as HTMLSelectElement;
 const exportResolutionSlider = $('export-resolution') as HTMLInputElement;
 
+const updateViewportAspectRatio = () => {
+  if (state.exportRatio === '4:5') {
+    viewport.style.aspectRatio = '4/5';
+  } else {
+    viewport.style.aspectRatio = '1/1';
+  }
+};
+
 exportRatioSelect.addEventListener('change', () => {
   state.exportRatio = exportRatioSelect.value as '1:1' | '4:5';
+  updateViewportAspectRatio();
 });
 
 exportResolutionSlider.addEventListener('input', () => {
-  state.exportResolution = parseInt(exportResolutionSlider.value) as 1 | 2 | 3;
+  state.exportResolution = parseInt(exportResolutionSlider.value, 10) as 1 | 2 | 3;
 });
 
 function mapBlendModeToCompositeOp(blend: 'normal' | 'multiply' | 'screen'): GlobalCompositeOperation {
@@ -331,19 +358,15 @@ btnExport.addEventListener('click', () => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  // Load elements to draw
-  const imgMain = $('layer-main') as HTMLImageElement;
-  const imgHidden = $('layer-hidden') as HTMLImageElement;
-
-  // Trigger sequential loading to ensure elements are ready
+  // Draw layers in order
   drawCanvasLayers(canvas, ctx, imgMain, imgHidden);
 });
 
 function drawCanvasLayers(
   canvas: HTMLCanvasElement, 
   ctx: CanvasRenderingContext2D, 
-  imgMain: HTMLImageElement, 
-  imgHidden: HTMLImageElement
+  imgMainImg: HTMLImageElement, 
+  imgHiddenImg: HTMLImageElement
 ) {
   const width = canvas.width;
   const height = canvas.height;
@@ -353,36 +376,39 @@ function drawCanvasLayers(
   // Scaling factor for physical pixel filters (e.g. blur scale)
   const scaleFactor = width / 500; // Base width preview is roughly 500px
 
-  // Draw Hidden Layer First (if loaded and visible)
-  if (state.hiddenImage && state.hiddenVisible) {
-    ctx.save();
-    ctx.globalAlpha = state.hiddenOpacity / 100;
-    ctx.globalCompositeOperation = mapBlendModeToCompositeOp(state.hiddenEffects.blendMode);
-    
-    // Map filters to Canvas 2D filters
-    ctx.filter = `
-      blur(${state.hiddenEffects.blur * scaleFactor}px)
-      contrast(${state.hiddenEffects.contrast}%)
-      saturate(${state.hiddenEffects.saturation}%)
-      brightness(${state.hiddenEffects.brightness}%)
-      ${state.hiddenEffects.invert ? 'invert(1)' : ''}
-    `.replace(/\s+/g, ' ').trim();
+  // Draw layers in layerOrder
+  state.layerOrder.forEach((layer) => {
+    if (layer === 'hidden') {
+      if (state.hiddenImage && state.hiddenVisible) {
+        ctx.save();
+        ctx.globalAlpha = state.hiddenOpacity / 100;
+        ctx.globalCompositeOperation = mapBlendModeToCompositeOp(state.hiddenEffects.blendMode);
+        
+        // Map filters to Canvas 2D filters
+        ctx.filter = `
+          blur(${state.hiddenEffects.blur * scaleFactor}px)
+          contrast(${state.hiddenEffects.contrast}%)
+          saturate(${state.hiddenEffects.saturation}%)
+          brightness(${state.hiddenEffects.brightness}%)
+          ${state.hiddenEffects.invert ? 'invert(1)' : ''}
+        `.replace(/\s+/g, ' ').trim();
 
-    // Cover scaling for aspect square/vertical
-    drawCoverImage(ctx, imgHidden, width, height);
-    ctx.restore();
-  }
+        // Cover scaling for aspect square/vertical
+        drawCoverImage(ctx, imgHiddenImg, width, height);
+        ctx.restore();
+      }
+    } else if (layer === 'main') {
+      if (state.mainImage && state.mainVisible) {
+        ctx.save();
+        ctx.globalAlpha = state.mainOpacity / 100;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.filter = 'none';
 
-  // Draw Main Layer (if loaded and visible)
-  if (state.mainImage && state.mainVisible) {
-    ctx.save();
-    ctx.globalAlpha = state.mainOpacity / 100;
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.filter = 'none';
-
-    drawCoverImage(ctx, imgMain, width, height);
-    ctx.restore();
-  }
+        drawCoverImage(ctx, imgMainImg, width, height);
+        ctx.restore();
+      }
+    }
+  });
 
   // Download generated blob
   canvas.toBlob((blob) => {
@@ -417,9 +443,6 @@ function drawCoverImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w:
 }
 
 function applyEffectsToPreview() {
-  const imgMain = $('layer-main') as HTMLImageElement;
-  const imgHidden = $('layer-hidden') as HTMLImageElement;
-
   // Apply visibility and opacity to Main Layer
   imgMain.style.opacity = state.mainVisible ? (state.mainOpacity / 100).toString() : '0';
 
@@ -433,8 +456,71 @@ function applyEffectsToPreview() {
     brightness(${state.hiddenEffects.brightness}%)
     ${state.hiddenEffects.invert ? 'invert(1)' : ''}
   `.replace(/\s+/g, ' ').trim();
+
+  // Apply visual z-index sorting based on layerOrder
+  imgHidden.style.zIndex = state.layerOrder.indexOf('hidden') === 0 ? '10' : '20';
+  imgMain.style.zIndex = state.layerOrder.indexOf('main') === 0 ? '10' : '20';
 }
+
+// HTML5 Drag-and-Drop for Layers
+let draggedId: string | null = null;
+
+const updateLayerOrderFromDOM = () => {
+  const parent = itemMain.parentNode;
+  if (!parent) return;
+  const children = Array.from(parent.children);
+  const mainIndex = children.indexOf(itemMain);
+  const hiddenIndex = children.indexOf(itemHidden);
+  if (mainIndex < hiddenIndex) {
+    state.layerOrder = ['hidden', 'main'];
+  } else {
+    state.layerOrder = ['main', 'hidden'];
+  }
+};
+
+[itemMain, itemHidden].forEach((item) => {
+  item.addEventListener('dragstart', (e) => {
+    draggedId = item.id;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  });
+
+  item.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+  });
+
+  item.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!draggedId || draggedId === item.id) return;
+    
+    const draggedEl = $(draggedId);
+    const targetEl = item;
+    const parent = targetEl.parentNode;
+    
+    if (parent && draggedEl !== targetEl) {
+      const children = Array.from(parent.children);
+      const draggedIndex = children.indexOf(draggedEl);
+      const targetIndex = children.indexOf(targetEl);
+      
+      if (draggedIndex < targetIndex) {
+        parent.insertBefore(draggedEl, targetEl.nextSibling);
+      } else {
+        parent.insertBefore(draggedEl, targetEl);
+      }
+      
+      updateLayerOrderFromDOM();
+      applyEffectsToPreview();
+    }
+    
+    draggedId = null;
+  });
+});
 
 // Call initial updates on startup
 updateActiveLayerControls();
+updateViewportAspectRatio();
 applyEffectsToPreview();
