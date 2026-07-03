@@ -1,12 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Transparency Layer Dashboard</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transparency Layer Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- COLUMN 1: Source Panel -->
+    <aside class="panel left-panel">
+      <h2>Source Images</h2>
+      <div class="upload-zone" id="upload-zone">
+        <p>Drag-and-drop or manual upload</p>
+        <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
+      </div>
+      
+      <div class="image-module" id="module-main">
+        <h3>Image Principal (Main)</h3>
+        <div class="preview-box" id="preview-box-main">
+          <span class="placeholder">No Image</span>
+        </div>
+        <div class="file-info" id="file-info-main">No file selected</div>
+        <button class="btn btn-secondary btn-swap" data-target="main">Set as Hidden</button>
+      </div>
+
+      <div class="image-module" id="module-hidden">
+        <h3>Image Oculta (Hidden)</h3>
+        <div class="preview-box" id="preview-box-hidden">
+          <span class="placeholder">No Image</span>
+        </div>
+        <div class="file-info" id="file-info-hidden">No file selected</div>
+        <button class="btn btn-secondary btn-swap" data-target="hidden">Set as Main</button>
+      </div>
+    </aside>
+
+    <!-- COLUMN 2: Composition Preview -->
+    <main class="panel center-panel">
+      <h2>Composition Preview</h2>
+      <div class="theme-toggles">
+        <button class="btn btn-theme active" data-theme="light">Light</button>
+        <button class="btn btn-theme" data-theme="dim">Dim</button>
+        <button class="btn btn-theme" data-theme="dark">Dark</button>
+      </div>
+
+      <div class="canvas-container" id="canvas-container">
+        <!-- Live compositing elements -->
+        <div class="canvas-viewport" id="canvas-viewport">
+          <img id="layer-hidden" class="layer" alt="Hidden Layer" style="display: none;">
+          <img id="layer-main" class="layer" alt="Main Layer" style="display: none;">
+          
+          <!-- Twitter/X Overlay SVG -->
+          <svg class="twitter-overlay" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outline Post Box -->
+            <rect x="10" y="10" width="480" height="480" rx="0" stroke="#A0A0A0" stroke-width="1" stroke-dasharray="4 4" />
+            <!-- Mock Twitter UI elements (Likes, Reposts) -->
+            <g transform="translate(30, 440)" stroke="#A0A0A0" stroke-width="1.5" fill="none">
+              <!-- Repost icon -->
+              <path d="M0 5h10M10 5l-3-3M10 5l-3 3M12 9H2M2 9l3-3M2 9l3 3" />
+              <!-- Heart / Like icon -->
+              <path d="M25 5c0-3 3-5 5-5s5 2 5 5c0 4-5 8-5 8s-5-4-5-8z" />
+              <!-- Share icon -->
+              <path d="M50 5v6M50 5l-3 3M50 5l3 3" />
+            </g>
+          </svg>
+
+          <!-- Status Indicator -->
+          <div class="status-indicator">
+            <span class="pulse-dot"></span>
+            Transparency Active
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- COLUMN 3: Configuration Panel -->
+    <aside class="panel right-panel">
+      <h2>Configuration</h2>
+
+      <!-- Layer & Visibility Section -->
+      <section class="config-section">
+        <h3>Layers</h3>
+        <div class="layer-item" id="layer-item-main">
+          <label class="radio-container">
+            <input type="radio" name="active-layer" value="main" checked>
+            <span class="checkmark"></span>
+            Layer 1 - Principal
+          </label>
+          <div class="layer-actions">
+            <span class="icon-eye" id="toggle-visibility-main">👁</span>
+            <span class="icon-drag">☰</span>
+          </div>
+        </div>
+        <div class="layer-item" id="layer-item-hidden">
+          <label class="radio-container">
+            <input type="radio" name="active-layer" value="hidden">
+            <span class="checkmark"></span>
+            Layer 2 - Oculta
+          </label>
+          <div class="layer-actions">
+            <span class="icon-eye" id="toggle-visibility-hidden">👁</span>
+            <span class="icon-drag">☰</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Opacity Controls -->
+      <section class="config-section">
+        <h3>Opacity</h3>
+        <div class="slider-group">
+          <input type="range" id="opacity-slider" min="0" max="100" value="100">
+          <div class="slider-labels">
+            <span>0%</span>
+            <input type="number" id="opacity-number" min="0" max="100" value="100">%
+            <span>100%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filters & Effects (Hidden Layer Only) -->
+      <section class="config-section disabled" id="effects-section">
+        <h3>Filters & Effects</h3>
+        <div class="control-row">
+          <label for="blend-mode">Blending Mode</label>
+          <select id="blend-mode">
+            <option value="normal">Normal</option>
+            <option value="multiply">Multiply</option>
+            <option value="screen">Screen</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <label for="blur-slider">Blur (px)</label>
+          <input type="range" id="blur-slider" min="0" max="20" value="0">
+          <span class="value-display" id="blur-value">0px</span>
+        </div>
+
+        <div class="control-row">
+          <label for="contrast-slider">Contrast (%)</label>
+          <input type="range" id="contrast-slider" min="0" max="200" value="100">
+          <span class="value-display" id="contrast-value">100%</span>
+        </div>
+
+        <div class="control-row">
+          <label for="saturation-slider">Saturation (%)</label>
+          <input type="range" id="saturation-slider" min="0" max="200" value="100">
+          <span class="value-display" id="saturation-value">100%</span>
+        </div>
+
+        <div class="control-row">
+          <label for="brightness-slider">Brightness (%)</label>
+          <input type="range" id="brightness-slider" min="0" max="200" value="100">
+          <span class="value-display" id="brightness-value">100%</span>
+        </div>
+
+        <div class="control-row inline-row">
+          <label for="invert-toggle">Invert Colors</label>
+          <input type="checkbox" id="invert-toggle">
+        </div>
+      </section>
+
+      <!-- Export Settings -->
+      <section class="config-section">
+        <h3>Export Settings</h3>
+        <div class="control-row">
+          <label for="export-format">Format</label>
+          <select id="export-format" disabled>
+            <option value="png">PNG</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <label for="export-ratio">Ratio</label>
+          <select id="export-ratio">
+            <option value="1:1">1:1 Square</option>
+            <option value="4:5">4:5 Vertical</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <label for="export-resolution">Resolution</label>
+          <input type="range" id="export-resolution" min="1" max="3" value="2" step="1">
+          <div class="resolution-labels">
+            <span>Low (512px)</span>
+            <span>Med (1024px)</span>
+            <span>High (2048px)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action Button -->
+      <button class="btn btn-primary" id="btn-export">Generate & Save as PNG</button>
+    </aside>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>

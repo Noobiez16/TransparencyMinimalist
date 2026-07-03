@@ -1,1 +1,1 @@
-console.log('Transparency Layer Dashboard Initialized');
+console.log("Dashboard loaded");
