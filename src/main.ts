@@ -169,24 +169,46 @@ function syncPropertiesPanel() {
   const layer = getActiveLayer();
   if (!layer) return;
 
-  propNameInput.value = layer.name;
-  propOpacityRange.value = layer.opacity.toString();
-  propOpacityNum.value = layer.opacity.toString();
-  propBlendSelect.value = layer.blendMode;
-  propXOffset.value = layer.xOffset.toString();
+  if (document.activeElement !== propNameInput) {
+    propNameInput.value = layer.name;
+  }
+  if (document.activeElement !== propOpacityRange) {
+    propOpacityRange.value = layer.opacity.toString();
+  }
+  if (document.activeElement !== propOpacityNum) {
+    propOpacityNum.value = layer.opacity.toString();
+  }
+  if (document.activeElement !== propBlendSelect) {
+    propBlendSelect.value = layer.blendMode;
+  }
+  if (document.activeElement !== propXOffset) {
+    propXOffset.value = layer.xOffset.toString();
+  }
   $('x-offset-value').textContent = `${layer.xOffset}%`;
-  propYOffset.value = layer.yOffset.toString();
+  if (document.activeElement !== propYOffset) {
+    propYOffset.value = layer.yOffset.toString();
+  }
   $('y-offset-value').textContent = `${layer.yOffset}%`;
-  propScale.value = layer.scale.toString();
+  if (document.activeElement !== propScale) {
+    propScale.value = layer.scale.toString();
+  }
   $('scale-value').textContent = `${layer.scale}%`;
 
-  propBlur.value = layer.blur.toString();
+  if (document.activeElement !== propBlur) {
+    propBlur.value = layer.blur.toString();
+  }
   $('blur-value').textContent = `${layer.blur}px`;
-  propContrast.value = layer.contrast.toString();
+  if (document.activeElement !== propContrast) {
+    propContrast.value = layer.contrast.toString();
+  }
   $('contrast-value').textContent = `${layer.contrast}%`;
-  propSaturation.value = layer.saturation.toString();
+  if (document.activeElement !== propSaturation) {
+    propSaturation.value = layer.saturation.toString();
+  }
   $('saturation-value').textContent = `${layer.saturation}%`;
-  propBrightness.value = layer.brightness.toString();
+  if (document.activeElement !== propBrightness) {
+    propBrightness.value = layer.brightness.toString();
+  }
   $('brightness-value').textContent = `${layer.brightness}%`;
   propInvert.checked = layer.invert;
 
@@ -201,11 +223,20 @@ function syncPropertiesPanel() {
       (el as HTMLElement).style.display = 'none';
     });
     sectionTextProps.style.display = 'block';
-    propTextContent.value = layer.textContent;
-    propFontFamily.value = layer.fontFamily;
-    propFontSize.value = layer.fontSize.toString();
+    
+    if (document.activeElement !== propTextContent) {
+      propTextContent.value = layer.textContent;
+    }
+    if (document.activeElement !== propFontFamily) {
+      propFontFamily.value = layer.fontFamily;
+    }
+    if (document.activeElement !== propFontSize) {
+      propFontSize.value = layer.fontSize.toString();
+    }
     $('font-size-value').textContent = `${layer.fontSize}px`;
-    propTextColor.value = layer.textColor;
+    if (document.activeElement !== propTextColor) {
+      propTextColor.value = layer.textColor;
+    }
   }
 }
 
@@ -371,6 +402,33 @@ propInvert.addEventListener('change', () => {
   const layer = getActiveLayer();
   if (layer) {
     layer.invert = propInvert.checked;
+    updateUI();
+  }
+});
+
+// Text layer change listeners
+propTextContent.addEventListener('input', () => {
+  const layer = getActiveLayer();
+  if (layer && layer.type === 'text') {
+    layer.textContent = propTextContent.value;
+    updateUI();
+  }
+});
+
+propFontFamily.addEventListener('change', () => {
+  const layer = getActiveLayer();
+  if (layer && layer.type === 'text') {
+    layer.fontFamily = propFontFamily.value;
+    updateUI();
+  }
+});
+
+bindRangeInput(propFontSize, 'fontSize', 'font-size-value', 'px');
+
+propTextColor.addEventListener('input', () => {
+  const layer = getActiveLayer();
+  if (layer && layer.type === 'text') {
+    layer.textColor = propTextColor.value;
     updateUI();
   }
 });
