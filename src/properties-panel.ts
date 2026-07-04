@@ -293,7 +293,7 @@ export function initPropertiesPanel(): void {
   });
 
   subscribe((dirty) => {
-    if (dirty.has('selection') || dirty.has('structure')) updateVisibility();
+    if (dirty.has('selection') || dirty.has('structure') || dirty.has('layerProps')) updateVisibility();
   });
   updateVisibility();
 }
