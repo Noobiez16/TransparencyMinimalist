@@ -1,5 +1,5 @@
 import { state, subscribe, notify, createNewLayer, getActiveLayer, type LayerState } from './state';
-import { $ } from './dom';
+import { $, inlineEdit } from './dom';
 import { toast } from './toast';
 
 const container = $('layers-list-container');
@@ -43,6 +43,17 @@ function createCard(id: string): HTMLElement {
     }
     state.activeLayerId = id;
     notify('selection');
+  });
+
+  const nameEl = card.querySelector('.layer-name-label') as HTMLElement;
+  nameEl.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    const layer = findLayer(id);
+    if (!layer) return;
+    inlineEdit(nameEl, layer.name, (v) => {
+      layer.name = v;
+      notify('layerProps');
+    });
   });
 
   card.addEventListener('dragstart', (e) => {

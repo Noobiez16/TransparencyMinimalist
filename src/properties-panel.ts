@@ -1,11 +1,11 @@
 import { state, subscribe, notify, getActiveLayer, PROP_DEFAULTS, type LayerState } from './state';
-import { $ } from './dom';
+import { $, inlineEdit } from './dom';
 
 // --- UI Rendering & Sync ---
 const propertiesEditorContainer = $('properties-editor-container');
 const noActiveWarning = $('no-active-warning');
+const nameChip = $('prop-layer-name');
 
-const propNameInput = $('prop-name') as HTMLInputElement;
 const propOpacityRange = $('prop-opacity') as HTMLInputElement;
 const propXOffset = $('prop-x-offset') as HTMLInputElement;
 const propYOffset = $('prop-y-offset') as HTMLInputElement;
@@ -154,7 +154,7 @@ function syncPanel(): void {
     }
   };
 
-  syncVal(propNameInput, layer.name);
+  nameChip.textContent = layer.name;
   syncVal(propOpacityRange, layer.opacity.toString());
   $('opacity-value').textContent = `${layer.opacity}%`;
   syncBlendUI(layer.blendMode);
@@ -192,10 +192,12 @@ function updateVisibility(): void {
   if (state.activeLayerId) {
     propertiesEditorContainer.style.display = 'block';
     noActiveWarning.style.display = 'none';
+    nameChip.style.display = '';
     syncPanel();
   } else {
     propertiesEditorContainer.style.display = 'none';
     noActiveWarning.style.display = 'block';
+    nameChip.style.display = 'none';
   }
 }
 
@@ -213,12 +215,13 @@ export function initPropertiesPanel(): void {
   buildEffectRows();
 
   // --- Active Layer Change Listeners ---
-  propNameInput.addEventListener('input', () => {
+  nameChip.addEventListener('click', () => {
     const layer = getActiveLayer();
-    if (layer) {
-      layer.name = propNameInput.value;
+    if (!layer) return;
+    inlineEdit(nameChip, layer.name, (v) => {
+      layer.name = v;
       notify('layerProps');
-    }
+    });
   });
 
   bindSlider(propOpacityRange, 'opacity', 'opacity-value', '%');
