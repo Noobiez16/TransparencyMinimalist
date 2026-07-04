@@ -220,8 +220,13 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
 .value-display, .slider-labels { font-size: 10px; color: var(--mut); }
 .value-display { text-align: right; font-variant-numeric: tabular-nums; }
 .slider-labels { display: flex; justify-content: space-between; align-items: center; }
-#prop-opacity-num { width: 48px; text-align: center; padding: 3px; font-size: 11px; }
 .slider-group { display: flex; flex-direction: column; gap: 8px; }
+
+.value-chip { cursor: pointer; background: var(--card-hi); border-radius: 5px; padding: 2px 7px; transition: color 0.15s; }
+.value-chip:hover { color: var(--txt); }
+.chip-input { width: 56px; padding: 2px 6px; font-size: 10px; text-align: right; background: var(--card-hi); }
+.blend-menu { top: auto; left: 0; transform: none; width: 140px; }
+.control-row { position: relative; }
 .inline-row div { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .resolution-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--mut); margin-top: 4px; }
 

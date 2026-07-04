@@ -1,4 +1,4 @@
-import { state, subscribe, notify, getActiveLayer, type LayerState } from './state';
+import { state, subscribe, notify, getActiveLayer, PROP_DEFAULTS, type LayerState } from './state';
 import { $ } from './dom';
 
 // --- UI Rendering & Sync ---
@@ -7,8 +7,6 @@ const noActiveWarning = $('no-active-warning');
 
 const propNameInput = $('prop-name') as HTMLInputElement;
 const propOpacityRange = $('prop-opacity') as HTMLInputElement;
-const propOpacityNum = $('prop-opacity-num') as HTMLInputElement;
-const propBlendSelect = $('prop-blend') as HTMLSelectElement;
 const propXOffset = $('prop-x-offset') as HTMLInputElement;
 const propYOffset = $('prop-y-offset') as HTMLInputElement;
 const propScale = $('prop-scale') as HTMLInputElement;
@@ -31,6 +29,63 @@ const EFFECTS: { key: EffectKey; on: keyof LayerState; label: string; min: numbe
 
 const effectEls = new Map<EffectKey, { row: HTMLElement; sw: HTMLButtonElement; range: HTMLInputElement; chip: HTMLElement }>();
 
+function attachChip(range: HTMLInputElement, chip: HTMLElement, unit: string): void {
+  chip.classList.add('value-chip');
+  chip.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = range.min; input.max = range.max; input.value = range.value;
+    input.className = 'chip-input';
+    chip.replaceWith(input);
+    input.focus(); input.select();
+    let done = false;
+    const commit = (apply: boolean) => {
+      if (done) return; done = true;
+      if (apply) {
+        let v = parseInt(input.value, 10);
+        if (!isNaN(v)) {
+          v = Math.min(parseInt(range.max, 10), Math.max(parseInt(range.min, 10), v));
+          range.value = String(v);
+          range.dispatchEvent(new Event('input'));
+        }
+      }
+      input.replaceWith(chip);
+      chip.textContent = `${range.value}${unit}`;
+    };
+    input.addEventListener('blur', () => commit(true));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') commit(true);
+      if (e.key === 'Escape') commit(false);
+    });
+  });
+}
+
+function attachReset(range: HTMLInputElement, def: number): void {
+  range.addEventListener('dblclick', () => {
+    range.value = String(def);
+    range.dispatchEvent(new Event('input'));
+  });
+}
+
+function setBlend(mode: string): void {
+  const layer = getActiveLayer();
+  if (!layer) return;
+  layer.blendMode = mode;
+  syncBlendUI(mode);
+  notify('layerProps');
+}
+
+function syncBlendUI(mode: string): void {
+  const alt = $('blend-alt') as HTMLButtonElement;
+  if (mode !== 'normal' && mode !== alt.dataset.blend) {
+    alt.dataset.blend = mode;
+    alt.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+  }
+  document.querySelectorAll('#blend-seg button[data-blend]').forEach((b) => {
+    b.classList.toggle('active', (b as HTMLElement).dataset.blend === mode);
+  });
+}
+
 function buildEffectRows(): void {
   const stack = $('effects-stack');
   EFFECTS.forEach((fx) => {
@@ -52,6 +107,8 @@ function buildEffectRows(): void {
     const range = row.querySelector('input') as HTMLInputElement;
     const chip = row.querySelector('.value-chip') as HTMLElement;
     effectEls.set(fx.key, { row, sw, range, chip });
+    attachChip(range, chip, fx.unit);
+    attachReset(range, PROP_DEFAULTS[fx.key]);
 
     sw.addEventListener('click', () => {
       const layer = getActiveLayer();
@@ -99,8 +156,8 @@ function syncPanel(): void {
 
   syncVal(propNameInput, layer.name);
   syncVal(propOpacityRange, layer.opacity.toString());
-  syncVal(propOpacityNum, layer.opacity.toString());
-  syncVal(propBlendSelect, layer.blendMode);
+  $('opacity-value').textContent = `${layer.opacity}%`;
+  syncBlendUI(layer.blendMode);
   syncVal(propXOffset, layer.xOffset.toString());
   $('x-offset-value').textContent = `${layer.xOffset}%`;
   syncVal(propYOffset, layer.yOffset.toString());
@@ -164,35 +221,36 @@ export function initPropertiesPanel(): void {
     }
   });
 
-  bindSlider(propOpacityRange, 'opacity');
-  propOpacityRange.addEventListener('input', () => {
-    propOpacityNum.value = propOpacityRange.value;
-  });
+  bindSlider(propOpacityRange, 'opacity', 'opacity-value', '%');
+  attachChip(propOpacityRange, $('opacity-value'), '%');
+  attachReset(propOpacityRange, PROP_DEFAULTS.opacity);
 
-  propOpacityNum.addEventListener('input', () => {
-    const layer = getActiveLayer();
-    if (layer) {
-      let val = parseInt(propOpacityNum.value, 10);
-      if (isNaN(val)) val = 0;
-      if (val < 0) val = 0;
-      if (val > 100) val = 100;
-      layer.opacity = val;
-      propOpacityRange.value = val.toString();
-      notify('layerProps');
-    }
+  document.querySelectorAll<HTMLButtonElement>('#blend-seg button[data-blend]').forEach((btn) => {
+    btn.addEventListener('click', () => setBlend(btn.dataset.blend!));
   });
-
-  propBlendSelect.addEventListener('change', () => {
-    const layer = getActiveLayer();
-    if (layer) {
-      layer.blendMode = propBlendSelect.value;
-      notify('layerProps');
+  const blendMenu = $('blend-menu');
+  $('blend-more').addEventListener('click', () => { blendMenu.hidden = !blendMenu.hidden; });
+  blendMenu.querySelectorAll<HTMLButtonElement>('button[data-blend]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setBlend(btn.dataset.blend!);
+      blendMenu.hidden = true;
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!$('blend-seg').contains(e.target as Node) && !blendMenu.contains(e.target as Node)) {
+      blendMenu.hidden = true;
     }
   });
 
   bindSlider(propXOffset, 'xOffset', 'x-offset-value', '%');
+  attachChip(propXOffset, $('x-offset-value'), '%');
+  attachReset(propXOffset, PROP_DEFAULTS.xOffset);
   bindSlider(propYOffset, 'yOffset', 'y-offset-value', '%');
+  attachChip(propYOffset, $('y-offset-value'), '%');
+  attachReset(propYOffset, PROP_DEFAULTS.yOffset);
   bindSlider(propScale, 'scale', 'scale-value', '%');
+  attachChip(propScale, $('scale-value'), '%');
+  attachReset(propScale, PROP_DEFAULTS.scale);
 
   $('prop-invert').addEventListener('click', () => {
     const layer = getActiveLayer();
@@ -220,6 +278,8 @@ export function initPropertiesPanel(): void {
   });
 
   bindSlider(propFontSize, 'fontSize', 'font-size-value', 'px');
+  attachChip(propFontSize, $('font-size-value'), 'px');
+  attachReset(propFontSize, PROP_DEFAULTS.fontSize);
 
   propTextColor.addEventListener('input', () => {
     const layer = getActiveLayer();

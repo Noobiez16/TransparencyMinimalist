@@ -100,22 +100,25 @@
               <input type="range" id="prop-opacity" min="0" max="100" value="100">
               <div class="slider-labels">
                 <span>0%</span>
-                <input type="number" id="prop-opacity-num" min="0" max="100" value="100">%
+                <span class="value-display" id="opacity-value">100%</span>
                 <span>100%</span>
               </div>
             </div>
           </div>
 
           <div class="control-row">
-            <label for="prop-blend">Blending Mode</label>
-            <select id="prop-blend">
-              <option value="normal">Normal</option>
-              <option value="multiply">Multiply</option>
-              <option value="screen">Screen</option>
-              <option value="overlay">Overlay</option>
-              <option value="darken">Darken</option>
-              <option value="lighten">Lighten</option>
-            </select>
+            <label>Blending Mode</label>
+            <div class="seg" id="blend-seg">
+              <button data-blend="normal" class="active">Normal</button>
+              <button data-blend="multiply" id="blend-alt">Multiply</button>
+              <button id="blend-more">More ▾</button>
+            </div>
+            <div class="size-menu blend-menu" id="blend-menu" hidden>
+              <button data-blend="screen">Screen</button>
+              <button data-blend="overlay">Overlay</button>
+              <button data-blend="darken">Darken</button>
+              <button data-blend="lighten">Lighten</button>
+            </div>
           </div>
         </section>
 
