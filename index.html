@@ -70,9 +70,16 @@
       </div>
 
       <div class="canvas-container" id="canvas-container">
-        <div class="canvas-viewport checkerboard-bg" id="canvas-viewport">
-          <!-- Dynamic DOM layer preview elements will be rendered here -->
+        <div id="zoom-wrap">
+          <div class="canvas-viewport checkerboard-bg" id="canvas-viewport">
+            <!-- Dynamic DOM layer preview elements will be rendered here -->
+          </div>
         </div>
+      </div>
+      <div class="zoom-pill">
+        <button id="zoom-out" title="Zoom out">−</button>
+        <button id="zoom-readout" title="Reset zoom">100%</button>
+        <button id="zoom-in" title="Zoom in">+</button>
       </div>
     </main>
 

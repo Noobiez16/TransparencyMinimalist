@@ -161,7 +161,18 @@ h3, .lbl {
 .btn-theme.active { background: var(--card-hi); border-color: #fff; color: var(--txt); }
 #bg-color-picker { width: 26px; height: 26px; border: none; border-radius: 6px; background: var(--card); cursor: pointer; }
 
-.canvas-container { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; max-height: 70vh; }
+.canvas-container { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; max-height: 70vh; overflow: hidden; }
+#zoom-wrap { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; transition: transform 0.15s ease-out; }
+.zoom-pill {
+  display: flex; align-items: center; gap: 4px; margin-top: 12px;
+  background: var(--card); border-radius: 999px; padding: 4px 8px;
+}
+.zoom-pill button {
+  font-family: inherit; font-size: 11px; color: var(--mut); background: transparent;
+  border: none; border-radius: 6px; padding: 3px 8px; cursor: pointer;
+  font-variant-numeric: tabular-nums; transition: color 0.15s;
+}
+.zoom-pill button:hover { color: var(--txt); }
 .canvas-viewport {
   position: relative; width: 100%; max-width: 520px; max-height: 520px;
   border-radius: 12px; border: 1px solid var(--line); overflow: hidden;

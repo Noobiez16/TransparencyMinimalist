@@ -3,6 +3,24 @@ import { $ } from './dom';
 
 const viewport = $('canvas-viewport');
 
+let zoom = 1, panX = 0, panY = 0;
+const zoomWrap = $('zoom-wrap');
+
+function applyZoom(): void {
+  zoomWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+  $('zoom-readout').textContent = `${Math.round(zoom * 100)}%`;
+}
+
+function setZoom(next: number, cx = 0, cy = 0): void {
+  const clamped = Math.max(0.25, Math.min(4, next));
+  const factor = clamped / zoom;
+  panX -= cx * (factor - 1);
+  panY -= cy * (factor - 1);
+  zoom = clamped;
+  if (zoom === 1) { panX = 0; panY = 0; }
+  applyZoom();
+}
+
 export function applyCanvasDimensions(): void {
   viewport.style.aspectRatio = `${state.canvasWidth}/${state.canvasHeight}`;
   if (state.canvasWidth >= state.canvasHeight) {
@@ -157,4 +175,38 @@ export function initCanvas(): void {
   const endDrag = () => { drag = null; };
   viewport.addEventListener('pointerup', endDrag);
   viewport.addEventListener('pointercancel', endDrag);
+
+  // --- Zoom & pan ---
+  $('zoom-in').addEventListener('click', () => setZoom(zoom + 0.1));
+  $('zoom-out').addEventListener('click', () => setZoom(zoom - 0.1));
+  $('zoom-readout').addEventListener('click', () => { zoom = 1; panX = 0; panY = 0; applyZoom(); });
+
+  const container = $('canvas-container');
+  container.addEventListener('wheel', (e) => {
+    const wheelEvent = e as WheelEvent;
+    if (!wheelEvent.ctrlKey) return;
+    wheelEvent.preventDefault();
+    const rect = container.getBoundingClientRect();
+    const cx = wheelEvent.clientX - rect.left - rect.width / 2 - panX;
+    const cy = wheelEvent.clientY - rect.top - rect.height / 2 - panY;
+    setZoom(zoom * (wheelEvent.deltaY < 0 ? 1.1 : 0.9), cx, cy);
+  }, { passive: false });
+
+  // Pan by dragging empty container space when zoomed in
+  let pan: { startX: number; startY: number; origX: number; origY: number } | null = null;
+  container.addEventListener('pointerdown', (e) => {
+    const pointerEvent = e as PointerEvent;
+    if (zoom <= 1 || (pointerEvent.target !== container && pointerEvent.target !== zoomWrap)) return;
+    pan = { startX: pointerEvent.clientX, startY: pointerEvent.clientY, origX: panX, origY: panY };
+    container.setPointerCapture(pointerEvent.pointerId);
+  });
+  container.addEventListener('pointermove', (e) => {
+    if (!pan) return;
+    const pointerEvent = e as PointerEvent;
+    panX = pan.origX + (pointerEvent.clientX - pan.startX);
+    panY = pan.origY + (pointerEvent.clientY - pan.startY);
+    applyZoom();
+  });
+  container.addEventListener('pointerup', () => { pan = null; });
+  applyZoom();
 }
