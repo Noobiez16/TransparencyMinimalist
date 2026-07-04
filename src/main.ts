@@ -1,122 +1,10 @@
 import { state, createNewLayer, getActiveLayer, type LayerState, notify } from './state';
 import { $ } from './dom';
-import { toast } from './toast';
 import { initExport } from './export';
 import { initCanvas } from './canvas';
-
-$('btn-add-image').addEventListener('click', () => {
-  const layer = createNewLayer('image');
-  state.layers.unshift(layer); // Add on top of stack
-  state.activeLayerId = layer.id;
-  updateUI();
-});
-
-$('btn-add-text').addEventListener('click', () => {
-  const layer = createNewLayer('text');
-  state.layers.unshift(layer);
-  state.activeLayerId = layer.id;
-  updateUI();
-});
-
-// --- File Upload & Drag-and-Drop ---
-const uploadZone = $('upload-zone');
-const fileInput = $('file-input') as HTMLInputElement;
-
-uploadZone.addEventListener('click', () => fileInput.click());
-
-uploadZone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  uploadZone.classList.add('dragover');
-});
-
-uploadZone.addEventListener('dragleave', () => {
-  uploadZone.classList.remove('dragover');
-});
-
-uploadZone.addEventListener('drop', (e) => {
-  e.preventDefault();
-  uploadZone.classList.remove('dragover');
-  const files = e.dataTransfer?.files;
-  if (files && files.length > 0) {
-    handleUploadedFiles(files);
-  }
-});
-
-fileInput.addEventListener('change', () => {
-  const files = fileInput.files;
-  if (files && files.length > 0) {
-    handleUploadedFiles(files);
-  }
-});
-
-function handleUploadedFiles(files: FileList) {
-  Array.from(files).forEach((file) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      // If an Image layer is selected and has no image, load into it
-      const layer = getActiveLayer();
-      if (layer && layer.type === 'image' && !layer.imageSrc) {
-        layer.imageSrc = dataUrl;
-        layer.imageName = file.name;
-      } else {
-        // Otherwise, create a new image layer
-        const newLayer = createNewLayer('image');
-        newLayer.imageSrc = dataUrl;
-        newLayer.imageName = file.name;
-        state.layers.unshift(newLayer);
-        state.activeLayerId = newLayer.id;
-      }
-      updateUI();
-    };
-    reader.onerror = () => {
-      toast('Failed to read file.');
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-
-let draggedId: string | null = null;
-
-function bindDragAndDropEvents(card: HTMLElement) {
-  card.addEventListener('dragstart', (e) => {
-    draggedId = card.dataset.id || null;
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = 'move';
-    }
-  });
-
-  card.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = 'move';
-    }
-  });
-
-  card.addEventListener('drop', (e) => {
-    e.preventDefault();
-    const targetId = card.dataset.id;
-    if (!draggedId || !targetId || draggedId === targetId) return;
-
-    const draggedIndex = state.layers.findIndex(l => l.id === draggedId);
-    const targetIndex = state.layers.findIndex(l => l.id === targetId);
-
-    if (draggedIndex !== -1 && targetIndex !== -1) {
-      const [removed] = state.layers.splice(draggedIndex, 1);
-      state.layers.splice(targetIndex, 0, removed);
-      updateUI();
-    }
-    draggedId = null;
-  });
-
-  card.addEventListener('dragend', () => {
-    draggedId = null;
-  });
-}
+import { initLayersPanel } from './layers-panel';
 
 // --- UI Rendering & Sync ---
-const layersListContainer = $('layers-list-container');
 const propertiesEditorContainer = $('properties-editor-container');
 const noActiveWarning = $('no-active-warning');
 
@@ -187,7 +75,7 @@ function syncPropertiesPanel() {
       (el as HTMLElement).style.display = 'none';
     });
     sectionTextProps.style.display = 'block';
-    
+
     syncVal(propTextContent, layer.textContent);
     syncVal(propFontFamily, layer.fontFamily);
     syncVal(propFontSize, layer.fontSize.toString());
@@ -197,55 +85,7 @@ function syncPropertiesPanel() {
 }
 
 function updateUI() {
-  // 1. Build Layers List
-  layersListContainer.innerHTML = '';
-  
-  state.layers.forEach((layer) => {
-    const card = document.createElement('div');
-    card.className = `layer-card ${state.activeLayerId === layer.id ? 'active' : ''}`;
-    card.setAttribute('draggable', 'true');
-    card.dataset.id = layer.id;
-
-    card.innerHTML = `
-      <div class="layer-card-left">
-        <span class="icon-drag">☰</span>
-        <div class="layer-thumbnail">
-          ${layer.type === 'image' && layer.imageSrc ? `<img src="${layer.imageSrc}">` : layer.type === 'image' ? 'IMG' : 'TXT'}
-        </div>
-        <span class="layer-name-label">${layer.name}</span>
-      </div>
-      <div class="layer-card-actions">
-        <span class="btn-layer-vis">${layer.visible ? '👁' : '❌'}</span>
-        <span class="btn-layer-del">✕</span>
-      </div>
-    `;
-
-    // Card selection listener
-    card.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.classList.contains('btn-layer-vis')) {
-        layer.visible = !layer.visible;
-        updateUI();
-        return;
-      }
-      if (target.classList.contains('btn-layer-del')) {
-        state.layers = state.layers.filter(l => l.id !== layer.id);
-        if (state.activeLayerId === layer.id) {
-          state.activeLayerId = state.layers[0]?.id || null;
-        }
-        updateUI();
-        return;
-      }
-      state.activeLayerId = layer.id;
-      updateUI();
-    });
-
-    // Z-index drag event triggers
-    bindDragAndDropEvents(card);
-    layersListContainer.appendChild(card);
-  });
-
-  // 2. Properties Panel Visibility
+  // Properties Panel Visibility
   if (state.activeLayerId) {
     propertiesEditorContainer.style.display = 'block';
     noActiveWarning.style.display = 'none';
@@ -347,56 +187,9 @@ propTextColor.addEventListener('input', () => {
   }
 });
 
-// Clipboard Paste Support (Ctrl+V)
-document.addEventListener('paste', (e) => {
-  const activeEl = document.activeElement;
-  if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
-    return;
-  }
-
-  const clipboardData = e.clipboardData;
-  if (!clipboardData) return;
-
-  const items = clipboardData.items;
-  const fileList: File[] = [];
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (item.type.startsWith('image/')) {
-      const file = item.getAsFile();
-      if (file) fileList.push(file);
-    }
-  }
-
-  if (fileList.length > 0) {
-    const targetFile = fileList[0];
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      const layer = getActiveLayer();
-      
-      if (layer && layer.type === 'image' && !layer.imageSrc) {
-        layer.imageSrc = dataUrl;
-        layer.imageName = `pasted_image_${Date.now()}.png`;
-      } else {
-        const newLayer = createNewLayer('image');
-        newLayer.imageSrc = dataUrl;
-        newLayer.imageName = `pasted_image_${Date.now()}.png`;
-        state.layers.unshift(newLayer);
-        state.activeLayerId = newLayer.id;
-      }
-      updateUI();
-    };
-    reader.onerror = () => {
-      toast('Failed to read pasted image.');
-    };
-    reader.readAsDataURL(targetFile);
-  }
-});
-
 initCanvas();
 initExport();
+initLayersPanel();
 
 // Seed two default layers on startup
 const defaultTextLayer = createNewLayer('text');
