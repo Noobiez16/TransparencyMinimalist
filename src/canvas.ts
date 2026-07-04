@@ -1,4 +1,4 @@
-import { state, subscribe, getFilterString } from './state';
+import { state, subscribe, notify, getFilterString } from './state';
 import { $ } from './dom';
 
 const viewport = $('canvas-viewport');
@@ -71,6 +71,7 @@ function renderViewport(): void {
     el.style.opacity = (layer.opacity / 100).toString();
     el.style.mixBlendMode = layer.blendMode;
     el.style.transform = `translate(${layer.xOffset}%, ${layer.yOffset}%) scale(${layer.scale / 100})`;
+    el.classList.toggle('canvas-selected', layer.id === state.activeLayerId);
   });
 }
 
@@ -119,4 +120,41 @@ export function initCanvas(): void {
     if (dirty.has('structure') || dirty.has('selection') || dirty.has('layerProps')) renderViewport();
   });
   applyCanvasDimensions();
+
+  // --- Click-select and drag-move ---
+  let drag: { id: string; startX: number; startY: number; origX: number; origY: number } | null = null;
+
+  viewport.addEventListener('pointerdown', (e) => {
+    const target = (e.target as HTMLElement).closest('.layer-preview-el') as HTMLElement | null;
+    if (!target || !target.dataset.id) {
+      state.activeLayerId = null;
+      notify('selection');
+      return;
+    }
+    const layer = state.layers.find((l) => l.id === target.dataset.id);
+    if (!layer) return;
+    if (state.activeLayerId !== layer.id) {
+      state.activeLayerId = layer.id;
+      notify('selection');
+    }
+    drag = { id: layer.id, startX: e.clientX, startY: e.clientY, origX: layer.xOffset, origY: layer.yOffset };
+    viewport.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  viewport.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const d = drag;
+    const layer = state.layers.find((l) => l.id === d.id);
+    if (!layer) return;
+    const rect = viewport.getBoundingClientRect();
+    const clamp = (v: number) => Math.max(-100, Math.min(100, Math.round(v)));
+    layer.xOffset = clamp(d.origX + ((e.clientX - d.startX) / rect.width) * 100);
+    layer.yOffset = clamp(d.origY + ((e.clientY - d.startY) / rect.height) * 100);
+    notify('layerProps');
+  });
+
+  const endDrag = () => { drag = null; };
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
 }
