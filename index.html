@@ -10,6 +10,25 @@
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
+  <header class="topbar">
+    <div class="topbar-title">Minimalist Editor</div>
+    <div class="size-chip-wrap">
+      <button class="size-chip" id="size-chip">1024 × 1024 ▾</button>
+      <div class="size-menu" id="size-menu" hidden>
+        <button data-ratio="1:1">1:1 Square · 1024×1024</button>
+        <button data-ratio="16:9">16:9 Landscape · 1920×1080</button>
+        <button data-ratio="9:16">9:16 Portrait · 1080×1920</button>
+        <button data-ratio="4:5">4:5 Vertical · 1080×1350</button>
+        <div class="size-custom">
+          <input type="number" id="canvas-width" value="1024" min="64" max="4096" aria-label="Width">
+          <span>×</span>
+          <input type="number" id="canvas-height" value="1024" min="64" max="4096" aria-label="Height">
+          <button id="size-custom-apply">Apply</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-export" id="btn-export">Export</button>
+  </header>
   <div class="dashboard-wrapper">
     <!-- COLUMN 1: Layers & Sources -->
     <aside class="panel left-panel">
@@ -179,33 +198,6 @@
         </section>
       </div>
 
-      <!-- Canvas and Export Configuration -->
-      <section class="config-section canvas-configs">
-        <h3>Canvas & Export Settings</h3>
-        <div class="control-row">
-          <label for="canvas-ratio">Dimensions Preset</label>
-          <select id="canvas-ratio">
-            <option value="1:1">1:1 Square (1024x1024)</option>
-            <option value="16:9">16:9 Landscape (1920x1080)</option>
-            <option value="9:16">9:16 Portrait (1080x1920)</option>
-            <option value="4:5">4:5 Vertical (1080x1350)</option>
-            <option value="custom">Custom Dimensions</option>
-          </select>
-        </div>
-
-        <div class="control-row inline-row" id="custom-dims-row" style="display: none;">
-          <div>
-            <label for="canvas-width">Width</label>
-            <input type="number" id="canvas-width" value="1024" min="64" max="4096">
-          </div>
-          <div>
-            <label for="canvas-height">Height</label>
-            <input type="number" id="canvas-height" value="1024" min="64" max="4096">
-          </div>
-        </div>
-      </section>
-
-      <button class="btn btn-primary" id="btn-export">Export Composition as PNG</button>
     </aside>
   </div>
   <script type="module" src="/src/main.ts"></script>

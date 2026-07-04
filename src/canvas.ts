@@ -1,37 +1,9 @@
-import { state, subscribe, notify, getFilterString } from './state';
+import { state, subscribe, getFilterString } from './state';
 import { $ } from './dom';
 
 const viewport = $('canvas-viewport');
 
 export function applyCanvasDimensions(): void {
-  const canvasRatioSelect = $('canvas-ratio') as HTMLSelectElement;
-  const customDimsRow = $('custom-dims-row');
-  const canvasWidthInput = $('canvas-width') as HTMLInputElement;
-  const canvasHeightInput = $('canvas-height') as HTMLInputElement;
-
-  const ratio = canvasRatioSelect.value;
-  state.canvasRatio = ratio;
-
-  if (ratio === 'custom') {
-    customDimsRow.style.display = 'flex';
-    state.canvasWidth = parseInt(canvasWidthInput.value, 10) || 1024;
-    state.canvasHeight = parseInt(canvasHeightInput.value, 10) || 1024;
-  } else {
-    customDimsRow.style.display = 'none';
-    if (ratio === '1:1') {
-      state.canvasWidth = 1024;
-      state.canvasHeight = 1024;
-    } else if (ratio === '16:9') {
-      state.canvasWidth = 1920;
-      state.canvasHeight = 1080;
-    } else if (ratio === '9:16') {
-      state.canvasWidth = 1080;
-      state.canvasHeight = 1920;
-    } else if (ratio === '4:5') {
-      state.canvasWidth = 1080;
-      state.canvasHeight = 1350;
-    }
-  }
   viewport.style.aspectRatio = `${state.canvasWidth}/${state.canvasHeight}`;
   if (state.canvasWidth >= state.canvasHeight) {
     viewport.style.width = '100%';
@@ -103,15 +75,6 @@ function renderViewport(): void {
 }
 
 export function initCanvas(): void {
-  // --- Canvas Dimension & Presets ---
-  const canvasRatioSelect = $('canvas-ratio') as HTMLSelectElement;
-  const canvasWidthInput = $('canvas-width') as HTMLInputElement;
-  const canvasHeightInput = $('canvas-height') as HTMLInputElement;
-
-  canvasRatioSelect.addEventListener('change', () => notify('canvasConfig'));
-  canvasWidthInput.addEventListener('input', () => notify('canvasConfig'));
-  canvasHeightInput.addEventListener('input', () => notify('canvasConfig'));
-
   // --- Canvas Background theme & Custom Color selection ---
   document.querySelectorAll('.btn-theme').forEach((btn) => {
     btn.addEventListener('click', (e) => {

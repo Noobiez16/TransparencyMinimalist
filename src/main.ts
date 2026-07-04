@@ -2,11 +2,13 @@ import { state, createNewLayer, notify } from './state';
 import { initCanvas } from './canvas';
 import { initLayersPanel } from './layers-panel';
 import { initPropertiesPanel } from './properties-panel';
+import { initTopbar } from './topbar';
 import { initExport } from './export';
 
 initCanvas();
 initLayersPanel();
 initPropertiesPanel();
+initTopbar();
 initExport();
 
 const text = createNewLayer('text');
