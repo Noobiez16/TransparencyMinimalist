@@ -1,13 +1,15 @@
-# Transparency Minimalist Layer Image Editor
+# Transparency Dark Studio Layer Image Editor
 
-A sleek, premium, high-fidelity browser-based image editor designed with a minimalist aesthetic and a general-purpose layer-editing workflow. Build dynamic layer stacks, adjust styles with real-time CSS filters and transformations, and export high-resolution compositions with pixel-perfect accuracy.
+A professional-grade browser-based image editor with a dark studio theme and comprehensive layer-editing workflow. Build dynamic layer stacks with an interactive canvas (drag to move layers, zoom controls), adjust effects with real-time CSS filters and transformations, and export high-resolution compositions with pixel-perfect accuracy.
 
 ---
 
 ## 🚀 Key Features
 
-* **Dynamic Layer Stack**: Layer-based editing supporting multiple image layers and custom styled text overlays. Includes native HTML5 drag-and-drop reordering to easily swap Z-indices.
-* **Responsive Live Viewport Preview**: Powered by a highly-optimized in-place DOM updating engine that modifies element attributes directly, ensuring buttery-smooth 60fps adjustments even during active slider dragging.
+* **Dynamic Layer Stack**: Layer-based editing supporting multiple image layers and custom styled text overlays. Includes native HTML5 drag-and-drop reordering and click-select to swap Z-indices.
+* **Interactive Canvas**: Drag layers directly on the canvas to adjust position, zoom in/out with scroll wheel (Ctrl+scroll), and pan around the viewport for precise positioning.
+* **Effect-Stack Properties Panel**: Manage filters (Blur, Contrast, Saturation, Brightness, Invert), transforms (Opacity, Scale, X/Y), and blend modes with real-time live preview.
+* **Responsive Live Viewport**: Powered by a highly-optimized in-place DOM updating engine that modifies element attributes directly, ensuring smooth 60fps adjustments even during active slider dragging.
 * **Premium Styling Controls**:
   * Aspect ratio presets (1:1 Square, 16:9 Landscape, 9:16 Portrait, 4:5) alongside custom width/height inputs.
   * Canvas background themes (Transparent Checkerboard, Solid White, Solid Black, and Custom Hex Color Picker).
@@ -23,8 +25,8 @@ A sleek, premium, high-fidelity browser-based image editor designed with a minim
 
 * **Core**: [TypeScript](https://www.typescriptlang.org/) for robust static typing.
 * **Build Tool**: [Vite](https://vitejs.dev/) for lightning-fast bundling.
-* **Styling**: Vanilla CSS with custom properties (CSS variables) for flat design aesthetics, sharp outlines, and zero-drop-shadow layout panels.
-* **Rendering**: Hybrid HTML/CSS for responsive browser previews and HTML5 Canvas 2D for high-resolution offscreen PNG compilation.
+* **Styling**: Vanilla CSS with dark studio theme, custom properties (CSS variables), responsive layout (desktop grid → mobile flex), and smooth micro-animations.
+* **Rendering**: Hybrid HTML/CSS for interactive canvas previews and HTML5 Canvas 2D for high-resolution offscreen PNG compilation.
 
 ---
 

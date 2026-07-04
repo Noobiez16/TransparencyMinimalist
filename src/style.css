@@ -244,9 +244,13 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
 .resolution-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--mut); margin-top: 4px; }
 
 @media (max-width: 1024px) {
-  .dashboard-wrapper { grid-template-columns: 1fr; height: auto; }
   body { overflow-y: auto; height: auto; }
-  .canvas-container { max-height: none; padding: 20px 0; }
+  .dashboard-wrapper { display: flex; flex-direction: column; height: auto; }
+  .rail { flex-direction: row; justify-content: center; padding: 6px 10px; }
+  .panel { overflow-y: visible; }
+  .dashboard-wrapper.hide-left .left-panel, .dashboard-wrapper.hide-right .right-panel { display: none; }
+  .canvas-container { max-height: none; padding: 12px 0; }
+  .topbar { flex-wrap: wrap; }
 }
 
 @keyframes card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
