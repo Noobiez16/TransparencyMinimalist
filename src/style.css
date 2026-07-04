@@ -227,6 +227,7 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
   display: flex; flex-direction: column; gap: 2px; width: 220px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
+.size-menu[hidden] { display: none; }
 .size-menu > button {
   font-family: inherit; font-size: 11px; text-align: left; padding: 7px 10px;
   border: none; border-radius: 6px; background: transparent; color: var(--txt); cursor: pointer;
