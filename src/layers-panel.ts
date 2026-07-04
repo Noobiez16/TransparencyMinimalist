@@ -82,8 +82,8 @@ function createCard(id: string): HTMLElement {
 
 function updateCard(card: HTMLElement, layer: LayerState): void {
   card.classList.toggle('active', state.activeLayerId === layer.id);
-  const nameEl = card.querySelector('.layer-name-label') as HTMLElement;
-  if (nameEl.textContent !== layer.name) nameEl.textContent = layer.name;
+  const nameEl = card.querySelector('.layer-name-label') as HTMLElement | null;
+  if (nameEl && nameEl.textContent !== layer.name) nameEl.textContent = layer.name;
   const vis = card.querySelector('.btn-layer-vis') as HTMLElement;
   const visGlyph = layer.visible ? '👁' : '⊘';
   if (vis.textContent !== visGlyph) vis.textContent = visGlyph;
