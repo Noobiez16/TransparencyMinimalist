@@ -205,5 +205,5 @@ state.layers.push(defaultImageLayer);
 state.activeLayerId = defaultTextLayer.id;
 
 // Initialize canvas presets and UI
-notify('canvasConfig');
+notify('structure', 'selection', 'canvasConfig');
 updateUI();
