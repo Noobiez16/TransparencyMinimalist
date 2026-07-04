@@ -4,12 +4,14 @@ import { initLayersPanel } from './layers-panel';
 import { initPropertiesPanel } from './properties-panel';
 import { initTopbar } from './topbar';
 import { initExport } from './export';
+import { initRail } from './rail';
 
 initCanvas();
 initLayersPanel();
 initPropertiesPanel();
 initTopbar();
 initExport();
+initRail();
 
 const text = createNewLayer('text');
 text.name = 'Text Overlay';
