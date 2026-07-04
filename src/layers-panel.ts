@@ -1,10 +1,12 @@
 import { state, subscribe, notify, createNewLayer, getActiveLayer, type LayerState } from './state';
-import { $, inlineEdit } from './dom';
+import { $, inlineEdit, icons } from './dom';
 import { toast } from './toast';
+import { flashCanvas } from './canvas';
 
 const container = $('layers-list-container');
 const cards = new Map<string, HTMLElement>();
 let draggedId: string | null = null;
+const deleting = new Set<string>();
 
 function findLayer(id: string): LayerState | undefined {
   return state.layers.find((l) => l.id === id);
@@ -17,14 +19,17 @@ function createCard(id: string): HTMLElement {
   card.dataset.id = id;
   card.innerHTML = `
     <div class="layer-card-left">
-      <span class="icon-drag">☰</span>
+      <span class="icon-drag">${icons.drag}</span>
       <div class="layer-thumbnail"></div>
       <span class="layer-name-label"></span>
     </div>
     <div class="layer-card-actions">
       <span class="btn-layer-vis"></span>
-      <span class="btn-layer-del">✕</span>
+      <span class="btn-layer-del"></span>
     </div>`;
+
+  const delBtn = card.querySelector('.btn-layer-del') as HTMLElement;
+  delBtn.innerHTML = icons.x;
 
   card.addEventListener('click', (e) => {
     const layer = findLayer(id);
@@ -36,9 +41,15 @@ function createCard(id: string): HTMLElement {
       return;
     }
     if (target.classList.contains('btn-layer-del')) {
-      state.layers = state.layers.filter((l) => l.id !== id);
-      if (state.activeLayerId === id) state.activeLayerId = state.layers[0]?.id || null;
-      notify('structure', 'selection');
+      if (deleting.has(id)) return;
+      deleting.add(id);
+      card.classList.add('leaving');
+      setTimeout(() => {
+        deleting.delete(id);
+        state.layers = state.layers.filter((l) => l.id !== id);
+        if (state.activeLayerId === id) state.activeLayerId = state.layers[0]?.id || null;
+        notify('structure', 'selection');
+      }, 150);
       return;
     }
     state.activeLayerId = id;
@@ -58,14 +69,20 @@ function createCard(id: string): HTMLElement {
 
   card.addEventListener('dragstart', (e) => {
     draggedId = id;
+    card.classList.add('dragging');
     if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
   });
   card.addEventListener('dragover', (e) => {
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    card.classList.add('drop-above');
+  });
+  card.addEventListener('dragleave', () => {
+    card.classList.remove('drop-above');
   });
   card.addEventListener('drop', (e) => {
     e.preventDefault();
+    card.classList.remove('drop-above');
     if (!draggedId || draggedId === id) return;
     const from = state.layers.findIndex((l) => l.id === draggedId);
     const to = state.layers.findIndex((l) => l.id === id);
@@ -76,7 +93,10 @@ function createCard(id: string): HTMLElement {
     }
     draggedId = null;
   });
-  card.addEventListener('dragend', () => { draggedId = null; });
+  card.addEventListener('dragend', () => {
+    draggedId = null;
+    card.classList.remove('dragging');
+  });
   return card;
 }
 
@@ -85,8 +105,10 @@ function updateCard(card: HTMLElement, layer: LayerState): void {
   const nameEl = card.querySelector('.layer-name-label') as HTMLElement | null;
   if (nameEl && nameEl.textContent !== layer.name) nameEl.textContent = layer.name;
   const vis = card.querySelector('.btn-layer-vis') as HTMLElement;
-  const visGlyph = layer.visible ? '👁' : '⊘';
-  if (vis.textContent !== visGlyph) vis.textContent = visGlyph;
+  if (vis.dataset.vis !== String(layer.visible)) {
+    vis.dataset.vis = String(layer.visible);
+    vis.innerHTML = layer.visible ? icons.eye : icons.eyeOff;
+  }
   card.style.opacity = layer.visible ? '' : '0.5';
   const thumb = card.querySelector('.layer-thumbnail') as HTMLElement;
   if (layer.type === 'image' && layer.imageSrc) {
@@ -136,6 +158,7 @@ function addImageFromDataUrl(dataUrl: string, name: string): void {
     state.layers.unshift(layer);
     state.activeLayerId = layer.id;
     notify('structure', 'selection');
+    flashCanvas();
   }
 }
 
@@ -156,12 +179,14 @@ export function initLayersPanel(): void {
     state.layers.unshift(layer);
     state.activeLayerId = layer.id;
     notify('structure', 'selection');
+    flashCanvas();
   });
   $('btn-add-text').addEventListener('click', () => {
     const layer = createNewLayer('text');
     state.layers.unshift(layer);
     state.activeLayerId = layer.id;
     notify('structure', 'selection');
+    flashCanvas();
   });
 
   const uploadZone = $('upload-zone');

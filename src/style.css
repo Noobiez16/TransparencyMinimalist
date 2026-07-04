@@ -249,6 +249,17 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
   .canvas-container { max-height: none; padding: 20px 0; }
 }
 
+@keyframes card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.layer-card { animation: card-in 0.25s var(--ease); }
+.layer-card.leaving { opacity: 0; transform: translateX(-10px) scale(0.97); }
+@keyframes panel-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.panel, .rail, .topbar { animation: panel-in 0.35s var(--ease) backwards; }
+.left-panel { animation-delay: 0.05s; } .center-panel { animation-delay: 0.13s; } .right-panel { animation-delay: 0.21s; }
+@keyframes canvas-flash { 0% { box-shadow: 0 20px 60px rgba(0,0,0,.55), 0 0 0 2px rgba(255,255,255,.5); } 100% { box-shadow: 0 20px 60px rgba(0,0,0,.55); } }
+.canvas-viewport.flash { animation: canvas-flash 0.5s ease-out; }
+.layer-card.dragging { opacity: 0.6; transform: scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+.layer-card.drop-above { box-shadow: 0 -2px 0 0 #fff; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }

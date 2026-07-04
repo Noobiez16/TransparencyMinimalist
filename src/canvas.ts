@@ -32,6 +32,12 @@ export function applyCanvasDimensions(): void {
   }
 }
 
+export function flashCanvas(): void {
+  viewport.classList.remove('flash');
+  void viewport.offsetWidth;
+  viewport.classList.add('flash');
+}
+
 function renderViewport(): void {
   // Get active visible layers in reversed order (bottom to top)
   const activeVisibleLayers = [...state.layers].reverse().filter(l => l.visible);
