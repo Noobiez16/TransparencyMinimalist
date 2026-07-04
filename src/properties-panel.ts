@@ -13,12 +13,6 @@ const propXOffset = $('prop-x-offset') as HTMLInputElement;
 const propYOffset = $('prop-y-offset') as HTMLInputElement;
 const propScale = $('prop-scale') as HTMLInputElement;
 
-const propBlur = $('prop-blur') as HTMLInputElement;
-const propContrast = $('prop-contrast') as HTMLInputElement;
-const propSaturation = $('prop-saturation') as HTMLInputElement;
-const propBrightness = $('prop-brightness') as HTMLInputElement;
-const propInvert = $('prop-invert') as HTMLInputElement;
-
 const sectionTextProps = $('section-text-properties');
 const propTextContent = $('prop-text-content') as HTMLTextAreaElement;
 const propFontFamily = $('prop-font-family') as HTMLSelectElement;
@@ -26,6 +20,69 @@ const propFontSize = $('prop-font-size') as HTMLInputElement;
 const propTextColor = $('prop-text-color') as HTMLInputElement;
 
 let lastSyncedLayerId: string | null = null;
+
+type EffectKey = 'blur' | 'brightness' | 'contrast' | 'saturation';
+const EFFECTS: { key: EffectKey; on: keyof LayerState; label: string; min: number; max: number; unit: string; firstOn: number; imageOnly: boolean }[] = [
+  { key: 'blur', on: 'blurOn', label: 'Blur', min: 0, max: 20, unit: 'px', firstOn: 4, imageOnly: false },
+  { key: 'brightness', on: 'brightnessOn', label: 'Brightness', min: 0, max: 200, unit: '%', firstOn: 100, imageOnly: true },
+  { key: 'contrast', on: 'contrastOn', label: 'Contrast', min: 0, max: 200, unit: '%', firstOn: 100, imageOnly: true },
+  { key: 'saturation', on: 'saturationOn', label: 'Saturation', min: 0, max: 200, unit: '%', firstOn: 100, imageOnly: true },
+];
+
+const effectEls = new Map<EffectKey, { row: HTMLElement; sw: HTMLButtonElement; range: HTMLInputElement; chip: HTMLElement }>();
+
+function buildEffectRows(): void {
+  const stack = $('effects-stack');
+  EFFECTS.forEach((fx) => {
+    const row = document.createElement('div');
+    row.className = 'fx-row';
+    row.dataset.fx = fx.key;
+    if (fx.imageOnly) row.classList.add('filter-image-only');
+    row.innerHTML = `
+      <div class="fx-top">
+        <span class="fx-name">${fx.label}</span>
+        <button class="switch" role="switch" aria-checked="false"></button>
+      </div>
+      <div class="fx-body"><div class="fx-body-inner">
+        <input type="range" min="${fx.min}" max="${fx.max}" value="${fx.min}">
+        <span class="value-display value-chip">${fx.min}${fx.unit}</span>
+      </div></div>`;
+    stack.appendChild(row);
+    const sw = row.querySelector('.switch') as HTMLButtonElement;
+    const range = row.querySelector('input') as HTMLInputElement;
+    const chip = row.querySelector('.value-chip') as HTMLElement;
+    effectEls.set(fx.key, { row, sw, range, chip });
+
+    sw.addEventListener('click', () => {
+      const layer = getActiveLayer();
+      if (!layer) return;
+      const nowOn = !(layer as any)[fx.on];
+      (layer as any)[fx.on] = nowOn;
+      if (nowOn && fx.key === 'blur' && layer.blur === 0) {
+        layer.blur = fx.firstOn; // first-time ON must visibly do something (spec §4)
+      }
+      syncEffectRow(fx.key, layer);
+      notify('layerProps');
+    });
+    range.addEventListener('input', () => {
+      const layer = getActiveLayer();
+      if (!layer) return;
+      (layer as any)[fx.key] = parseInt(range.value, 10);
+      chip.textContent = `${range.value}${fx.unit}`;
+      notify('layerProps');
+    });
+  });
+}
+
+function syncEffectRow(key: EffectKey, layer: LayerState): void {
+  const fx = EFFECTS.find((f) => f.key === key)!;
+  const els = effectEls.get(key)!;
+  const on = Boolean((layer as any)[fx.on]);
+  els.sw.setAttribute('aria-checked', String(on));
+  els.row.classList.toggle('on', on);
+  if (document.activeElement !== els.range) els.range.value = String(layer[key]);
+  els.chip.textContent = `${layer[key]}${fx.unit}`;
+}
 
 function syncPanel(): void {
   const layer = getActiveLayer();
@@ -51,20 +108,13 @@ function syncPanel(): void {
   syncVal(propScale, layer.scale.toString());
   $('scale-value').textContent = `${layer.scale}%`;
 
-  syncVal(propBlur, layer.blur.toString());
-  $('blur-value').textContent = `${layer.blur}px`;
-  syncVal(propContrast, layer.contrast.toString());
-  $('contrast-value').textContent = `${layer.contrast}%`;
-  syncVal(propSaturation, layer.saturation.toString());
-  $('saturation-value').textContent = `${layer.saturation}%`;
-  syncVal(propBrightness, layer.brightness.toString());
-  $('brightness-value').textContent = `${layer.brightness}%`;
-  propInvert.checked = layer.invert;
+  EFFECTS.forEach((fx) => syncEffectRow(fx.key, layer));
+  $('prop-invert').setAttribute('aria-checked', String(layer.invert));
 
   // Toggle filter rows based on type
   if (layer.type === 'image') {
     document.querySelectorAll('.filter-image-only').forEach((el) => {
-      (el as HTMLElement).style.display = 'flex';
+      (el as HTMLElement).style.display = '';
     });
     sectionTextProps.style.display = 'none';
   } else {
@@ -103,6 +153,8 @@ function bindSlider(input: HTMLInputElement, key: keyof LayerState, labelId?: st
 }
 
 export function initPropertiesPanel(): void {
+  buildEffectRows();
+
   // --- Active Layer Change Listeners ---
   propNameInput.addEventListener('input', () => {
     const layer = getActiveLayer();
@@ -141,17 +193,13 @@ export function initPropertiesPanel(): void {
   bindSlider(propXOffset, 'xOffset', 'x-offset-value', '%');
   bindSlider(propYOffset, 'yOffset', 'y-offset-value', '%');
   bindSlider(propScale, 'scale', 'scale-value', '%');
-  bindSlider(propBlur, 'blur', 'blur-value', 'px');
-  bindSlider(propContrast, 'contrast', 'contrast-value', '%');
-  bindSlider(propSaturation, 'saturation', 'saturation-value', '%');
-  bindSlider(propBrightness, 'brightness', 'brightness-value', '%');
 
-  propInvert.addEventListener('change', () => {
+  $('prop-invert').addEventListener('click', () => {
     const layer = getActiveLayer();
-    if (layer) {
-      layer.invert = propInvert.checked;
-      notify('layerProps');
-    }
+    if (!layer) return;
+    layer.invert = !layer.invert;
+    $('prop-invert').setAttribute('aria-checked', String(layer.invert));
+    notify('layerProps');
   });
 
   // Text layer change listeners
