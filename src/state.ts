@@ -64,7 +64,13 @@ export function notify(...flags: DirtyFlag[]): void {
     const dirty = pending;
     pending = new Set();
     scheduled = false;
-    listeners.forEach((fn) => fn(dirty));
+    listeners.forEach((fn) => {
+      try {
+        fn(dirty);
+      } catch (err) {
+        console.error('state listener failed', err);
+      }
+    });
   });
 }
 

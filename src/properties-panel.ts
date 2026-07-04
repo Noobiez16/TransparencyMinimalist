@@ -17,6 +17,12 @@ const propFontFamily = $('prop-font-family') as HTMLSelectElement;
 const propFontSize = $('prop-font-size') as HTMLInputElement;
 const propTextColor = $('prop-text-color') as HTMLInputElement;
 
+const opacityValueEl = $('opacity-value');
+const xOffsetValueEl = $('x-offset-value');
+const yOffsetValueEl = $('y-offset-value');
+const scaleValueEl = $('scale-value');
+const fontSizeValueEl = $('font-size-value');
+
 let lastSyncedLayerId: string | null = null;
 
 type EffectKey = 'blur' | 'brightness' | 'contrast' | 'saturation';
@@ -46,10 +52,14 @@ function attachChip(range: HTMLInputElement, chip: HTMLElement, unit: string): v
         if (!isNaN(v)) {
           v = Math.min(parseInt(range.max, 10), Math.max(parseInt(range.min, 10), v));
           range.value = String(v);
+          input.replaceWith(chip);
           range.dispatchEvent(new Event('input'));
+        } else {
+          input.replaceWith(chip);
         }
+      } else {
+        input.replaceWith(chip);
       }
-      input.replaceWith(chip);
       chip.textContent = `${range.value}${unit}`;
     };
     input.addEventListener('blur', () => commit(true));
@@ -156,14 +166,14 @@ function syncPanel(): void {
 
   nameChip.textContent = layer.name;
   syncVal(propOpacityRange, layer.opacity.toString());
-  $('opacity-value').textContent = `${layer.opacity}%`;
+  opacityValueEl.textContent = `${layer.opacity}%`;
   syncBlendUI(layer.blendMode);
   syncVal(propXOffset, layer.xOffset.toString());
-  $('x-offset-value').textContent = `${layer.xOffset}%`;
+  xOffsetValueEl.textContent = `${layer.xOffset}%`;
   syncVal(propYOffset, layer.yOffset.toString());
-  $('y-offset-value').textContent = `${layer.yOffset}%`;
+  yOffsetValueEl.textContent = `${layer.yOffset}%`;
   syncVal(propScale, layer.scale.toString());
-  $('scale-value').textContent = `${layer.scale}%`;
+  scaleValueEl.textContent = `${layer.scale}%`;
 
   EFFECTS.forEach((fx) => syncEffectRow(fx.key, layer));
   $('prop-invert').setAttribute('aria-checked', String(layer.invert));
@@ -183,7 +193,7 @@ function syncPanel(): void {
     syncVal(propTextContent, layer.textContent);
     syncVal(propFontFamily, layer.fontFamily);
     syncVal(propFontSize, layer.fontSize.toString());
-    $('font-size-value').textContent = `${layer.fontSize}px`;
+    fontSizeValueEl.textContent = `${layer.fontSize}px`;
     syncVal(propTextColor, layer.textColor);
   }
 }
@@ -202,11 +212,12 @@ function updateVisibility(): void {
 }
 
 function bindSlider(input: HTMLInputElement, key: keyof LayerState, labelId?: string, suffix = ''): void {
+  const labelEl = labelId ? $(labelId) : null;
   input.addEventListener('input', () => {
     const layer = getActiveLayer();
     if (!layer) return;
     (layer as any)[key] = parseInt(input.value, 10);
-    if (labelId) $(labelId).textContent = `${input.value}${suffix}`;
+    if (labelEl) labelEl.textContent = `${input.value}${suffix}`;
     notify('layerProps');
   });
 }
@@ -225,7 +236,7 @@ export function initPropertiesPanel(): void {
   });
 
   bindSlider(propOpacityRange, 'opacity', 'opacity-value', '%');
-  attachChip(propOpacityRange, $('opacity-value'), '%');
+  attachChip(propOpacityRange, opacityValueEl, '%');
   attachReset(propOpacityRange, PROP_DEFAULTS.opacity);
 
   document.querySelectorAll<HTMLButtonElement>('#blend-seg button[data-blend]').forEach((btn) => {
@@ -246,13 +257,13 @@ export function initPropertiesPanel(): void {
   });
 
   bindSlider(propXOffset, 'xOffset', 'x-offset-value', '%');
-  attachChip(propXOffset, $('x-offset-value'), '%');
+  attachChip(propXOffset, xOffsetValueEl, '%');
   attachReset(propXOffset, PROP_DEFAULTS.xOffset);
   bindSlider(propYOffset, 'yOffset', 'y-offset-value', '%');
-  attachChip(propYOffset, $('y-offset-value'), '%');
+  attachChip(propYOffset, yOffsetValueEl, '%');
   attachReset(propYOffset, PROP_DEFAULTS.yOffset);
   bindSlider(propScale, 'scale', 'scale-value', '%');
-  attachChip(propScale, $('scale-value'), '%');
+  attachChip(propScale, scaleValueEl, '%');
   attachReset(propScale, PROP_DEFAULTS.scale);
 
   $('prop-invert').addEventListener('click', () => {
@@ -281,7 +292,7 @@ export function initPropertiesPanel(): void {
   });
 
   bindSlider(propFontSize, 'fontSize', 'font-size-value', 'px');
-  attachChip(propFontSize, $('font-size-value'), 'px');
+  attachChip(propFontSize, fontSizeValueEl, 'px');
   attachReset(propFontSize, PROP_DEFAULTS.fontSize);
 
   propTextColor.addEventListener('input', () => {

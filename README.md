@@ -33,13 +33,22 @@ A professional-grade browser-based image editor with a dark studio theme and com
 ## 📁 Project Structure
 
 ```
-├── index.html           # Main UI editor template (3-column layout)
+├── index.html               # Main UI editor template (top bar + icon rail + workspace)
 ├── src/
-│   ├── main.ts          # Core application logic, event loops, & export engine
-│   └── style.css        # Premium minimalist variables and viewport styling
-├── dist/                # Production build output
-├── tsconfig.json        # TypeScript compiler configurations
-└── vite.config.ts       # Vite bundler parameters
+│   ├── main.ts              # Entry point wiring modules together
+│   ├── state.ts             # State + observer/notify system
+│   ├── canvas.ts            # Canvas rendering & layer compositing
+│   ├── layers-panel.ts      # Layer list UI (add/select/reorder/delete)
+│   ├── properties-panel.ts  # Per-layer property controls (transform, blend, effects, text)
+│   ├── topbar.ts            # Top bar actions
+│   ├── rail.ts              # Icon rail navigation
+│   ├── export.ts            # Export engine
+│   ├── toast.ts             # Toast notifications
+│   ├── dom.ts               # DOM helper utilities
+│   └── style.css            # Dark studio theme variables and viewport styling
+├── dist/                    # Production build output
+├── tsconfig.json            # TypeScript compiler configurations
+└── vite.config.ts           # Vite bundler parameters
 ```
 
 ---
