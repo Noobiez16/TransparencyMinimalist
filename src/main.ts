@@ -1,83 +1,6 @@
-interface LayerState {
-  id: string;
-  name: string;
-  type: 'image' | 'text';
-  visible: boolean;
-  opacity: number;
-  blendMode: string;
-  xOffset: number;
-  yOffset: number;
-  scale: number;
-  // Image Layer
-  imageSrc: string | null;
-  imageName: string | null;
-  blur: number;
-  contrast: number;
-  saturation: number;
-  brightness: number;
-  invert: boolean;
-  // Text Layer
-  textContent: string;
-  fontFamily: string;
-  fontSize: number;
-  textColor: string;
-}
-
-interface AppState {
-  layers: LayerState[];
-  activeLayerId: string | null;
-  canvasWidth: number;
-  canvasHeight: number;
-  canvasRatio: string;
-  canvasBgType: 'transparent' | 'white' | 'black' | 'custom';
-  canvasBgColor: string;
-}
-
-const state: AppState = {
-  layers: [],
-  activeLayerId: null,
-  canvasWidth: 1024,
-  canvasHeight: 1024,
-  canvasRatio: '1:1',
-  canvasBgType: 'transparent',
-  canvasBgColor: '#ffffff'
-};
-
-const $ = <T extends HTMLElement>(id: string): T => {
-  const el = document.getElementById(id);
-  if (!el) throw new Error(`Element with id ${id} not found`);
-  return el as T;
-};
-
-// --- Layer Management ---
-let layerCounter = 0;
-
-function createNewLayer(type: 'image' | 'text'): LayerState {
-  layerCounter++;
-  const id = `layer_${Date.now()}_${layerCounter}`;
-  return {
-    id,
-    name: `${type === 'image' ? 'Image' : 'Text'} Layer ${layerCounter}`,
-    type,
-    visible: true,
-    opacity: 100,
-    blendMode: 'normal',
-    xOffset: 0,
-    yOffset: 0,
-    scale: 100,
-    imageSrc: null,
-    imageName: null,
-    blur: 0,
-    contrast: 100,
-    saturation: 100,
-    brightness: 100,
-    invert: false,
-    textContent: 'Double click properties to edit text',
-    fontFamily: 'Inter',
-    fontSize: 32,
-    textColor: '#000000'
-  };
-}
+import { state, createNewLayer, getActiveLayer, type LayerState, getFilterString } from './state';
+import { $ } from './dom';
+import { toast } from './toast';
 
 $('btn-add-image').addEventListener('click', () => {
   const layer = createNewLayer('image');
@@ -145,7 +68,7 @@ function handleUploadedFiles(files: FileList) {
       updateUI();
     };
     reader.onerror = () => {
-      alert('Failed to read file.');
+      toast('Failed to read file.');
     };
     reader.readAsDataURL(file);
   });
@@ -259,10 +182,6 @@ const propTextContent = $('prop-text-content') as HTMLTextAreaElement;
 const propFontFamily = $('prop-font-family') as HTMLSelectElement;
 const propFontSize = $('prop-font-size') as HTMLInputElement;
 const propTextColor = $('prop-text-color') as HTMLInputElement;
-
-function getActiveLayer(): LayerState | undefined {
-  return state.layers.find(l => l.id === state.activeLayerId);
-}
 
 let lastSyncedLayerId: string | null = null;
 
@@ -411,13 +330,7 @@ function updateUI() {
         img.src = layer.imageSrc || '';
       }
       img.style.display = layer.imageSrc ? 'block' : 'none';
-      img.style.filter = `
-        blur(${layer.blur}px)
-        contrast(${layer.contrast}%)
-        saturate(${layer.saturation}%)
-        brightness(${layer.brightness}%)
-        ${layer.invert ? 'invert(1)' : ''}
-      `.replace(/\s+/g, ' ').trim();
+      img.style.filter = getFilterString(layer);
     } else {
       const div = el as HTMLDivElement;
       if (div.textContent !== layer.textContent) {
@@ -426,7 +339,7 @@ function updateUI() {
       div.style.fontFamily = layer.fontFamily;
       div.style.fontSize = `${layer.fontSize}px`;
       div.style.color = layer.textColor;
-      div.style.filter = `blur(${layer.blur}px) ${layer.invert ? 'invert(1)' : ''}`;
+      div.style.filter = getFilterString(layer);
     }
 
     el.style.opacity = (layer.opacity / 100).toString();
@@ -576,7 +489,7 @@ document.addEventListener('paste', (e) => {
       updateUI();
     };
     reader.onerror = () => {
-      alert('Failed to read pasted image.');
+      toast('Failed to read pasted image.');
     };
     reader.readAsDataURL(targetFile);
   }
@@ -651,7 +564,7 @@ function drawCoverImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w:
 
 $('btn-export').addEventListener('click', () => {
   if (state.layers.length === 0) {
-    alert('Add at least one layer to export.');
+    toast('Add at least one layer to export.');
     return;
   }
 
