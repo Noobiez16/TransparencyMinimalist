@@ -43,6 +43,8 @@ export function flashCanvas(): void {
   viewport.classList.add('flash');
 }
 
+export function requestComposite(): void { notify('composite'); }
+
 function renderScreen(): void {
   screenCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   // overlayScale = CSS screen px per document px. getBoundingClientRect already
@@ -105,7 +107,10 @@ export function initCanvas(): void {
 
   subscribe((dirty) => {
     if (dirty.has('canvasConfig')) applyCanvasDimensions();
-    if (dirty.has('structure') || dirty.has('selection') || dirty.has('layerProps') || dirty.has('composite')) renderScreen();
+    if (
+      dirty.has('canvasConfig') || dirty.has('structure') || dirty.has('selection') ||
+      dirty.has('layerProps') || dirty.has('composite')
+    ) renderScreen();
   });
   applyCanvasDimensions();
 
