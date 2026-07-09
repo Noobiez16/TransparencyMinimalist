@@ -7,6 +7,7 @@ import { initHistoryPanel } from './history-panel';
 import { initTopbar } from './topbar';
 import { initExport } from './export';
 import { initRail } from './rail';
+import { initGraphPanel } from './graph-panel';
 import * as history from './engine/history';
 import { $, icons } from './dom';
 
@@ -38,6 +39,7 @@ initHistoryPanel();
 initTopbar();
 initExport();
 initRail();
+initGraphPanel();
 initHistoryUI();
 
 const text = createTextLayer(state.doc, 'Text Overlay');

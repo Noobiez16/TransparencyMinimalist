@@ -334,4 +334,17 @@ body { display: flex; flex-direction: column; }
 .history-row:hover { background: var(--card-hi); }
 .history-row.current { outline: 1px solid #fff; }
 .history-row.undone { opacity: 0.45; }
+
+/* Document graph overlay */
+.graph-overlay { display: none; position: fixed; inset: 60px 10px 10px 64px; z-index: 60;
+  background: var(--panel); border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.6); overflow: hidden; }
+.graph-overlay.open { display: flex; }
+#graph-canvas { flex: 1; display: block; cursor: grab; }
+.graph-side { width: 230px; border-left: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+#graph-search { width: 100%; }
+.graph-info { font-size: 11px; color: var(--mut); line-height: 1.5; min-height: 64px; }
+.graph-legend { display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: var(--mut); }
+.graph-legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+.graph-footer { margin-top: auto; font-size: 10px; color: var(--mut); }
+@media (max-width: 1024px) { .graph-overlay { inset: 8px; } .graph-side { display: none; } }
 .history-empty { font-size: 11px; color: var(--mut); text-align: center; padding: 20px 0; }

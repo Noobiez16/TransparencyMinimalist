@@ -17,7 +17,8 @@ export const icons = {
   layers: svg('<path d="M8 2 14 5 8 8 2 5Z"/><path d="M2 8.5 8 11.5 14 8.5"/><path d="M2 11.5 8 14.5 14 11.5"/>'),
   sliders: svg('<line x1="3" y1="5" x2="13" y2="5"/><circle cx="6" cy="5" r="1.5" fill="currentColor"/><line x1="3" y1="11" x2="13" y2="11"/><circle cx="10" cy="11" r="1.5" fill="currentColor"/>'),
   undo: svg('<path d="M6 3 2.5 6.5 6 10"/><path d="M2.5 6.5H10a3.5 3.5 0 0 1 0 7H7"/>'),
-  redo: svg('<path d="M10 3 13.5 6.5 10 10"/><path d="M13.5 6.5H6a3.5 3.5 0 0 0 0 7h3"/>')
+  redo: svg('<path d="M10 3 13.5 6.5 10 10"/><path d="M13.5 6.5H6a3.5 3.5 0 0 0 0 7h3"/>'),
+  graph: svg('<circle cx="8" cy="4" r="2"/><circle cx="3.5" cy="11.5" r="2"/><circle cx="12.5" cy="11.5" r="2"/><line x1="7" y1="5.8" x2="4.5" y2="9.8"/><line x1="9" y1="5.8" x2="11.5" y2="9.8"/><line x1="5.5" y1="11.5" x2="10.5" y2="11.5"/>')
 };
 
 export function inlineEdit(el: HTMLElement, current: string, onCommit: (v: string) => void): void {

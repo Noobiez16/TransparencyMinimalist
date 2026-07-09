@@ -35,6 +35,7 @@
       <button class="rail-btn active" id="rail-layers" title="Toggle layers panel"><span class="rail-ic"></span></button>
       <button class="rail-btn" id="rail-add-image" title="Add image layer"><span class="rail-ic"></span></button>
       <button class="rail-btn" id="rail-add-text" title="Add text layer"><span class="rail-ic"></span></button>
+      <button class="rail-btn" id="rail-graph" title="Document graph (G)"></button>
       <button class="rail-btn active" id="rail-props" title="Toggle properties panel"><span class="rail-ic"></span></button>
     </nav>
 
@@ -203,6 +204,22 @@
         <div class="history-list" id="history-list"></div>
       </div>
 
+    </aside>
+  </div>
+
+  <div class="graph-overlay" id="graph-overlay">
+    <canvas id="graph-canvas"></canvas>
+    <aside class="graph-side">
+      <input type="text" id="graph-search" placeholder="Search nodes...">
+      <div class="graph-section">
+        <div class="lbl">Node Info</div>
+        <div class="graph-info" id="graph-info">Click or hover a node to inspect it</div>
+      </div>
+      <div class="graph-section">
+        <div class="lbl">Legend</div>
+        <div class="graph-legend" id="graph-legend"></div>
+      </div>
+      <div class="graph-footer" id="graph-footer"></div>
     </aside>
   </div>
   <script type="module" src="/src/main.ts"></script>
