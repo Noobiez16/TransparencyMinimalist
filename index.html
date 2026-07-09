@@ -72,7 +72,7 @@
       <div class="canvas-container" id="canvas-container">
         <div id="zoom-wrap">
           <div class="canvas-viewport checkerboard-bg" id="canvas-viewport">
-            <!-- Dynamic DOM layer preview elements will be rendered here -->
+            <canvas id="doc-canvas"></canvas>
           </div>
         </div>
       </div>
@@ -131,15 +131,15 @@
         <section class="config-section">
           <h3>Transformations</h3>
           <div class="control-row">
-            <label for="prop-x-offset">X Offset (%)</label>
-            <input type="range" id="prop-x-offset" min="-100" max="100" value="0">
-            <span class="value-display" id="x-offset-value">0%</span>
+            <label for="prop-x-offset">Position X (px)</label>
+            <input type="range" id="prop-x-offset" min="-512" max="1536" value="512">
+            <span class="value-display" id="x-offset-value">512px</span>
           </div>
-          
+
           <div class="control-row">
-            <label for="prop-y-offset">Y Offset (%)</label>
-            <input type="range" id="prop-y-offset" min="-100" max="100" value="0">
-            <span class="value-display" id="y-offset-value">0%</span>
+            <label for="prop-y-offset">Position Y (px)</label>
+            <input type="range" id="prop-y-offset" min="-512" max="1536" value="512">
+            <span class="value-display" id="y-offset-value">512px</span>
           </div>
 
           <div class="control-row">
@@ -181,8 +181,8 @@
 
           <div class="control-row">
             <label for="prop-font-size">Font Size (px)</label>
-            <input type="range" id="prop-font-size" min="8" max="120" value="32">
-            <span class="value-display" id="font-size-value">32px</span>
+            <input type="range" id="prop-font-size" min="8" max="512" value="64">
+            <span class="value-display" id="font-size-value">64px</span>
           </div>
 
           <div class="control-row inline-row">

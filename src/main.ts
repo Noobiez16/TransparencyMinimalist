@@ -1,4 +1,5 @@
-import { state, createNewLayer, notify } from './state';
+import { state, notify } from './state';
+import { createTextLayer, createImageLayer } from './engine/document';
 import { initCanvas } from './canvas';
 import { initLayersPanel } from './layers-panel';
 import { initPropertiesPanel } from './properties-panel';
@@ -13,15 +14,11 @@ initTopbar();
 initExport();
 initRail();
 
-const text = createNewLayer('text');
-text.name = 'Text Overlay';
-text.textContent = 'Minimalist Editor';
-text.yOffset = -10;
-state.layers.push(text);
-
-const image = createNewLayer('image');
-image.name = 'Background Image';
-state.layers.push(image);
-
-state.activeLayerId = text.id;
-notify('structure', 'selection', 'canvasConfig');
+const text = createTextLayer(state.doc, 'Text Overlay');
+text.text = 'Minimalist Editor';
+text.y = state.doc.height / 2 - state.doc.height * 0.1;
+state.doc.layers.push(text);
+const image = createImageLayer(state.doc, 'Background Image');
+state.doc.layers.push(image);
+state.doc.activeLayerId = text.id;
+notify('structure', 'selection', 'canvasConfig', 'composite');

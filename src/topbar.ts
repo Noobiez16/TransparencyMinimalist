@@ -20,25 +20,23 @@ export function initTopbar(): void {
     btn.addEventListener('click', () => {
       const ratio = btn.dataset.ratio!;
       const [w, h] = PRESETS[ratio];
-      state.canvasRatio = ratio;
-      state.canvasWidth = w;
-      state.canvasHeight = h;
+      state.doc.width = w;
+      state.doc.height = h;
       menu.hidden = true;
-      notify('canvasConfig');
+      notify('canvasConfig', 'composite');
     });
   });
 
   $('size-custom-apply').addEventListener('click', () => {
-    state.canvasRatio = 'custom';
-    state.canvasWidth = Math.min(4096, Math.max(64, parseInt(widthInput.value, 10) || 1024));
-    state.canvasHeight = Math.min(4096, Math.max(64, parseInt(heightInput.value, 10) || 1024));
+    state.doc.width = Math.min(4096, Math.max(64, parseInt(widthInput.value, 10) || 1024));
+    state.doc.height = Math.min(4096, Math.max(64, parseInt(heightInput.value, 10) || 1024));
     menu.hidden = true;
-    notify('canvasConfig');
+    notify('canvasConfig', 'composite');
   });
 
   subscribe((dirty) => {
     if (dirty.has('canvasConfig')) {
-      chip.textContent = `${state.canvasWidth} × ${state.canvasHeight} ▾`;
+      chip.textContent = `${state.doc.width} × ${state.doc.height} ▾`;
     }
   });
 }
