@@ -93,3 +93,69 @@ export async function openProjectFile(file: File): Promise<void> {
     toast(err instanceof Error ? err.message : 'Could not open the project file.');
   }
 }
+
+const DB_NAME = 'mledit';
+const STORE = 'autosave';
+
+function openDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbPut(value: string): Promise<void> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(value, 'latest');
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function idbGet(): Promise<string | null> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(STORE, 'readonly').objectStore(STORE).get('latest');
+    req.onsuccess = () => resolve((req.result as string) ?? null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+let autosaveTimer: number | null = null;
+let autosaveErrorShown = false;
+
+export function initAutosave(): void {
+  history.onChange(() => {
+    if (autosaveTimer !== null) clearTimeout(autosaveTimer);
+    autosaveTimer = window.setTimeout(async () => {
+      try { await idbPut(await serializeDoc(state.doc)); }
+      catch (err) {
+        if (!autosaveErrorShown) { autosaveErrorShown = true; toast('Autosave is unavailable.'); }
+        console.error('autosave failed', err);
+      }
+    }, 2000);
+  });
+}
+
+export async function tryRestoreOffer(): Promise<void> {
+  try {
+    const json = await idbGet();
+    if (!json) return;
+    toast('A previous session was found.', {
+      actionLabel: 'Restore',
+      duration: 10000,
+      onAction: async () => {
+        try {
+          state.doc = await deserializeDoc(json);
+          history.clear();
+          history.markSaved();
+          notify('structure', 'selection', 'canvasConfig', 'composite');
+        } catch { toast('Could not restore the previous session.'); }
+      }
+    });
+  } catch (err) { console.error('restore check failed', err); }
+}

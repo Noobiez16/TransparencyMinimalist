@@ -15,6 +15,7 @@ import { registerTool, setActiveTool, getActiveTool, allTools } from './engine/t
 import { moveTool } from './tools/move';
 import { handTool } from './tools/hand';
 import { zoomTool } from './tools/zoom';
+import { initAutosave, tryRestoreOffer } from './engine/persistence';
 
 function initHistoryUI(): void {
   const undoBtn = $<HTMLButtonElement>('btn-undo');
@@ -85,3 +86,6 @@ const image = createImageLayer(state.doc, 'Background Image');
 state.doc.layers.push(image);
 state.doc.activeLayerId = text.id;
 notify('structure', 'selection', 'canvasConfig', 'composite');
+
+initAutosave();
+void tryRestoreOffer();

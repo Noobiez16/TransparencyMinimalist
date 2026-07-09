@@ -1,6 +1,6 @@
 let container: HTMLDivElement | null = null;
 
-export function toast(message: string): void {
+export function toast(message: string, opts?: { actionLabel?: string; onAction?: () => void; duration?: number }): void {
   if (!container) {
     container = document.createElement('div');
     container.className = 'toast-container';
@@ -8,12 +8,25 @@ export function toast(message: string): void {
   }
   const el = document.createElement('div');
   el.className = 'toast';
-  el.textContent = message;
+  const text = document.createElement('span');
+  text.textContent = message;
+  el.appendChild(text);
+  if (opts?.actionLabel) {
+    const btn = document.createElement('button');
+    btn.className = 'toast-action';
+    btn.textContent = opts.actionLabel;
+    btn.addEventListener('click', () => {
+      opts.onAction?.();
+      dismiss();
+    });
+    el.appendChild(btn);
+  }
   container.appendChild(el);
   requestAnimationFrame(() => el.classList.add('show'));
-  setTimeout(() => {
+  function dismiss(): void {
     el.classList.remove('show');
     el.addEventListener('transitionend', () => el.remove(), { once: true });
     setTimeout(() => el.remove(), 600);
-  }, 3000);
+  }
+  setTimeout(dismiss, opts?.duration ?? 3000);
 }
