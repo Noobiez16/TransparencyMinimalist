@@ -1,6 +1,8 @@
-import { state, subscribe, notify, getActiveLayer, PROP_DEFAULTS } from './state';
-import type { Layer, Effects, BlendMode } from './engine/document';
+import { state, subscribe, getActiveLayer, PROP_DEFAULTS } from './state';
+import type { Layer, Effects, BlendMode, LayerBase } from './engine/document';
 import { $, inlineEdit } from './dom';
+import * as history from './engine/history';
+import { cmdPatchLayer, cmdPatchEffects } from './engine/commands';
 
 // --- UI Rendering & Sync ---
 const propertiesEditorContainer = $('properties-editor-container');
@@ -82,9 +84,8 @@ function attachReset(range: HTMLInputElement, def: number | (() => number)): voi
 function setBlend(mode: string): void {
   const layer = getActiveLayer();
   if (!layer) return;
-  layer.blendMode = mode as BlendMode;
+  history.push(cmdPatchLayer(layer.id, `Blend: ${mode}`, { blendMode: mode as BlendMode }));
   syncBlendUI(mode);
-  notify('layerProps', 'composite');
 }
 
 function syncBlendUI(mode: string): void {
@@ -127,20 +128,19 @@ function buildEffectRows(): void {
       if (!layer) return;
       const effects = layer.effects as unknown as Record<string, number | boolean>;
       const nowOn = !effects[fx.on];
-      effects[fx.on] = nowOn;
+      const patch: Partial<Effects> = { [fx.on]: nowOn } as Partial<Effects>;
       if (nowOn && fx.key === 'blur' && layer.effects.blur === 0) {
-        layer.effects.blur = fx.firstOn; // first-time ON must visibly do something (spec §4)
+        (patch as Record<string, unknown>).blur = fx.firstOn; // first-time ON must visibly do something (spec §4)
       }
+      history.push(cmdPatchEffects(layer.id, `Toggle ${fx.label}`, patch));
       syncEffectRow(fx.key, layer);
-      notify('layerProps', 'composite');
     });
     range.addEventListener('input', () => {
       const layer = getActiveLayer();
       if (!layer) return;
-      const effects = layer.effects as unknown as Record<string, number | boolean>;
-      effects[fx.key] = parseInt(range.value, 10);
+      const patch = { [fx.key]: parseInt(range.value, 10) } as Partial<Effects>;
+      history.push(cmdPatchEffects(layer.id, `${fx.label}`, patch, `${layer.id}:fx:${fx.key}`));
       chip.textContent = `${range.value}${fx.unit}`;
-      notify('layerProps', 'composite');
     });
   });
 }
@@ -227,9 +227,8 @@ function bindSlider(input: HTMLInputElement, key: 'opacity' | 'x' | 'y' | 'scale
   input.addEventListener('input', () => {
     const layer = getActiveLayer();
     if (!layer) return;
-    layer[key] = parseInt(input.value, 10);
+    history.push(cmdPatchLayer(layer.id, key.charAt(0).toUpperCase() + key.slice(1), { [key]: parseInt(input.value, 10) } as Partial<LayerBase>, `${layer.id}:${key}`));
     if (labelEl) labelEl.textContent = `${input.value}${suffix}`;
-    notify('layerProps', 'composite');
   });
 }
 
@@ -242,8 +241,7 @@ export function initPropertiesPanel(): void {
     const layer = getActiveLayer();
     if (!layer) return;
     inlineEdit(nameChip, layer.name, (v) => {
-      layer.name = v;
-      notify('layerProps');
+      history.push(cmdPatchLayer(layer.id, 'Rename layer', { name: v }));
     });
   });
 
@@ -281,34 +279,30 @@ export function initPropertiesPanel(): void {
   $('prop-invert').addEventListener('click', () => {
     const layer = getActiveLayer();
     if (!layer) return;
-    layer.effects.invert = !layer.effects.invert;
+    history.push(cmdPatchEffects(layer.id, 'Toggle Invert', { invert: !layer.effects.invert }));
     $('prop-invert').setAttribute('aria-checked', String(layer.effects.invert));
-    notify('layerProps', 'composite');
   });
 
   // Text layer change listeners
   propTextContent.addEventListener('input', () => {
     const layer = getActiveLayer();
     if (layer && layer.kind === 'text') {
-      layer.text = propTextContent.value;
-      notify('layerProps', 'composite');
+      history.push(cmdPatchLayer(layer.id, 'Edit text', { text: propTextContent.value }, `${layer.id}:text`));
     }
   });
 
   propFontFamily.addEventListener('change', () => {
     const layer = getActiveLayer();
     if (layer && layer.kind === 'text') {
-      layer.fontFamily = propFontFamily.value;
-      notify('layerProps', 'composite');
+      history.push(cmdPatchLayer(layer.id, 'Font family', { fontFamily: propFontFamily.value }));
     }
   });
 
   propFontSize.addEventListener('input', () => {
     const layer = getActiveLayer();
     if (layer && layer.kind === 'text') {
-      layer.fontSize = parseInt(propFontSize.value, 10);
+      history.push(cmdPatchLayer(layer.id, 'Font size', { fontSize: parseInt(propFontSize.value, 10) }, `${layer.id}:fontSize`));
       fontSizeValueEl.textContent = `${propFontSize.value}px`;
-      notify('layerProps', 'composite');
     }
   });
   attachChip(propFontSize, fontSizeValueEl, 'px');
@@ -317,8 +311,7 @@ export function initPropertiesPanel(): void {
   propTextColor.addEventListener('input', () => {
     const layer = getActiveLayer();
     if (layer && layer.kind === 'text') {
-      layer.color = propTextColor.value;
-      notify('layerProps', 'composite');
+      history.push(cmdPatchLayer(layer.id, 'Text color', { color: propTextColor.value }, `${layer.id}:color`));
     }
   });
 

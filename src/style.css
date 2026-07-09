@@ -287,6 +287,14 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
   font-variant-numeric: tabular-nums; transition: color 0.15s, background 0.15s;
 }
 .size-chip:hover { color: var(--txt); background: var(--card-hi); }
+.undo-cluster { display: flex; gap: 4px; }
+.btn-icon {
+  width: 30px; height: 30px; border: none; border-radius: 8px; background: var(--card);
+  color: var(--txt); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s;
+}
+.btn-icon:hover:not(:disabled) { background: var(--card-hi); }
+.btn-icon:disabled { color: #3A3A40; cursor: default; }
 .size-menu {
   position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
   background: var(--card); border-radius: 10px; padding: 6px; z-index: 50;

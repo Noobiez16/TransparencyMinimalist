@@ -1,5 +1,7 @@
-import { state, notify, subscribe } from './state';
+import { state, subscribe } from './state';
 import { $ } from './dom';
+import * as history from './engine/history';
+import { cmdPatchDoc } from './engine/commands';
 
 const PRESETS: Record<string, [number, number]> = {
   '1:1': [1024, 1024], '16:9': [1920, 1080], '9:16': [1080, 1920], '4:5': [1080, 1350]
@@ -20,18 +22,16 @@ export function initTopbar(): void {
     btn.addEventListener('click', () => {
       const ratio = btn.dataset.ratio!;
       const [w, h] = PRESETS[ratio];
-      state.doc.width = w;
-      state.doc.height = h;
+      history.push(cmdPatchDoc('Canvas size', { width: w, height: h }));
       menu.hidden = true;
-      notify('canvasConfig', 'composite');
     });
   });
 
   $('size-custom-apply').addEventListener('click', () => {
-    state.doc.width = Math.min(4096, Math.max(64, parseInt(widthInput.value, 10) || 1024));
-    state.doc.height = Math.min(4096, Math.max(64, parseInt(heightInput.value, 10) || 1024));
+    const width = Math.min(4096, Math.max(64, parseInt(widthInput.value, 10) || 1024));
+    const height = Math.min(4096, Math.max(64, parseInt(heightInput.value, 10) || 1024));
+    history.push(cmdPatchDoc('Canvas size', { width, height }));
     menu.hidden = true;
-    notify('canvasConfig', 'composite');
   });
 
   subscribe((dirty) => {

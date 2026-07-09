@@ -2,6 +2,8 @@ import { state, subscribe, notify } from './state';
 import { composite } from './engine/compositor';
 import { layerBounds } from './engine/document';
 import { $ } from './dom';
+import * as history from './engine/history';
+import { cmdPatchDoc } from './engine/commands';
 
 const viewport = $('canvas-viewport');
 const screenCanvas = $('doc-canvas') as unknown as HTMLCanvasElement;
@@ -63,56 +65,57 @@ export function screenToDoc(e: PointerEvent): { x: number; y: number } {
   };
 }
 
+function syncBackgroundUI(): void {
+  const bg = state.doc.bgType;
+  const colorPicker = $<HTMLInputElement>('bg-color-picker');
+
+  document.querySelectorAll('.btn-theme').forEach((b) => {
+    b.classList.toggle('active', (b as HTMLElement).dataset.bg === bg);
+  });
+
+  viewport.className = 'canvas-viewport';
+  viewport.style.backgroundColor = '';
+
+  if (bg === 'transparent') {
+    viewport.classList.add('checkerboard-bg');
+    colorPicker.style.display = 'none';
+  } else if (bg === 'white') {
+    viewport.style.backgroundColor = '#ffffff';
+    colorPicker.style.display = 'none';
+  } else if (bg === 'black') {
+    viewport.style.backgroundColor = '#000000';
+    colorPicker.style.display = 'none';
+  } else if (bg === 'custom') {
+    colorPicker.style.display = 'inline-block';
+    viewport.style.backgroundColor = state.doc.bgColor;
+  }
+  if (colorPicker.value !== state.doc.bgColor) colorPicker.value = state.doc.bgColor;
+}
+
 export function initCanvas(): void {
   // --- Canvas Background theme & Custom Color selection ---
   document.querySelectorAll('.btn-theme').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const target = e.currentTarget as HTMLButtonElement;
       const bg = target.dataset.bg as 'transparent' | 'white' | 'black' | 'custom';
-
-      document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
-      target.classList.add('active');
-
-      state.doc.bgType = bg;
-      const colorPicker = $<HTMLInputElement>('bg-color-picker');
-
-      viewport.className = 'canvas-viewport';
-      viewport.style.backgroundColor = '';
-
-      if (bg === 'transparent') {
-        viewport.classList.add('checkerboard-bg');
-        colorPicker.style.display = 'none';
-      } else if (bg === 'white') {
-        viewport.style.backgroundColor = '#ffffff';
-        colorPicker.style.display = 'none';
-      } else if (bg === 'black') {
-        viewport.style.backgroundColor = '#000000';
-        colorPicker.style.display = 'none';
-      } else if (bg === 'custom') {
-        colorPicker.style.display = 'inline-block';
-        viewport.style.backgroundColor = colorPicker.value;
-      }
-      notify('composite');
+      history.push(cmdPatchDoc('Background', { bgType: bg }));
     });
   });
 
   $('bg-color-picker').addEventListener('input', (e) => {
     const val = (e.target as HTMLInputElement).value;
-    state.doc.bgColor = val;
-    if (state.doc.bgType === 'custom') {
-      viewport.style.backgroundColor = val;
-    }
-    notify('composite');
+    history.push(cmdPatchDoc('Background color', { bgColor: val }));
   });
 
   subscribe((dirty) => {
-    if (dirty.has('canvasConfig')) applyCanvasDimensions();
+    if (dirty.has('canvasConfig')) { applyCanvasDimensions(); syncBackgroundUI(); }
     if (
       dirty.has('canvasConfig') || dirty.has('structure') || dirty.has('selection') ||
       dirty.has('layerProps') || dirty.has('composite')
     ) renderScreen();
   });
   applyCanvasDimensions();
+  syncBackgroundUI();
 
   // --- Click-select and drag-move (doc space; ports to the Move tool in Task 7) ---
   let drag: { id: string; startX: number; startY: number; origX: number; origY: number } | null = null;
@@ -157,7 +160,30 @@ export function initCanvas(): void {
     notify('layerProps', 'composite');
   });
 
-  const endDrag = () => { drag = null; };
+  const endDrag = () => {
+    if (drag) {
+      const d = drag;
+      const layer = state.doc.layers.find((l) => l.id === d.id);
+      if (layer && (layer.x !== d.origX || layer.y !== d.origY)) {
+        const finalX = layer.x;
+        const finalY = layer.y;
+        const startX = d.origX;
+        const startY = d.origY;
+        history.push({
+          label: 'Move layer',
+          do: () => {
+            const l = state.doc.layers.find((ll) => ll.id === d.id);
+            if (l) { l.x = finalX; l.y = finalY; notify('layerProps', 'composite'); }
+          },
+          undo: () => {
+            const l = state.doc.layers.find((ll) => ll.id === d.id);
+            if (l) { l.x = startX; l.y = startY; notify('layerProps', 'composite'); }
+          }
+        });
+      }
+    }
+    drag = null;
+  };
   screenCanvas.addEventListener('pointerup', endDrag);
   screenCanvas.addEventListener('pointercancel', endDrag);
 

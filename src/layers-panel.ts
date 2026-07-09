@@ -3,6 +3,9 @@ import { createImageLayer, createTextLayer, type Layer, type ImageLayer } from '
 import { $, inlineEdit, icons } from './dom';
 import { toast } from './toast';
 import { flashCanvas } from './canvas';
+import * as history from './engine/history';
+import type { Command } from './engine/history';
+import { cmdAddLayer, cmdDeleteLayer, cmdPatchLayer, cmdReorderLayer } from './engine/commands';
 
 const container = $('layers-list-container');
 const cards = new Map<string, HTMLElement>();
@@ -37,8 +40,7 @@ function createCard(id: string): HTMLElement {
     if (!layer) return;
     const target = e.target as HTMLElement;
     if (target.classList.contains('btn-layer-vis')) {
-      layer.visible = !layer.visible;
-      notify('layerProps', 'composite');
+      history.push(cmdPatchLayer(id, layer.visible ? 'Hide layer' : 'Show layer', { visible: !layer.visible }));
       return;
     }
     if (target.classList.contains('btn-layer-del')) {
@@ -47,9 +49,7 @@ function createCard(id: string): HTMLElement {
       card.classList.add('leaving');
       setTimeout(() => {
         deleting.delete(id);
-        state.doc.layers = state.doc.layers.filter((l) => l.id !== id);
-        if (state.doc.activeLayerId === id) state.doc.activeLayerId = state.doc.layers[0]?.id || null;
-        notify('structure', 'selection', 'composite');
+        history.push(cmdDeleteLayer(id, 'Delete layer'));
       }, 150);
       return;
     }
@@ -63,8 +63,7 @@ function createCard(id: string): HTMLElement {
     const layer = findLayer(id);
     if (!layer) return;
     inlineEdit(nameEl, layer.name, (v) => {
-      layer.name = v;
-      notify('layerProps');
+      history.push(cmdPatchLayer(id, 'Rename layer', { name: v }));
     });
   });
 
@@ -88,9 +87,7 @@ function createCard(id: string): HTMLElement {
     const from = state.doc.layers.findIndex((l) => l.id === draggedId);
     const to = state.doc.layers.findIndex((l) => l.id === id);
     if (from !== -1 && to !== -1) {
-      const [moved] = state.doc.layers.splice(from, 1);
-      state.doc.layers.splice(to, 0, moved);
-      notify('structure', 'composite');
+      history.push(cmdReorderLayer(draggedId, to, 'Reorder layer'));
     }
     draggedId = null;
   });
@@ -174,14 +171,45 @@ function decodeImageFile(file: File): void {
     c.getContext('2d')!.drawImage(img, 0, 0);
     const active = getActiveLayer();
     if (active && active.kind === 'image' && !active.bitmap) {
-      placeBitmap(active, c, file.name);
-      notify('layerProps', 'composite');
+      const layer = active;
+      const prevBitmap = layer.bitmap;
+      const prevScale = layer.scale;
+      const prevX = layer.x;
+      const prevY = layer.y;
+      const prevSourceName = layer.sourceName;
+      placeBitmap(layer, c, file.name);
+      const nextBitmap = layer.bitmap;
+      const nextScale = layer.scale;
+      const nextX = layer.x;
+      const nextY = layer.y;
+      const nextSourceName = layer.sourceName;
+      const cmd: Command = {
+        label: 'Place image',
+        do: () => {
+          layer.bitmap = nextBitmap;
+          layer.scale = nextScale;
+          layer.x = nextX;
+          layer.y = nextY;
+          layer.sourceName = nextSourceName;
+          layer.bitmapRev++;
+          notify('layerProps', 'composite');
+        },
+        undo: () => {
+          layer.bitmap = prevBitmap;
+          layer.scale = prevScale;
+          layer.x = prevX;
+          layer.y = prevY;
+          layer.sourceName = prevSourceName;
+          layer.bitmapRev++;
+          notify('layerProps', 'composite');
+        },
+        bytes: c.width * c.height * 4
+      };
+      history.push(cmd);
     } else {
       const layer = createImageLayer(state.doc);
       placeBitmap(layer, c, file.name);
-      state.doc.layers.unshift(layer);
-      state.doc.activeLayerId = layer.id;
-      notify('structure', 'selection', 'composite');
+      history.push(cmdAddLayer(layer, 0, 'Add image layer'));
       flashCanvas();
     }
   };
@@ -192,16 +220,12 @@ function decodeImageFile(file: File): void {
 export function initLayersPanel(): void {
   $('btn-add-image').addEventListener('click', () => {
     const layer = createImageLayer(state.doc);
-    state.doc.layers.unshift(layer);
-    state.doc.activeLayerId = layer.id;
-    notify('structure', 'selection', 'composite');
+    history.push(cmdAddLayer(layer, 0, 'Add image layer'));
     flashCanvas();
   });
   $('btn-add-text').addEventListener('click', () => {
     const layer = createTextLayer(state.doc);
-    state.doc.layers.unshift(layer);
-    state.doc.activeLayerId = layer.id;
-    notify('structure', 'selection', 'composite');
+    history.push(cmdAddLayer(layer, 0, 'Add text layer'));
     flashCanvas();
   });
 
