@@ -12,6 +12,7 @@ let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
 let zoom = 1, panX = 0, panY = 0;
 const zoomWrap = $('zoom-wrap');
+const container = $('canvas-container');
 
 function applyZoom(): void {
   zoomWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
@@ -27,6 +28,17 @@ function setZoom(next: number, cx = 0, cy = 0): void {
   if (zoom === 1) { panX = 0; panY = 0; }
   applyZoom();
 }
+
+export function panBy(dx: number, dy: number): void { panX += dx; panY += dy; applyZoom(); }
+export function zoomAt(factor: number, clientX?: number, clientY?: number): void {
+  if (clientX === undefined || clientY === undefined) { setZoom(zoom * factor); return; }
+  const rect = container.getBoundingClientRect();
+  const cx = clientX - rect.left - rect.width / 2 - panX;
+  const cy = clientY - rect.top - rect.height / 2 - panY;
+  setZoom(zoom * factor, cx, cy);
+}
+export function resetView(): void { zoom = 1; panX = 0; panY = 0; applyZoom(); }
+export function getZoomPercent(): number { return Math.round(zoom * 100); }
 
 export function applyCanvasDimensions(): void {
   const { width, height } = state.doc;
@@ -129,19 +141,15 @@ export function initCanvas(): void {
   screenCanvas.style.cursor = getActiveTool().cursor;
 
   // --- Zoom & pan ---
-  $('zoom-in').addEventListener('click', () => setZoom(zoom + 0.1));
-  $('zoom-out').addEventListener('click', () => setZoom(zoom - 0.1));
-  $('zoom-readout').addEventListener('click', () => { zoom = 1; panX = 0; panY = 0; applyZoom(); });
+  $('zoom-in').addEventListener('click', () => zoomAt(1 + 0.1 / zoom));
+  $('zoom-out').addEventListener('click', () => zoomAt(1 - 0.1 / zoom));
+  $('zoom-readout').addEventListener('click', () => resetView());
 
-  const container = $('canvas-container');
   container.addEventListener('wheel', (e) => {
     const wheelEvent = e as WheelEvent;
     if (!wheelEvent.ctrlKey) return;
     wheelEvent.preventDefault();
-    const rect = container.getBoundingClientRect();
-    const cx = wheelEvent.clientX - rect.left - rect.width / 2 - panX;
-    const cy = wheelEvent.clientY - rect.top - rect.height / 2 - panY;
-    setZoom(zoom * (wheelEvent.deltaY < 0 ? 1.1 : 0.9), cx, cy);
+    zoomAt(wheelEvent.deltaY < 0 ? 1.1 : 0.9, wheelEvent.clientX, wheelEvent.clientY);
   }, { passive: false });
 
   // Pan by dragging empty container space when zoomed in

@@ -10,8 +10,10 @@ import { initRail } from './rail';
 import { initGraphPanel } from './graph-panel';
 import * as history from './engine/history';
 import { $, icons } from './dom';
-import { registerTool } from './engine/tools';
+import { registerTool, setActiveTool, getActiveTool, allTools } from './engine/tools';
 import { moveTool } from './tools/move';
+import { handTool } from './tools/hand';
+import { zoomTool } from './tools/zoom';
 
 function initHistoryUI(): void {
   const undoBtn = $<HTMLButtonElement>('btn-undo');
@@ -35,6 +37,34 @@ function initHistoryUI(): void {
 }
 
 registerTool(moveTool);
+registerTool(handTool);
+registerTool(zoomTool);
+
+let spaceHeld = false;
+let toolBeforeSpace: string | null = null;
+
+document.addEventListener('keydown', (e) => {
+  const t = document.activeElement;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t as HTMLElement).isContentEditable)) return;
+  if (e.code === 'Space' && !e.repeat && !spaceHeld) {
+    spaceHeld = true;
+    toolBeforeSpace = getActiveTool().id;
+    setActiveTool('hand');
+    e.preventDefault();
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tool = allTools().find((x) => x.shortcut === e.key.toLowerCase());
+  if (tool) setActiveTool(tool.id);
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space' && spaceHeld) {
+    spaceHeld = false;
+    if (toolBeforeSpace) setActiveTool(toolBeforeSpace);
+    toolBeforeSpace = null;
+  }
+});
+
 initCanvas();
 initLayersPanel();
 initPropertiesPanel();
