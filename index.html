@@ -86,111 +86,121 @@
 
     <!-- COLUMN 3: Properties Panel -->
     <aside class="panel right-panel">
-      <h2>Properties</h2>
-      <button class="layer-name-chip" id="prop-layer-name" title="Click to rename"></button>
-
-      <!-- No Active Layer Warning -->
-      <div id="no-active-warning" class="properties-warning">
-        Select a layer to edit properties.
+      <div class="seg panel-tabs" id="right-tabs">
+        <button data-tab="properties" class="active">Properties</button>
+        <button data-tab="history">History</button>
       </div>
 
-      <div id="properties-editor-container" style="display: none;">
-        <!-- Common Properties -->
-        <section class="config-section">
-          <h3>Common Properties</h3>
-          
-          <div class="control-row">
-            <label for="prop-opacity">Opacity</label>
-            <div class="slider-group">
-              <input type="range" id="prop-opacity" min="0" max="100" value="100">
-              <div class="slider-labels">
-                <span>0%</span>
-                <span class="value-display" id="opacity-value">100%</span>
-                <span>100%</span>
+      <div id="tab-properties">
+        <button class="layer-name-chip" id="prop-layer-name" title="Click to rename"></button>
+
+        <!-- No Active Layer Warning -->
+        <div id="no-active-warning" class="properties-warning">
+          Select a layer to edit properties.
+        </div>
+
+        <div id="properties-editor-container" style="display: none;">
+          <!-- Common Properties -->
+          <section class="config-section">
+            <h3>Common Properties</h3>
+
+            <div class="control-row">
+              <label for="prop-opacity">Opacity</label>
+              <div class="slider-group">
+                <input type="range" id="prop-opacity" min="0" max="100" value="100">
+                <div class="slider-labels">
+                  <span>0%</span>
+                  <span class="value-display" id="opacity-value">100%</span>
+                  <span>100%</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="control-row">
-            <label>Blending Mode</label>
-            <div class="seg" id="blend-seg">
-              <button data-blend="normal" class="active">Normal</button>
-              <button data-blend="multiply" id="blend-alt">Multiply</button>
-              <button id="blend-more">More ▾</button>
+            <div class="control-row">
+              <label>Blending Mode</label>
+              <div class="seg" id="blend-seg">
+                <button data-blend="normal" class="active">Normal</button>
+                <button data-blend="multiply" id="blend-alt">Multiply</button>
+                <button id="blend-more">More ▾</button>
+              </div>
+              <div class="size-menu blend-menu" id="blend-menu" hidden>
+                <button data-blend="multiply">Multiply</button>
+                <button data-blend="screen">Screen</button>
+                <button data-blend="overlay">Overlay</button>
+                <button data-blend="darken">Darken</button>
+                <button data-blend="lighten">Lighten</button>
+              </div>
             </div>
-            <div class="size-menu blend-menu" id="blend-menu" hidden>
-              <button data-blend="multiply">Multiply</button>
-              <button data-blend="screen">Screen</button>
-              <button data-blend="overlay">Overlay</button>
-              <button data-blend="darken">Darken</button>
-              <button data-blend="lighten">Lighten</button>
+          </section>
+
+          <!-- Transforms & Positioning -->
+          <section class="config-section">
+            <h3>Transformations</h3>
+            <div class="control-row">
+              <label for="prop-x-offset">Position X (px)</label>
+              <input type="range" id="prop-x-offset" min="-512" max="1536" value="512">
+              <span class="value-display" id="x-offset-value">512px</span>
             </div>
-          </div>
-        </section>
 
-        <!-- Transforms & Positioning -->
-        <section class="config-section">
-          <h3>Transformations</h3>
-          <div class="control-row">
-            <label for="prop-x-offset">Position X (px)</label>
-            <input type="range" id="prop-x-offset" min="-512" max="1536" value="512">
-            <span class="value-display" id="x-offset-value">512px</span>
-          </div>
-
-          <div class="control-row">
-            <label for="prop-y-offset">Position Y (px)</label>
-            <input type="range" id="prop-y-offset" min="-512" max="1536" value="512">
-            <span class="value-display" id="y-offset-value">512px</span>
-          </div>
-
-          <div class="control-row">
-            <label for="prop-scale">Scale (%)</label>
-            <input type="range" id="prop-scale" min="10" max="400" value="100">
-            <span class="value-display" id="scale-value">100%</span>
-          </div>
-        </section>
-
-        <!-- Filters & Effects (Visible for Images, optional for Text) -->
-        <section class="config-section" id="section-filters">
-          <h3>Active Effects</h3>
-          <div id="effects-stack"></div>
-          <div class="fx-row" id="fx-invert">
-            <div class="fx-top">
-              <span class="fx-name">Invert Colors</span>
-              <button class="switch" id="prop-invert" role="switch" aria-checked="false"></button>
+            <div class="control-row">
+              <label for="prop-y-offset">Position Y (px)</label>
+              <input type="range" id="prop-y-offset" min="-512" max="1536" value="512">
+              <span class="value-display" id="y-offset-value">512px</span>
             </div>
-          </div>
-        </section>
 
-        <!-- Text Properties (Visible for Text Layers only) -->
-        <section class="config-section" id="section-text-properties" style="display: none;">
-          <h3>Text Settings</h3>
-          <div class="control-row">
-            <label for="prop-text-content">Text Content</label>
-            <textarea id="prop-text-content" rows="3"></textarea>
-          </div>
+            <div class="control-row">
+              <label for="prop-scale">Scale (%)</label>
+              <input type="range" id="prop-scale" min="10" max="400" value="100">
+              <span class="value-display" id="scale-value">100%</span>
+            </div>
+          </section>
 
-          <div class="control-row">
-            <label for="prop-font-family">Font Family</label>
-            <select id="prop-font-family">
-              <option value="Inter">Inter</option>
-              <option value="sans-serif">System Sans</option>
-              <option value="serif">Serif</option>
-              <option value="monospace">Monospace</option>
-            </select>
-          </div>
+          <!-- Filters & Effects (Visible for Images, optional for Text) -->
+          <section class="config-section" id="section-filters">
+            <h3>Active Effects</h3>
+            <div id="effects-stack"></div>
+            <div class="fx-row" id="fx-invert">
+              <div class="fx-top">
+                <span class="fx-name">Invert Colors</span>
+                <button class="switch" id="prop-invert" role="switch" aria-checked="false"></button>
+              </div>
+            </div>
+          </section>
 
-          <div class="control-row">
-            <label for="prop-font-size">Font Size (px)</label>
-            <input type="range" id="prop-font-size" min="8" max="512" value="64">
-            <span class="value-display" id="font-size-value">64px</span>
-          </div>
+          <!-- Text Properties (Visible for Text Layers only) -->
+          <section class="config-section" id="section-text-properties" style="display: none;">
+            <h3>Text Settings</h3>
+            <div class="control-row">
+              <label for="prop-text-content">Text Content</label>
+              <textarea id="prop-text-content" rows="3"></textarea>
+            </div>
 
-          <div class="control-row inline-row">
-            <label for="prop-text-color">Text Color</label>
-            <input type="color" id="prop-text-color" value="#000000">
-          </div>
-        </section>
+            <div class="control-row">
+              <label for="prop-font-family">Font Family</label>
+              <select id="prop-font-family">
+                <option value="Inter">Inter</option>
+                <option value="sans-serif">System Sans</option>
+                <option value="serif">Serif</option>
+                <option value="monospace">Monospace</option>
+              </select>
+            </div>
+
+            <div class="control-row">
+              <label for="prop-font-size">Font Size (px)</label>
+              <input type="range" id="prop-font-size" min="8" max="512" value="64">
+              <span class="value-display" id="font-size-value">64px</span>
+            </div>
+
+            <div class="control-row inline-row">
+              <label for="prop-text-color">Text Color</label>
+              <input type="color" id="prop-text-color" value="#000000">
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div id="tab-history" hidden>
+        <div class="history-list" id="history-list"></div>
       </div>
 
     </aside>

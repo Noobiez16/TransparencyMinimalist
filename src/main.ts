@@ -3,6 +3,7 @@ import { createTextLayer, createImageLayer } from './engine/document';
 import { initCanvas } from './canvas';
 import { initLayersPanel } from './layers-panel';
 import { initPropertiesPanel } from './properties-panel';
+import { initHistoryPanel } from './history-panel';
 import { initTopbar } from './topbar';
 import { initExport } from './export';
 import { initRail } from './rail';
@@ -33,6 +34,7 @@ function initHistoryUI(): void {
 initCanvas();
 initLayersPanel();
 initPropertiesPanel();
+initHistoryPanel();
 initTopbar();
 initExport();
 initRail();

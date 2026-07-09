@@ -326,3 +326,12 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
 
 body { display: flex; flex-direction: column; }
 .dashboard-wrapper { flex: 1; height: auto; min-height: 0; }
+
+/* History panel */
+.panel-tabs { margin-bottom: 14px; }
+.history-list { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.history-row { font-family: inherit; font-size: 11px; text-align: left; padding: 7px 10px; border: none; border-radius: 8px; background: var(--card); color: var(--txt); cursor: pointer; transition: background .15s, opacity .15s; }
+.history-row:hover { background: var(--card-hi); }
+.history-row.current { outline: 1px solid #fff; }
+.history-row.undone { opacity: 0.45; }
+.history-empty { font-size: 11px; color: var(--mut); text-align: center; padding: 20px 0; }
