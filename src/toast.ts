@@ -16,6 +16,7 @@ export function toast(message: string, opts?: { actionLabel?: string; onAction?:
     btn.className = 'toast-action';
     btn.textContent = opts.actionLabel;
     btn.addEventListener('click', () => {
+      clearTimeout(timer);
       opts.onAction?.();
       dismiss();
     });
@@ -28,5 +29,5 @@ export function toast(message: string, opts?: { actionLabel?: string; onAction?:
     el.addEventListener('transitionend', () => el.remove(), { once: true });
     setTimeout(() => el.remove(), 600);
   }
-  setTimeout(dismiss, opts?.duration ?? 3000);
+  const timer = setTimeout(dismiss, opts?.duration ?? 3000);
 }

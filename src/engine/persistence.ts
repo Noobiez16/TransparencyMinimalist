@@ -127,16 +127,20 @@ async function idbGet(): Promise<string | null> {
 
 let autosaveTimer: number | null = null;
 let autosaveErrorShown = false;
+let autosaveChain: Promise<void> = Promise.resolve();
 
 export function initAutosave(): void {
   history.onChange(() => {
     if (autosaveTimer !== null) clearTimeout(autosaveTimer);
-    autosaveTimer = window.setTimeout(async () => {
-      try { await idbPut(await serializeDoc(state.doc)); }
-      catch (err) {
-        if (!autosaveErrorShown) { autosaveErrorShown = true; toast('Autosave is unavailable.'); }
-        console.error('autosave failed', err);
-      }
+    autosaveTimer = window.setTimeout(() => {
+      autosaveChain = autosaveChain.then(async () => {
+        try {
+          await idbPut(await serializeDoc(state.doc));
+        } catch (err) {
+          if (!autosaveErrorShown) { autosaveErrorShown = true; toast('Autosave is unavailable.'); }
+          console.error('autosave failed', err);
+        }
+      });
     }, 2000);
   });
 }
