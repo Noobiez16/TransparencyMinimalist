@@ -46,11 +46,11 @@ let toolBeforeSpace: string | null = null;
 document.addEventListener('keydown', (e) => {
   const t = document.activeElement;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t as HTMLElement).isContentEditable)) return;
+  if (e.code === 'Space') e.preventDefault();
   if (e.code === 'Space' && !e.repeat && !spaceHeld) {
     spaceHeld = true;
     toolBeforeSpace = getActiveTool().id;
     setActiveTool('hand');
-    e.preventDefault();
     return;
   }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
