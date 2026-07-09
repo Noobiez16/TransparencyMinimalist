@@ -3,12 +3,20 @@ import { $ } from './dom';
 
 export function initHistoryPanel(): void {
   const list = $('history-list');
-  const tabs = $('right-tabs');
-  tabs.querySelectorAll('button').forEach((btn) => {
+  const tabs = $('layers-history-tabs');
+  const layersPanel = $('tab-layers');
+  const historyPanel = $('tab-history');
+
+  tabs.querySelectorAll<HTMLButtonElement>('button[data-tab]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
-      $('tab-properties').hidden = btn.dataset.tab !== 'properties';
-      $('tab-history').hidden = btn.dataset.tab !== 'history';
+      const tab = btn.dataset.tab;
+      tabs.querySelectorAll<HTMLButtonElement>('button[data-tab]').forEach((candidate) => {
+        const selected = candidate === btn;
+        candidate.classList.toggle('active', selected);
+        candidate.setAttribute('aria-selected', String(selected));
+      });
+      layersPanel.hidden = tab !== 'layers';
+      historyPanel.hidden = tab !== 'history';
     });
   });
   const render = () => {

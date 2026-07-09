@@ -3,217 +3,250 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minimalist Layer Image Editor</title>
+  <title>Transparency Layer Image Editor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-title">Minimalist Editor</div>
-    <div class="file-cluster"><button class="btn-icon" id="btn-open" title="Open project"></button><button class="btn-icon" id="btn-save" title="Save project"></button></div>
-    <input type="file" id="project-input" accept=".json,application/json" style="display:none">
-    <div class="undo-cluster"><button class="btn-icon" id="btn-undo" title="Undo (Ctrl+Z)"></button><button class="btn-icon" id="btn-redo" title="Redo (Ctrl+Shift+Z)"></button></div>
-    <button class="btn btn-primary btn-export" id="btn-export">Export</button>
-  </header>
-  <div class="options-bar">
-    <div class="options-host" id="options-host"><span class="options-empty" id="options-empty">No options for this tool</span></div>
-    <div class="size-chip-wrap">
-      <button class="size-chip" id="size-chip">1024 × 1024 ▾</button>
-      <div class="size-menu" id="size-menu" hidden>
-        <button data-ratio="1:1">1:1 Square · 1024×1024</button>
-        <button data-ratio="16:9">16:9 Landscape · 1920×1080</button>
-        <button data-ratio="9:16">9:16 Portrait · 1080×1920</button>
-        <button data-ratio="4:5">4:5 Vertical · 1080×1350</button>
-        <div class="size-custom">
-          <input type="number" id="canvas-width" value="1024" min="64" max="4096" aria-label="Width">
-          <span>×</span>
-          <input type="number" id="canvas-height" value="1024" min="64" max="4096" aria-label="Height">
-          <button id="size-custom-apply">Apply</button>
-        </div>
+  <header class="appbar glass-surface">
+    <div class="app-identity">
+      <span class="app-mark" aria-hidden="true">T</span>
+      <div>
+        <div class="topbar-title">Transparency</div>
+        <div class="app-subtitle">Layer image editor</div>
       </div>
     </div>
-  </div>
-  <div class="dashboard-wrapper">
-    <nav class="rail" aria-label="Toolbar">
-      <div class="rail-tools" id="rail-tools"></div>
-      <div class="rail-divider"></div>
-      <button class="rail-btn" id="rail-add-image" title="Add image layer"></button>
-      <button class="rail-btn" id="rail-add-text" title="Add text layer"></button>
-      <button class="rail-btn" id="rail-graph" title="Document graph (G)"></button>
-      <div class="rail-spacer"></div>
-      <button class="rail-btn active" id="rail-layers" title="Toggle layers panel"></button>
-      <button class="rail-btn active" id="rail-props" title="Toggle properties panel"></button>
-    </nav>
-
-    <!-- COLUMN 1: Layers & Sources -->
-    <aside class="panel left-panel">
-      <h2>Layers & Sources</h2>
-      <div class="layer-creation-buttons">
-        <button class="btn btn-primary" id="btn-add-image">+ Add Image Layer</button>
-        <button class="btn btn-secondary" id="btn-add-text">+ Add Text Layer</button>
+    <div class="app-actions" aria-label="Project actions">
+      <div class="file-cluster">
+        <button class="btn-icon" id="btn-open" title="Open project" aria-label="Open project"></button>
+        <button class="btn-icon" id="btn-save" title="Save project" aria-label="Save project"></button>
       </div>
-      
-      <div class="upload-zone" id="upload-zone">
-        <p>Drag-and-drop, manual upload, or paste (Ctrl+V)</p>
-        <input type="file" id="file-input" accept="image/*" style="display: none;">
+      <input type="file" id="project-input" accept=".json,application/json" hidden>
+      <span class="action-divider" aria-hidden="true"></span>
+      <div class="undo-cluster">
+        <button class="btn-icon" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo"></button>
+        <button class="btn-icon" id="btn-redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"></button>
       </div>
+    </div>
+    <button class="btn btn-primary btn-export" id="btn-export">Export</button>
+  </header>
 
-      <div class="layers-list" id="layers-list-container">
-        <!-- Dynamic layer cards will be injected here -->
-      </div>
-    </aside>
-
-    <!-- COLUMN 2: Canvas Preview -->
-    <main class="panel center-panel">
-      <h2>Canvas Preview</h2>
-      <div class="canvas-controls">
-        <span class="control-label">Background:</span>
+  <div class="options-bar glass-surface">
+    <div class="options-host" id="options-host">
+      <span class="options-empty" id="options-empty">No options for this tool</span>
+    </div>
+    <div class="workspace-settings">
+      <div class="canvas-controls" aria-label="Canvas background">
+        <span class="control-label">Background</span>
         <div class="theme-toggles">
           <button class="btn btn-theme active" data-bg="transparent">Transparent</button>
           <button class="btn btn-theme" data-bg="white">White</button>
           <button class="btn btn-theme" data-bg="black">Black</button>
           <button class="btn btn-theme" data-bg="custom">Custom</button>
         </div>
-        <input type="color" id="bg-color-picker" value="#ffffff" style="display: none;">
+        <input type="color" id="bg-color-picker" value="#ffffff" hidden>
       </div>
-
-      <div class="canvas-container" id="canvas-container">
-        <div id="zoom-wrap">
-          <div class="canvas-viewport checkerboard-bg" id="canvas-viewport">
-            <canvas id="doc-canvas"></canvas>
+      <div class="size-chip-wrap">
+        <button class="size-chip" id="size-chip">1024 × 1024 ▾</button>
+        <div class="size-menu" id="size-menu" hidden>
+          <button data-ratio="1:1">1:1 Square · 1024×1024</button>
+          <button data-ratio="16:9">16:9 Landscape · 1920×1080</button>
+          <button data-ratio="9:16">9:16 Portrait · 1080×1920</button>
+          <button data-ratio="4:5">4:5 Vertical · 1080×1350</button>
+          <div class="size-custom">
+            <input type="number" id="canvas-width" value="1024" min="64" max="4096" aria-label="Width">
+            <span>×</span>
+            <input type="number" id="canvas-height" value="1024" min="64" max="4096" aria-label="Height">
+            <button id="size-custom-apply">Apply</button>
           </div>
         </div>
       </div>
-      <div class="zoom-pill">
-        <button id="zoom-out" title="Zoom out">−</button>
-        <button id="zoom-readout" title="Reset zoom">100%</button>
-        <button id="zoom-in" title="Zoom in">+</button>
-      </div>
-    </main>
-
-    <!-- COLUMN 3: Properties Panel -->
-    <aside class="panel right-panel">
-      <div class="seg panel-tabs" id="right-tabs">
-        <button data-tab="properties" class="active">Properties</button>
-        <button data-tab="history">History</button>
-      </div>
-
-      <div id="tab-properties">
-        <button class="layer-name-chip" id="prop-layer-name" title="Click to rename"></button>
-
-        <!-- No Active Layer Warning -->
-        <div id="no-active-warning" class="properties-warning">
-          Select a layer to edit properties.
-        </div>
-
-        <div id="properties-editor-container" style="display: none;">
-          <!-- Common Properties -->
-          <section class="config-section">
-            <h3>Common Properties</h3>
-
-            <div class="control-row">
-              <label for="prop-opacity">Opacity</label>
-              <div class="slider-group">
-                <input type="range" id="prop-opacity" min="0" max="100" value="100">
-                <div class="slider-labels">
-                  <span>0%</span>
-                  <span class="value-display" id="opacity-value">100%</span>
-                  <span>100%</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="control-row">
-              <label>Blending Mode</label>
-              <div class="seg" id="blend-seg">
-                <button data-blend="normal" class="active">Normal</button>
-                <button data-blend="multiply" id="blend-alt">Multiply</button>
-                <button id="blend-more">More ▾</button>
-              </div>
-              <div class="size-menu blend-menu" id="blend-menu" hidden>
-                <button data-blend="multiply">Multiply</button>
-                <button data-blend="screen">Screen</button>
-                <button data-blend="overlay">Overlay</button>
-                <button data-blend="darken">Darken</button>
-                <button data-blend="lighten">Lighten</button>
-              </div>
-            </div>
-          </section>
-
-          <!-- Transforms & Positioning -->
-          <section class="config-section">
-            <h3>Transformations</h3>
-            <div class="control-row">
-              <label for="prop-x-offset">Position X (px)</label>
-              <input type="range" id="prop-x-offset" min="-512" max="1536" value="512">
-              <span class="value-display" id="x-offset-value">512px</span>
-            </div>
-
-            <div class="control-row">
-              <label for="prop-y-offset">Position Y (px)</label>
-              <input type="range" id="prop-y-offset" min="-512" max="1536" value="512">
-              <span class="value-display" id="y-offset-value">512px</span>
-            </div>
-
-            <div class="control-row">
-              <label for="prop-scale">Scale (%)</label>
-              <input type="range" id="prop-scale" min="10" max="400" value="100">
-              <span class="value-display" id="scale-value">100%</span>
-            </div>
-          </section>
-
-          <!-- Filters & Effects (Visible for Images, optional for Text) -->
-          <section class="config-section" id="section-filters">
-            <h3>Active Effects</h3>
-            <div id="effects-stack"></div>
-            <div class="fx-row" id="fx-invert">
-              <div class="fx-top">
-                <span class="fx-name">Invert Colors</span>
-                <button class="switch" id="prop-invert" role="switch" aria-checked="false"></button>
-              </div>
-            </div>
-          </section>
-
-          <!-- Text Properties (Visible for Text Layers only) -->
-          <section class="config-section" id="section-text-properties" style="display: none;">
-            <h3>Text Settings</h3>
-            <div class="control-row">
-              <label for="prop-text-content">Text Content</label>
-              <textarea id="prop-text-content" rows="3"></textarea>
-            </div>
-
-            <div class="control-row">
-              <label for="prop-font-family">Font Family</label>
-              <select id="prop-font-family">
-                <option value="Inter">Inter</option>
-                <option value="sans-serif">System Sans</option>
-                <option value="serif">Serif</option>
-                <option value="monospace">Monospace</option>
-              </select>
-            </div>
-
-            <div class="control-row">
-              <label for="prop-font-size">Font Size (px)</label>
-              <input type="range" id="prop-font-size" min="8" max="512" value="64">
-              <span class="value-display" id="font-size-value">64px</span>
-            </div>
-
-            <div class="control-row inline-row">
-              <label for="prop-text-color">Text Color</label>
-              <input type="color" id="prop-text-color" value="#000000">
-            </div>
-          </section>
-        </div>
-      </div>
-
-      <div id="tab-history" hidden>
-        <div class="history-list" id="history-list"></div>
-      </div>
-
-    </aside>
+    </div>
   </div>
+
+  <div class="editor-shell">
+    <div class="dashboard-wrapper">
+      <nav class="rail glass-surface" aria-label="Toolbar">
+        <div class="rail-tools" id="rail-tools"></div>
+        <div class="rail-divider"></div>
+        <button class="rail-btn" id="rail-add-image" title="Add image layer" aria-label="Add image layer"></button>
+        <button class="rail-btn" id="rail-add-text" title="Add text layer" aria-label="Add text layer"></button>
+        <button class="rail-btn" id="rail-graph" title="Document graph (G)" aria-label="Document graph"></button>
+        <div class="rail-spacer"></div>
+        <button class="rail-btn active" id="rail-layers" title="Toggle layers panel" aria-label="Toggle layers panel"></button>
+        <button class="rail-btn active" id="rail-props" title="Toggle properties panel" aria-label="Toggle properties panel"></button>
+      </nav>
+
+      <main class="canvas-workspace center-panel">
+        <div class="document-tabs" aria-label="Open documents">
+          <div class="document-tab active">
+            <span class="document-dot" aria-hidden="true"></span>
+            <span>Untitled composition</span>
+          </div>
+        </div>
+        <div class="canvas-container" id="canvas-container">
+          <div id="zoom-wrap">
+            <div class="canvas-viewport checkerboard-bg" id="canvas-viewport">
+              <canvas id="doc-canvas"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="zoom-pill glass-surface" aria-label="Canvas zoom">
+          <button id="zoom-out" title="Zoom out">−</button>
+          <button id="zoom-readout" title="Reset zoom">100%</button>
+          <button id="zoom-in" title="Zoom in">+</button>
+        </div>
+      </main>
+
+      <div class="right-dock">
+        <aside class="panel glass-surface properties-dock right-panel">
+          <div class="dock-heading">
+            <div>
+              <span class="dock-title">Properties</span>
+              <span class="dock-kicker">Selected layer</span>
+            </div>
+          </div>
+
+          <div id="tab-properties">
+            <button class="layer-name-chip" id="prop-layer-name" title="Click to rename"></button>
+
+            <div id="no-active-warning" class="properties-warning">
+              Select a layer to edit properties.
+            </div>
+
+            <div id="properties-editor-container" style="display: none;">
+              <section class="config-section">
+                <h3>Common Properties</h3>
+
+                <div class="control-row">
+                  <label for="prop-opacity">Opacity</label>
+                  <div class="slider-group">
+                    <input type="range" id="prop-opacity" min="0" max="100" value="100">
+                    <div class="slider-labels">
+                      <span>0%</span>
+                      <span class="value-display" id="opacity-value">100%</span>
+                      <span>100%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="control-row">
+                  <label>Blending Mode</label>
+                  <div class="seg" id="blend-seg">
+                    <button data-blend="normal" class="active">Normal</button>
+                    <button data-blend="multiply" id="blend-alt">Multiply</button>
+                    <button id="blend-more">More ▾</button>
+                  </div>
+                  <div class="size-menu blend-menu" id="blend-menu" hidden>
+                    <button data-blend="multiply">Multiply</button>
+                    <button data-blend="screen">Screen</button>
+                    <button data-blend="overlay">Overlay</button>
+                    <button data-blend="darken">Darken</button>
+                    <button data-blend="lighten">Lighten</button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="config-section">
+                <h3>Transformations</h3>
+                <div class="control-row">
+                  <label for="prop-x-offset">Position X (px)</label>
+                  <input type="range" id="prop-x-offset" min="-512" max="1536" value="512">
+                  <span class="value-display" id="x-offset-value">512px</span>
+                </div>
+
+                <div class="control-row">
+                  <label for="prop-y-offset">Position Y (px)</label>
+                  <input type="range" id="prop-y-offset" min="-512" max="1536" value="512">
+                  <span class="value-display" id="y-offset-value">512px</span>
+                </div>
+
+                <div class="control-row">
+                  <label for="prop-scale">Scale (%)</label>
+                  <input type="range" id="prop-scale" min="10" max="400" value="100">
+                  <span class="value-display" id="scale-value">100%</span>
+                </div>
+              </section>
+
+              <section class="config-section" id="section-filters">
+                <h3>Active Effects</h3>
+                <div id="effects-stack"></div>
+                <div class="fx-row" id="fx-invert">
+                  <div class="fx-top">
+                    <span class="fx-name">Invert Colors</span>
+                    <button class="switch" id="prop-invert" role="switch" aria-checked="false"></button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="config-section" id="section-text-properties" style="display: none;">
+                <h3>Text Settings</h3>
+                <div class="control-row">
+                  <label for="prop-text-content">Text Content</label>
+                  <textarea id="prop-text-content" rows="3"></textarea>
+                </div>
+
+                <div class="control-row">
+                  <label for="prop-font-family">Font Family</label>
+                  <select id="prop-font-family">
+                    <option value="Inter">Inter</option>
+                    <option value="sans-serif">System Sans</option>
+                    <option value="serif">Serif</option>
+                    <option value="monospace">Monospace</option>
+                  </select>
+                </div>
+
+                <div class="control-row">
+                  <label for="prop-font-size">Font Size (px)</label>
+                  <input type="range" id="prop-font-size" min="8" max="512" value="64">
+                  <span class="value-display" id="font-size-value">64px</span>
+                </div>
+
+                <div class="control-row inline-row">
+                  <label for="prop-text-color">Text Color</label>
+                  <input type="color" id="prop-text-color" value="#000000">
+                </div>
+              </section>
+            </div>
+          </div>
+        </aside>
+
+        <aside class="panel glass-surface layers-history-dock left-panel">
+          <div class="panel-tabs" id="layers-history-tabs" role="tablist" aria-label="Layer workspace">
+            <button data-tab="layers" class="active" role="tab" aria-selected="true">Layers</button>
+            <button data-tab="history" role="tab" aria-selected="false">History</button>
+          </div>
+
+          <div id="tab-layers">
+            <div class="layer-creation-buttons">
+              <button class="btn btn-primary" id="btn-add-image">+ Add Image</button>
+              <button class="btn btn-secondary" id="btn-add-text">+ Add Text</button>
+            </div>
+
+            <div class="upload-zone" id="upload-zone">
+              <p>Drop, upload, or paste an image</p>
+              <span>Ctrl+V supported</span>
+              <input type="file" id="file-input" accept="image/*" hidden>
+            </div>
+
+            <div class="layers-list" id="layers-list-container"></div>
+          </div>
+
+          <div id="tab-history" hidden>
+            <div class="history-list" id="history-list"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <footer class="statusbar glass-surface">
+    <span>Professional canvas workspace</span>
+    <span class="statusbar-center">Move · Hand · Zoom</span>
+    <span>1024 × 1024</span>
+  </footer>
 
   <div class="graph-overlay" id="graph-overlay">
     <canvas id="graph-canvas"></canvas>
@@ -230,6 +263,7 @@
       <div class="graph-footer" id="graph-footer"></div>
     </aside>
   </div>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
