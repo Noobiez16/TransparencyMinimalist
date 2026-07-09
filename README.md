@@ -6,18 +6,14 @@ A professional-grade browser-based image editor with a dark studio theme and com
 
 ## 🚀 Key Features
 
-* **Dynamic Layer Stack**: Layer-based editing supporting multiple image layers and custom styled text overlays. Includes native HTML5 drag-and-drop reordering and click-select to swap Z-indices.
-* **Interactive Canvas**: Drag layers directly on the canvas to adjust position, zoom in/out with scroll wheel (Ctrl+scroll), and pan around the viewport for precise positioning.
-* **Effect-Stack Properties Panel**: Manage filters (Blur, Contrast, Saturation, Brightness, Invert), transforms (Opacity, Scale, X/Y), and blend modes with real-time live preview.
-* **Responsive Live Viewport**: Powered by a highly-optimized in-place DOM updating engine that modifies element attributes directly, ensuring smooth 60fps adjustments even during active slider dragging.
-* **Premium Styling Controls**:
-  * Aspect ratio presets (1:1 Square, 16:9 Landscape, 9:16 Portrait, 4:5) alongside custom width/height inputs.
-  * Canvas background themes (Transparent Checkerboard, Solid White, Solid Black, and Custom Hex Color Picker).
-  * Filter controls: Blur, Contrast, Saturation, Brightness, and Invert.
-  * Layer transforms: Opacity, Scale, and coordinate X/Y translations.
-  * Blend modes: Normal, Multiply, Screen, Overlay, Darken, and Lighten.
-* **High-Resolution Canvas Export**: An offscreen rendering engine that pre-loads all images asynchronously to guarantee Z-index fidelity before rendering to a PNG download. Features aspect-ratio-aware font/blur scaling, text newline separation, and center-cover cropping bounds (matching CSS `object-fit: cover`).
-* **Input-Safe Event Handling**: Global Ctrl+V paste listens for image uploads but automatically suspends checks when a text input or textarea is active, preventing accidental layer duplication. Focused input guarding prevents annoying cursor resets or focus loss.
+* **Canvas Render Engine**: Single-path compositor with document model, effects processing, and pixel-perfect export parity.
+* **Move/Hand/Zoom Tools**: Direct layer manipulation with V/H/Z keyboard shortcuts; Space-hold for hand panning.
+* **Undo/Redo + History Panel**: Full command history with coalescing, panel navigation, and truncation on redo.
+* **Project Persistence**: Save/open projects as `.mledit.json`; autosave with restore on reload; corrupt file rejection.
+* **Document Graph Overlay**: Dependency visualization for layer stack, effects, and transformations (hidden on mobile).
+* **Layer Stack Editing**: Reorder layers via drag-and-drop, click-select to change Z-indices, adjust position/scale/opacity/blend modes with live preview.
+* **Effect Filters**: Blur, Contrast, Saturation, Brightness, and Invert with real-time rendering.
+* **Export**: High-resolution offscreen canvas with aspect-ratio-aware scaling and asynchronous image loading.
 
 ---
 
@@ -45,7 +41,21 @@ A professional-grade browser-based image editor with a dark studio theme and com
 │   ├── export.ts            # Export engine
 │   ├── toast.ts             # Toast notifications
 │   ├── dom.ts               # DOM helper utilities
-│   └── style.css            # Dark studio theme variables and viewport styling
+│   ├── style.css            # Dark studio theme variables and viewport styling
+│   ├── engine/              # Canvas render engine
+│   │   ├── document.ts      # Document model and layer structure
+│   │   ├── compositor.ts    # Single-path render engine
+│   │   ├── history.ts       # Undo/redo command history
+│   │   ├── commands.ts      # Command definitions and execution
+│   │   ├── tools.ts         # Tool framework and state
+│   │   └── persistence.ts   # Project save/load (.mledit.json)
+│   ├── tools/               # Tool implementations
+│   │   ├── move.ts          # Move tool (V)
+│   │   ├── hand.ts          # Hand/pan tool (H)
+│   │   └── zoom.ts          # Zoom tool (Z)
+│   ├── graph-panel.ts       # Document graph overlay
+│   ├── options-bar.ts       # Tool options display
+│   └── history-panel.ts     # Undo/redo history panel
 ├── dist/                    # Production build output
 ├── tsconfig.json            # TypeScript compiler configurations
 └── vite.config.ts           # Vite bundler parameters

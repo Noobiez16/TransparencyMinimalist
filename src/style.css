@@ -249,7 +249,8 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
   .dashboard-wrapper.hide-left .left-panel, .dashboard-wrapper.hide-right .right-panel { display: none; }
   .canvas-container { max-height: none; padding: 12px 0; }
   .topbar { flex-wrap: wrap; }
-  .options-bar { margin: 0; flex-wrap: wrap; }
+  .options-bar { margin: 8px 0 0; flex-wrap: wrap; }
+  .history-list { max-height: 40vh; }
 }
 
 @keyframes card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
