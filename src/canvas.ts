@@ -104,7 +104,7 @@ export function initCanvas(): void {
 
   $('bg-color-picker').addEventListener('input', (e) => {
     const val = (e.target as HTMLInputElement).value;
-    history.push(cmdPatchDoc('Background color', { bgColor: val }));
+    history.push(cmdPatchDoc('Background color', { bgColor: val }, 'doc:bgColor'));
   });
 
   subscribe((dirty) => {

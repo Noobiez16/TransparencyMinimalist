@@ -39,10 +39,10 @@ export function cmdPatchEffects(layerId: string, label: string, patch: Partial<E
   return { label, do: () => apply(patch), undo: () => apply(prev), coalesceKey };
 }
 
-export function cmdPatchDoc(label: string, patch: Partial<Pick<Doc, 'width' | 'height' | 'bgType' | 'bgColor'>>): Command {
+export function cmdPatchDoc(label: string, patch: Partial<Pick<Doc, 'width' | 'height' | 'bgType' | 'bgColor'>>, coalesceKey?: string): Command {
   const prev = captureKeys(state.doc, patch);
   const apply = (vals: object) => { Object.assign(state.doc, vals); notify('canvasConfig', 'composite'); };
-  return { label, do: () => apply(patch), undo: () => apply(prev) };
+  return { label, do: () => apply(patch), undo: () => apply(prev), coalesceKey };
 }
 
 export function cmdAddLayer(layer: Layer, index: number, label: string): Command {
