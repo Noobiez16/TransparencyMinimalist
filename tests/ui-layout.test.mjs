@@ -8,6 +8,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
 const html = readFileSync(resolve(root, 'index.html'), 'utf8');
 const css = readFileSync(resolve(root, 'src/style.css'), 'utf8');
+const topbar = readFileSync(resolve(root, 'src/topbar.ts'), 'utf8');
 
 function hasClass(source, className) {
   return new RegExp(`class=["'][^"']*\\b${className}\\b[^"']*["']`).test(source);
@@ -61,6 +62,13 @@ test('feature-owned ids remain available after the layout move', () => {
   }
 });
 
+test('document size status and custom inputs stay synchronized with state', () => {
+  assert.match(html, /id=["']status-doc-size["']/);
+  assert.match(topbar, /statusSize\.textContent\s*=\s*dimensions/);
+  assert.match(topbar, /widthInput\.value\s*=\s*String\(state\.doc\.width\)/);
+  assert.match(topbar, /heightInput\.value\s*=\s*String\(state\.doc\.height\)/);
+});
+
 test('balanced spatial glass tokens are defined', () => {
   for (const token of [
     '--app-bg', '--glass', '--glass-strong', '--glass-soft',
@@ -85,4 +93,4 @@ test('compact, fallback, and reduced-motion rules are present', () => {
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 });
 
-export { html, css };
+export { html, css, topbar };

@@ -23,6 +23,7 @@ export function initTopbar(): void {
   });
 
   const chip = $('size-chip');
+  const statusSize = $('status-doc-size');
   const menu = $('size-menu');
   const widthInput = $('canvas-width') as unknown as HTMLInputElement;
   const heightInput = $('canvas-height') as unknown as HTMLInputElement;
@@ -48,9 +49,16 @@ export function initTopbar(): void {
     menu.hidden = true;
   });
 
+  const syncDimensions = () => {
+    const dimensions = `${state.doc.width} × ${state.doc.height}`;
+    chip.textContent = `${dimensions} ▾`;
+    statusSize.textContent = dimensions;
+    widthInput.value = String(state.doc.width);
+    heightInput.value = String(state.doc.height);
+  };
+
   subscribe((dirty) => {
-    if (dirty.has('canvasConfig')) {
-      chip.textContent = `${state.doc.width} × ${state.doc.height} ▾`;
-    }
+    if (dirty.has('canvasConfig')) syncDimensions();
   });
+  syncDimensions();
 }
