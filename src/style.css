@@ -1272,7 +1272,7 @@ input[type="range"]:active::-webkit-slider-thumb {
   animation: canvas-flash 480ms ease-out;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   body {
     height: auto;
     min-height: 100vh;

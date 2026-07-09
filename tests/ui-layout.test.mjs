@@ -79,7 +79,8 @@ test('desktop dock responds to the existing panel visibility states', () => {
 });
 
 test('compact, fallback, and reduced-motion rules are present', () => {
-  assert.match(css, /@media\s*\(max-width:\s*1024px\)/);
+  assert.match(css, /@media\s*\(max-width:\s*1023px\)/);
+  assert.doesNotMatch(css, /@media\s*\(max-width:\s*1024px\)/);
   assert.match(css, /@supports\s+not\s+\(backdrop-filter:/);
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 });
