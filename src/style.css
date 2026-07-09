@@ -32,6 +32,10 @@ body {
 
 .rail-btn:hover, .rail-btn.active { background: var(--card-hi); color: var(--txt); }
 
+.rail-tools { display: flex; flex-direction: column; gap: 6px; }
+.rail-divider { width: 20px; height: 1px; background: var(--line); margin: 6px 0; }
+.rail-spacer { flex: 1; }
+
 .left-panel, .right-panel { transition: opacity 0.2s ease, transform 0.25s var(--ease); }
 
 .dashboard-wrapper.hide-left { grid-template-columns: 44px 0 1fr 280px; }

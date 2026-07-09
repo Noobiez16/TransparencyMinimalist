@@ -1,9 +1,9 @@
 import { state, subscribe, notify } from './state';
 import { composite } from './engine/compositor';
-import { layerBounds } from './engine/document';
 import { $ } from './dom';
 import * as history from './engine/history';
 import { cmdPatchDoc } from './engine/commands';
+import { getActiveTool, onToolChange } from './engine/tools';
 
 const viewport = $('canvas-viewport');
 const screenCanvas = $('doc-canvas') as unknown as HTMLCanvasElement;
@@ -117,75 +117,16 @@ export function initCanvas(): void {
   applyCanvasDimensions();
   syncBackgroundUI();
 
-  // --- Click-select and drag-move (doc space; ports to the Move tool in Task 7) ---
-  let drag: { id: string; startX: number; startY: number; origX: number; origY: number } | null = null;
-
+  // --- Pointer routing to the active tool ---
   screenCanvas.addEventListener('pointerdown', (e) => {
-    const pt = screenToDoc(e);
-    let hit: (typeof state.doc.layers)[number] | null = null;
-    for (const layer of state.doc.layers) {
-      if (!layer.visible) continue;
-      const b = layerBounds(layer);
-      if (pt.x >= b.x && pt.x <= b.x + b.w && pt.y >= b.y && pt.y <= b.y + b.h) {
-        hit = layer;
-        break;
-      }
-    }
-    if (!hit) {
-      state.doc.activeLayerId = null;
-      notify('selection', 'composite');
-      return;
-    }
-    if (state.doc.activeLayerId !== hit.id) {
-      state.doc.activeLayerId = hit.id;
-      notify('selection', 'composite');
-    }
-    drag = { id: hit.id, startX: e.clientX, startY: e.clientY, origX: hit.x, origY: hit.y };
     screenCanvas.setPointerCapture(e.pointerId);
-    e.preventDefault();
+    getActiveTool().onDown(screenToDoc(e), e);
   });
-
-  screenCanvas.addEventListener('pointermove', (e) => {
-    if (!drag) return;
-    const d = drag;
-    const layer = state.doc.layers.find((l) => l.id === d.id);
-    if (!layer) return;
-    const rect = screenCanvas.getBoundingClientRect();
-    const scaleX = state.doc.width / rect.width;
-    const scaleY = state.doc.height / rect.height;
-    const clampX = (v: number) => Math.max(-state.doc.width / 2, Math.min(1.5 * state.doc.width, Math.round(v)));
-    const clampY = (v: number) => Math.max(-state.doc.height / 2, Math.min(1.5 * state.doc.height, Math.round(v)));
-    layer.x = clampX(d.origX + (e.clientX - d.startX) * scaleX);
-    layer.y = clampY(d.origY + (e.clientY - d.startY) * scaleY);
-    notify('layerProps', 'composite');
-  });
-
-  const endDrag = () => {
-    if (drag) {
-      const d = drag;
-      const layer = state.doc.layers.find((l) => l.id === d.id);
-      if (layer && (layer.x !== d.origX || layer.y !== d.origY)) {
-        const finalX = layer.x;
-        const finalY = layer.y;
-        const startX = d.origX;
-        const startY = d.origY;
-        history.push({
-          label: 'Move layer',
-          do: () => {
-            const l = state.doc.layers.find((ll) => ll.id === d.id);
-            if (l) { l.x = finalX; l.y = finalY; notify('layerProps', 'composite'); }
-          },
-          undo: () => {
-            const l = state.doc.layers.find((ll) => ll.id === d.id);
-            if (l) { l.x = startX; l.y = startY; notify('layerProps', 'composite'); }
-          }
-        });
-      }
-    }
-    drag = null;
-  };
-  screenCanvas.addEventListener('pointerup', endDrag);
-  screenCanvas.addEventListener('pointercancel', endDrag);
+  screenCanvas.addEventListener('pointermove', (e) => getActiveTool().onMove(screenToDoc(e), e));
+  screenCanvas.addEventListener('pointerup', (e) => getActiveTool().onUp(screenToDoc(e), e));
+  screenCanvas.addEventListener('pointercancel', (e) => getActiveTool().onUp(screenToDoc(e), e));
+  onToolChange((tool) => { screenCanvas.style.cursor = tool.cursor; });
+  screenCanvas.style.cursor = getActiveTool().cursor;
 
   // --- Zoom & pan ---
   $('zoom-in').addEventListener('click', () => setZoom(zoom + 0.1));

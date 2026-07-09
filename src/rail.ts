@@ -1,4 +1,5 @@
 import { $, icons } from './dom';
+import { allTools, setActiveTool, onToolChange, getActiveTool } from './engine/tools';
 
 export function initRail(): void {
   const wrapper = document.querySelector('.dashboard-wrapper') as HTMLElement;
@@ -6,6 +7,22 @@ export function initRail(): void {
   const railProps = $('rail-props');
   const railAddImage = $('rail-add-image');
   const railAddText = $('rail-add-text');
+
+  const toolsHost = $('rail-tools');
+  allTools().forEach((tool) => {
+    const btn = document.createElement('button');
+    btn.className = 'rail-btn';
+    btn.title = `${tool.label} (${tool.shortcut.toUpperCase()})`;
+    btn.dataset.tool = tool.id;
+    btn.innerHTML = tool.icon;
+    btn.addEventListener('click', () => setActiveTool(tool.id));
+    toolsHost.appendChild(btn);
+  });
+  const syncToolButtons = () => {
+    toolsHost.querySelectorAll('.rail-btn').forEach((b) => b.classList.toggle('active', (b as HTMLElement).dataset.tool === getActiveTool().id));
+  };
+  onToolChange(syncToolButtons);
+  syncToolButtons();
 
   railLayers.innerHTML = icons.layers;
   railAddImage.innerHTML = icons.plus;

@@ -10,6 +10,8 @@ import { initRail } from './rail';
 import { initGraphPanel } from './graph-panel';
 import * as history from './engine/history';
 import { $, icons } from './dom';
+import { registerTool } from './engine/tools';
+import { moveTool } from './tools/move';
 
 function initHistoryUI(): void {
   const undoBtn = $<HTMLButtonElement>('btn-undo');
@@ -32,6 +34,7 @@ function initHistoryUI(): void {
   });
 }
 
+registerTool(moveTool);
 initCanvas();
 initLayersPanel();
 initPropertiesPanel();
