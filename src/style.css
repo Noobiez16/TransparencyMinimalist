@@ -249,6 +249,7 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
   .dashboard-wrapper.hide-left .left-panel, .dashboard-wrapper.hide-right .right-panel { display: none; }
   .canvas-container { max-height: none; padding: 12px 0; }
   .topbar { flex-wrap: wrap; }
+  .options-bar { margin: 0; flex-wrap: wrap; }
 }
 
 @keyframes card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -261,10 +262,6 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
 .canvas-viewport.flash { animation: canvas-flash 0.5s ease-out; }
 .layer-card.dragging { opacity: 0.6; transform: scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,.5); }
 .layer-card.drop-above { box-shadow: 0 -2px 0 0 #fff; }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: none !important; animation: none !important; }
-}
 
 /* Toasts */
 .toast-container {
@@ -319,6 +316,17 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
 }
 .btn-export { width: auto; margin-top: 0; padding: 8px 20px; }
 
+.options-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin: 0 10px; padding: 6px 12px; background: var(--panel); border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4); min-height: 40px;
+}
+.options-host { display: flex; align-items: center; gap: 16px; }
+.opt { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+.opt-label { color: var(--mut); }
+.opt-value { font-variant-numeric: tabular-nums; }
+.options-empty { font-size: 11px; color: var(--mut); }
+
 .layer-name-chip {
   font-family: inherit; font-size: 11px; color: var(--mut); background: transparent;
   border: none; cursor: pointer; padding: 0; margin: -10px 0 14px; text-align: left;
@@ -352,3 +360,7 @@ body { display: flex; flex-direction: column; }
 .graph-footer { margin-top: auto; font-size: 10px; color: var(--mut); }
 @media (max-width: 1024px) { .graph-overlay { inset: 8px; } .graph-side { display: none; } }
 .history-empty { font-size: 11px; color: var(--mut); text-align: center; padding: 20px 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

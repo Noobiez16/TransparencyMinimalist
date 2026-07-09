@@ -8,6 +8,7 @@ import { initTopbar } from './topbar';
 import { initExport } from './export';
 import { initRail } from './rail';
 import { initGraphPanel } from './graph-panel';
+import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
 import { $, icons } from './dom';
 import { registerTool, setActiveTool, getActiveTool, allTools } from './engine/tools';
@@ -72,6 +73,7 @@ initHistoryPanel();
 initTopbar();
 initExport();
 initRail();
+initOptionsBar();
 initGraphPanel();
 initHistoryUI();
 

@@ -12,6 +12,11 @@
 <body>
   <header class="topbar">
     <div class="topbar-title">Minimalist Editor</div>
+    <div class="undo-cluster"><button class="btn-icon" id="btn-undo" title="Undo (Ctrl+Z)"></button><button class="btn-icon" id="btn-redo" title="Redo (Ctrl+Shift+Z)"></button></div>
+    <button class="btn btn-primary btn-export" id="btn-export">Export</button>
+  </header>
+  <div class="options-bar">
+    <div class="options-host" id="options-host"><span class="options-empty" id="options-empty">No options for this tool</span></div>
     <div class="size-chip-wrap">
       <button class="size-chip" id="size-chip">1024 × 1024 ▾</button>
       <div class="size-menu" id="size-menu" hidden>
@@ -27,9 +32,7 @@
         </div>
       </div>
     </div>
-    <div class="undo-cluster"><button class="btn-icon" id="btn-undo" title="Undo (Ctrl+Z)"></button><button class="btn-icon" id="btn-redo" title="Redo (Ctrl+Shift+Z)"></button></div>
-    <button class="btn btn-primary btn-export" id="btn-export">Export</button>
-  </header>
+  </div>
   <div class="dashboard-wrapper">
     <nav class="rail" aria-label="Toolbar">
       <div class="rail-tools" id="rail-tools"></div>
