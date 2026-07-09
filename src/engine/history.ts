@@ -25,6 +25,7 @@ function trim(): void {
     stack.shift();
     index--;
     if (savedAt >= 0) savedAt--;
+    else savedAt = -2;              // pristine/unreachable save point is now permanently unreachable
   }
 }
 
