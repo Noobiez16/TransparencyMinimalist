@@ -61,4 +61,27 @@ test('feature-owned ids remain available after the layout move', () => {
   }
 });
 
+test('balanced spatial glass tokens are defined', () => {
+  for (const token of [
+    '--app-bg', '--glass', '--glass-strong', '--glass-soft',
+    '--glass-line', '--glass-shine', '--txt', '--mut'
+  ]) {
+    assert.match(css, new RegExp(`${token}\\s*:`), `missing ${token}`);
+  }
+  assert.match(css, /backdrop-filter\s*:/);
+});
+
+test('desktop dock responds to the existing panel visibility states', () => {
+  assert.match(css, /\.dashboard-wrapper\.hide-left/);
+  assert.match(css, /\.dashboard-wrapper\.hide-right/);
+  assert.match(css, /\.dashboard-wrapper\.hide-left\.hide-right/);
+  assert.match(css, /\.right-dock/);
+});
+
+test('compact, fallback, and reduced-motion rules are present', () => {
+  assert.match(css, /@media\s*\(max-width:\s*1024px\)/);
+  assert.match(css, /@supports\s+not\s+\(backdrop-filter:/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+});
+
 export { html, css };
