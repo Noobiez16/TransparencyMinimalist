@@ -114,3 +114,4 @@ dist-ssr/
 
 # Superpowers task logs, brainstorm sessions, and scripts
 .superpowers/
+.worktrees/
