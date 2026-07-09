@@ -21,7 +21,9 @@ export const icons = {
   graph: svg('<circle cx="8" cy="4" r="2"/><circle cx="3.5" cy="11.5" r="2"/><circle cx="12.5" cy="11.5" r="2"/><line x1="7" y1="5.8" x2="4.5" y2="9.8"/><line x1="9" y1="5.8" x2="11.5" y2="9.8"/><line x1="5.5" y1="11.5" x2="10.5" y2="11.5"/>'),
   move: svg('<path d="M8 2v12M2 8h12"/><path d="M8 2 6 4M8 2l2 2M8 14l-2-2M8 14l2-2M2 8l2-2M2 8l2 2M14 8l-2-2M14 8l-2 2"/>'),
   hand: svg('<path d="M5 8V4.5a1 1 0 0 1 2 0V8m0-4.5v-1a1 1 0 0 1 2 0V8m0-4a1 1 0 0 1 2 0v5.5"/><path d="M11 9.5c1-1 2.5-.5 2 1l-1.5 3A3 3 0 0 1 8.7 15H8a3 3 0 0 1-3-3V6"/>'),
-  zoom: svg('<circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/>')
+  zoom: svg('<circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/>'),
+  open: svg('<path d="M2 5a1 1 0 0 1 1-1h3l1.5 2H13a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1Z"/>'),
+  save: svg('<path d="M3 2h8l3 3v9a0 0 0 0 1 0 0H3a0 0 0 0 1 0 0V2Z"/><rect x="5" y="9" width="6" height="5"/><rect x="5" y="2" width="5" height="3"/>')
 };
 
 export function inlineEdit(el: HTMLElement, current: string, onCommit: (v: string) => void): void {

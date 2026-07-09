@@ -289,6 +289,7 @@ input[type="checkbox"]:checked { background: #fff; border-color: #fff; }
 }
 .size-chip:hover { color: var(--txt); background: var(--card-hi); }
 .undo-cluster { display: flex; gap: 4px; }
+.file-cluster { display: flex; gap: 4px; }
 .btn-icon {
   width: 30px; height: 30px; border: none; border-radius: 8px; background: var(--card);
   color: var(--txt); cursor: pointer; display: flex; align-items: center; justify-content: center;

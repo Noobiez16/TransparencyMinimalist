@@ -6,6 +6,7 @@ import { flashCanvas } from './canvas';
 import * as history from './engine/history';
 import type { Command } from './engine/history';
 import { cmdAddLayer, cmdDeleteLayer, cmdPatchLayer, cmdReorderLayer } from './engine/commands';
+import { openProjectFile } from './engine/persistence';
 
 const container = $('layers-list-container');
 const cards = new Map<string, HTMLElement>();
@@ -237,7 +238,10 @@ export function initLayersPanel(): void {
   uploadZone.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadZone.classList.remove('dragover');
-    Array.from(e.dataTransfer?.files ?? []).forEach(decodeImageFile);
+    const files = Array.from(e.dataTransfer?.files ?? []);
+    const proj = files.find((f) => f.name.endsWith('.json'));
+    if (proj) { void openProjectFile(proj); return; }
+    files.forEach(decodeImageFile);
   });
   fileInput.addEventListener('change', () => {
     Array.from(fileInput.files ?? []).forEach(decodeImageFile);
