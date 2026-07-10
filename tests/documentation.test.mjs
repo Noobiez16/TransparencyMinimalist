@@ -125,6 +125,12 @@ test('security guide documents safeguards and remaining limitations', () => {
   assert.match(security, /crafted `?\.mledit\.json`?/i);
   assert.match(security, /(?:eliminate|avoid) project-derived `innerHTML`/i);
   assert.match(security, /(?:DOM nodes.*`textContent`|`textContent`.*DOM nodes)/i);
+  assert.match(security, /crafted [^\n.]*project[^\n.]*bitmap[^\n.]*remote image request/i);
+  assert.match(security, /remote image request[^\n.]*request metadata[^\n.]*privacy/i);
+  assert.match(security, /cross-origin[^\n.]*taint[^\n.]*canvas[^\n.]*export/i);
+  assert.match(security, /`data:image\/png;base64,/i);
+  assert.match(security, /bitmap[^\n.]*size[^\n.]*dimension limits/i);
+  assert.match(security, /`img-src 'self' data: blob:`/i);
   assert.doesNotMatch(security, /main remaining.*resource exhaustion rather than script execution/i);
   assert.doesNotMatch(security, /completely client-side.*No.*external|inherently immune|formal certification/i);
 });
