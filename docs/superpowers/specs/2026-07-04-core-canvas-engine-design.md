@@ -1,7 +1,7 @@
 # Core Canvas Engine — Design Spec (Photoshop Foundation, Sub-project A)
 
 **Date:** 2026-07-04
-**Status:** Approved design, pending implementation plan
+**Status:** SHIPPED on feature/canvas-engine (final review passed). As-built deviations from §4: the Zoom tool's click step shipped as ×1.25 per click (the pill buttons use the spec's 10% step); the Move-tool clamp shipped as layer center ∈ [−size/2, 1.5×size] (half a document of slack past each edge). Both intentional-adequate; phase B/C authors should treat the code as ground truth for these two values.
 **Depends on:** the shipped dark-studio redesign (`2026-07-03-minimalist-editor-dark-studio-redesign-design.md`)
 **Roadmap context:** First of four approved sub-projects: **A. Core engine (this spec)** → B. Draw & retouch (brush, eraser, eyedropper, fill) → C. Selections & transforms (marquee/lasso, handles, crop) → D. Pro layers (masks, groups, adjustment layers). Each later phase gets its own spec; this spec's job is to make them plug-in work, not rework.
 
