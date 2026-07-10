@@ -365,7 +365,8 @@ test('desktop dock responds to the existing panel visibility states', () => {
 });
 
 test('compact, fallback, and reduced-motion rules are present', () => {
-  assert.match(css, /@media\s*\(max-width:\s*1024px\)/);
+  assert.match(css, /@media\s*\(max-width:\s*1023px\)/);
+  assert.doesNotMatch(css, /@media\s*\(max-width:\s*1024px\)/);
   assert.match(css, /@supports\s+not\s+\(backdrop-filter:/);
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 });
@@ -534,7 +535,7 @@ Restyle the existing `.btn`, `.btn-icon`, `.seg`, `.theme-toggles`, `.size-chip`
 Append:
 
 ```css
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   body { height: auto; min-height: 100vh; overflow-y: auto; grid-template-rows: auto auto auto auto; }
   .appbar { grid-template-columns: 1fr auto; row-gap: 6px; min-height: 48px; }
   .app-actions { justify-self: end; }

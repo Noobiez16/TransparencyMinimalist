@@ -1,50 +1,57 @@
-# Composition Examples & Guide
+# Composition Examples
 
-This document describes common design configurations and step-by-step instructions to create creative blends using the Minimalist Dynamic Layer Image Editor.
+These recipes use the controls currently available in Transparency. In the Layers panel, layer 0 is the first card and is visually topmost; lower cards are composited behind it.
 
----
+## Before You Start
 
-## 1. Twitter Hidden Images (Transparency Illusion)
+Choose a document size and a Background option before composing. Select **Transparent** when the exported artwork needs an alpha channel. New image and text layers start at the document center. Their **Position X (px)** and **Position Y (px)** values describe the layer center in document pixels, so use half the document width and height to center a layer rather than percentage offsets.
 
-A classic composition where an image behaves differently on light and dark backgrounds (common in dark-mode clients):
+The supported blending choices are **Normal**, **Multiply**, **Screen**, **Overlay**, **Darken**, and **Lighten**. **Opacity** and **Scale** apply to either layer type. **Blur** can apply to image or text layers, while **Brightness**, **Contrast**, and **Saturation** apply to image layers. Each effect has its own switch and must be enabled before its value affects the composition.
 
-### Steps to Recreate
-1. Open the editor and select a **Transparent** canvas background.
-2. Add a new **Image Layer** (let's name it "Overlay / Hidden").
-3. Upload a grayscale image (or apply a high-contrast filter) to this layer.
-4. Set its **Blend Mode** to `multiply` or `screen`.
-5. Add a second **Image Layer** or **Text Layer** below it (acting as the "Base").
-6. Set the Base layer's opacity to a low setting (e.g. `20%` to `40%`).
-7. **Export**: Export as a PNG. When viewed on Twitter/X in light mode (white background), the multiply blend will reveal the dark elements. In dark mode (black background), the screen blend reveals the light elements, making parts of the image appear to "vanish" or morph.
+## Transparency-Aware Artwork
 
----
+This workflow creates artwork whose transparent and partially transparent regions can respond to the background chosen by a viewer or publishing service.
 
-## 2. Double Exposure Effect
+1. Select **Transparent** under Background.
+2. Add a base image or text layer, then place it below any foreground layer in the Layers panel.
+3. Add the foreground image as layer 0 so it remains visually topmost.
+4. Try **Multiply** for dark detail, **Screen** for light detail, or **Overlay** for stronger combined contrast.
+5. Adjust **Opacity** as needed. To check contrast in the editor, you may temporarily switch the document Background to **White** or **Black**; these choices change the saved document background and add that opaque fill to the export.
+6. Return to **Transparent** before using **Export** for a transparent PNG. As an alternative, keep the document Transparent and inspect the exported PNG over light and dark surfaces in an external viewer.
 
-Blending a portrait profile silhouette with a landscape background:
+PNG preserves transparency produced by the editor. A hosting or social service may still recompress the file, convert it to another format, or flatten it against a background, so verify the uploaded result on every target service.
 
-### Steps to Recreate
-1. Add a **Background Image Layer** containing a landscape photo (e.g., forest, city skyline).
-2. Set its Scale to fit, keeping contrast high.
-3. Add a second **Image Layer** on top containing a high-contrast silhouette portrait (e.g., a person's profile against a pure white background).
-4. Set the silhouette layer's **Blend Mode** to `screen` or `lighten`.
-5. Adjust the top layer's **Opacity** to `80%`.
-6. Apply a slight **Blur** (`2px` to `5px`) to the background landscape layer to create photographic depth.
-7. Export the final PNG.
+## Double Exposure
 
----
+1. Add a landscape image and keep it below the portrait layer.
+2. Add a high-contrast portrait or silhouette; because a new layer is inserted at layer 0, it appears visually above the landscape.
+3. Select the portrait and try **Screen** or **Lighten**. Which mode works best depends on the source tones.
+4. Reduce its **Opacity** until both images remain legible.
+5. For softer depth, enable **Blur** on the landscape and raise the value gradually.
+6. If the sources need tonal adjustment, enable **Brightness**, **Contrast**, or **Saturation** before changing the corresponding value.
 
-## 3. High-Contrast Monochromatic Text Overlay
+## High-Contrast Editorial Text
 
-A sleek layout combining large bold text overlaying a blurred background:
+1. Add a background image and enable **Blur** to reduce distracting detail.
+2. Enable **Brightness** or **Contrast** on that image if the text needs more separation.
+3. Add a text layer. Keep it at or near layer 0 so it stays topmost.
+4. Enter the copy under **Text Content**, then choose its font, size, and color.
+5. Center the text by setting **Position X (px)** to half the document width and **Position Y (px)** to half the document height. For a 1024 by 1024 document, use `x = 512` and `y = 512` document pixels.
+6. Use **Normal** for predictable typography, or test **Overlay** when interaction with the background is intentional.
 
-### Steps to Recreate
-1. Add a **Background Image** layer.
-2. Increase its **Blur** slider to `15px` to create a smooth, abstract background.
-3. Lower its **Brightness** to `70%` for readability.
-4. Add a **Text Layer** on top.
-5. In the Properties panel, input your copy (supports multiple lines).
-6. Set the **Font Family** to `Inter` (or similar bold sans-serif) and increase **Font Size** to `64px`.
-7. Set the text color to `#FFFFFF` (or use the Color Picker).
-8. Center the text using X/Y translations (`xOffset = 0%`, `yOffset = 0%`).
-9. Export the composition.
+## Reusable Project Workflow
+
+Use **Save project** to download a `.mledit.json` project file. It contains the document, layers, settings, and serialized image data needed for later editing. Use **Open project** to select that file and replace the current document; the editor asks before replacing unsaved work when history is dirty.
+
+After changes, autosave serializes the current project into browser storage. On a later visit, the editor can offer to restore the latest autosave. Treat this as recovery assistance, not as the portable copy: browser storage can be cleared or unavailable. Keep important `.mledit.json` files in normal backed-up storage.
+
+Saving a project does not create the final image. Use **Export** separately to download the rendered PNG.
+
+## Export Checklist
+
+- Confirm the intended document size and Background choice.
+- Review layer order, visibility, **Opacity**, and blend modes.
+- Confirm each intended effect is enabled, not merely assigned a value.
+- If you temporarily selected **White** or **Black** to check contrast, return to **Transparent** before using **Export** for a transparent PNG.
+- Save a `.mledit.json` project if future editing matters.
+- Export the PNG and inspect the downloaded file before publishing it.
