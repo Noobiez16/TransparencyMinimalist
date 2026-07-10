@@ -129,4 +129,25 @@ test('security guide documents safeguards and remaining limitations', () => {
   assert.doesNotMatch(security, /completely client-side.*No.*external|inherently immune|formal certification/i);
 });
 
+test('all public documents meet global Markdown and terminology rules', () => {
+  for (const path of publicFiles) {
+    const text = readPublicDoc(path);
+    assertProfessionalMarkdown(path, text);
+    assert.doesNotMatch(text, /Minimalist Dynamic Layer Image Editor|Canvas Preview|xOffset|yOffset/);
+  }
+});
+
+test('all repository-relative Markdown links resolve', () => {
+  for (const path of publicFiles) {
+    const text = readPublicDoc(path);
+    const base = dirname(resolve(root, path));
+    for (const match of text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
+      const href = match[1];
+      if (/^(?:https?:|mailto:|#)/.test(href)) continue;
+      const target = decodeURIComponent(href.split('#')[0]);
+      assert.equal(existsSync(resolve(base, target)), true, `${path} has broken link ${href}`);
+    }
+  }
+});
+
 export { assertProfessionalMarkdown, publicFiles, readPublicDoc, root };
