@@ -45,4 +45,39 @@ test('README is the professional user and contributor entry point', () => {
   }
 });
 
+test('architecture guide matches the current document and rendering model', () => {
+  const architecture = readPublicDoc('docs/architecture.md');
+  assertProfessionalMarkdown('docs/architecture.md', architecture);
+  for (const fact of [
+    'interface Doc',
+    "kind: 'image'",
+    "kind: 'text'",
+    'document pixels',
+    'DirtyFlag',
+    'structure',
+    'selection',
+    'layerProps',
+    'canvasConfig',
+    'composite',
+    '50 entries',
+    '150 MiB',
+    '800 ms',
+    'IndexedDB',
+    'src/engine/compositor.ts'
+  ]) assert.match(architecture, new RegExp(fact.replaceAll('.', '\\.')));
+  assert.doesNotMatch(architecture, /LayerState|AppState|xOffset|yOffset|DOM updates|percentage coordinates/i);
+});
+
+test('design guide documents the implemented spatial-glass system', () => {
+  const design = readPublicDoc('docs/design.md');
+  assertProfessionalMarkdown('docs/design.md', design);
+  for (const fact of [
+    '--app-bg', '--glass', '--glass-strong', '--glass-line',
+    'application bar', 'contextual options bar', 'tool rail',
+    'canvas workspace', 'Layers / History', '1024px and above',
+    '1023px and below', 'backdrop-filter', 'prefers-reduced-motion'
+  ]) assert.match(design, new RegExp(fact.replaceAll('.', '\\.')));
+  assert.doesNotMatch(design, /#FFFFFF.*Primary Background|three-column|0px border-radii|No Drop Shadows/i);
+});
+
 export { assertProfessionalMarkdown, publicFiles, readPublicDoc, root };
