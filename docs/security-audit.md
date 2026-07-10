@@ -18,7 +18,9 @@ This local flow does not eliminate all external communication: the Google Fonts 
 
 Text layers are rendered by `CanvasRenderingContext2D.fillText`, which paints glyphs rather than inserting the layer text into the HTML document. UI-generated layer names and status strings are assigned through `textContent`. These paths keep user strings out of HTML parsing.
 
-Some fixed internal icon, layer-card, effect-row, and legend templates use `innerHTML`. Those templates interpolate trusted strings defined by the application. Graph details that include a layer name escape it before assigning an HTML-formatted summary. Contributors should preserve this separation: untrusted names, project text, and file metadata should use `textContent` or explicit escaping rather than direct HTML interpolation.
+Some fixed internal icon, layer-card, effect-row, and legend templates use `innerHTML` with markup and values defined by the application. The graph detail card is different: although it escapes the layer name, its HTML-formatted summary directly interpolates the layer's opacity, blend mode, and enabled effect values. Those nested values can come from a loaded project and are not fully validated or escaped before the `innerHTML` assignment.
+
+A crafted `.mledit.json` project can therefore place markup in a nested layer value and cause DOM injection when a user opens the graph and displays that layer's details. Depending on the injected markup and the deployment's browser policy, this creates a script-execution risk. Canvas text rendering and `textContent` use elsewhere do not protect this separate DOM sink.
 
 ## Image Import, Clipboard, and Drop Handling
 
@@ -32,7 +34,7 @@ The document-level paste handler suppresses image-layer creation when the active
 
 Saved projects use a JSON envelope with the app marker `minimalist-editor` and `version: 1`. The loader checks the app marker, requires a document, and rejects versions newer than it supports. It then reconstructs image canvases from serialized data URLs.
 
-The loader does not fully validate the nested document and layer data against a schema or enforce every numeric range before casting it to the application types. A malformed or adversarial project can therefore reach browser decoding, allocation, and rendering paths with unexpected values. Treat `.mledit.json` files as untrusted input.
+The loader does not fully validate the nested document and layer data against a schema or enforce every string enum and numeric range before casting it to the application types. A malformed or adversarial project can therefore reach browser decoding, allocation, rendering, and graph-detail DOM paths with unexpected values. Treat `.mledit.json` files as untrusted input.
 
 Autosave serializes the same project representation into IndexedDB database `mledit`, including Base64 image data URLs, under the latest autosave entry. That data persists until browser storage is cleared or the browser evicts site data; the project has no in-app autosave deletion control.
 
@@ -44,7 +46,7 @@ Revocation limits the lifetime of those temporary URL handles. It does not delet
 
 ## Resource Exhaustion Risks
 
-The main remaining browser-side risk is resource exhaustion rather than script execution. Relevant pressure points include:
+Another material browser-side risk is resource exhaustion. Relevant pressure points include:
 
 - Large decoded image dimensions, which can require substantial canvas memory even when the source file is compressed.
 - Base64 image data in `.mledit.json` projects and IndexedDB, which increases serialized size and creates additional copies during parsing and save operations.
@@ -59,11 +61,12 @@ The current import path has no explicit upload-size or decoded-dimension ceiling
 - Add restrictive hosting headers appropriate to the environment, including MIME-sniffing protection, a deliberate framing policy, and a conservative referrer policy.
 - Review and update build dependencies regularly, and review any new runtime or remote dependency before deployment.
 - Add file-size, decoded-image-dimension, document-dimension, layer-count, and project-schema validation before accepting hostile or public uploads.
+- Eliminate project-derived `innerHTML` in graph details: build DOM nodes and assign project values with `textContent`. As defense in depth, validate nested project enums and ranges, and escape any unavoidable HTML interpolation.
 - Offer self-hosted Inter files or a system-font-only build for deployments with stricter privacy or offline requirements.
 - Test save, restore, import, and export limits on representative low-memory devices and browsers.
 
 ## Remaining Limitations
 
-This review is source-based and does not include browser-engine fuzzing, third-party infrastructure assessment, penetration testing, or exhaustive malformed-file testing. MIME-prefix checks do not verify file signatures. Project deserialization does not enforce a complete schema or all ranges. Imported images, large Base64 projects, and expensive compositions can still exhaust resources. IndexedDB retains autosaves beyond the current session, and the default page contacts Google Fonts.
+This review is source-based and does not include browser-engine fuzzing, third-party infrastructure assessment, penetration testing, or exhaustive malformed-file testing. MIME-prefix checks do not verify file signatures. Project deserialization does not enforce a complete schema or all ranges, and project-derived graph details retain a DOM-injection and script-execution risk while they use `innerHTML`. Imported images, large Base64 projects, and expensive compositions can still exhaust resources. IndexedDB retains autosaves beyond the current session, and the default page contacts Google Fonts.
 
 Future changes to dependencies, hosting headers, remote assets, parser behavior, or browser APIs require a new review. Contributors should treat this document as a current snapshot and keep claims aligned with implemented safeguards and remaining limitations.

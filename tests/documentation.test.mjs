@@ -121,6 +121,11 @@ test('security guide documents safeguards and remaining limitations', () => {
     'Content-Security-Policy'
   ]) assert.match(security, new RegExp(fact.replaceAll('.', '\\.')));
   assert.match(security, /does not fully validate|remaining limitation/i);
+  assert.match(security, /DOM injection/i);
+  assert.match(security, /crafted `?\.mledit\.json`?/i);
+  assert.match(security, /(?:eliminate|avoid) project-derived `innerHTML`/i);
+  assert.match(security, /(?:DOM nodes.*`textContent`|`textContent`.*DOM nodes)/i);
+  assert.doesNotMatch(security, /main remaining.*resource exhaustion rather than script execution/i);
   assert.doesNotMatch(security, /completely client-side.*No.*external|inherently immune|formal certification/i);
 });
 
