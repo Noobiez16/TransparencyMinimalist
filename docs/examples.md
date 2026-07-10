@@ -16,8 +16,8 @@ This workflow creates artwork whose transparent and partially transparent region
 2. Add a base image or text layer, then place it below any foreground layer in the Layers panel.
 3. Add the foreground image as layer 0 so it remains visually topmost.
 4. Try **Multiply** for dark detail, **Screen** for light detail, or **Overlay** for stronger combined contrast.
-5. Adjust **Opacity** while checking the result over Transparent, White, and Black preview backgrounds.
-6. Export a **PNG** when the transparency is ready.
+5. Adjust **Opacity** as needed. To check contrast in the editor, you may temporarily switch the document Background to **White** or **Black**; these choices change the saved document background and add that opaque fill to the export.
+6. Return to **Transparent** before using **Export** for a transparent PNG. As an alternative, keep the document Transparent and inspect the exported PNG over light and dark surfaces in an external viewer.
 
 PNG preserves transparency produced by the editor. A hosting or social service may still recompress the file, convert it to another format, or flatten it against a background, so verify the uploaded result on every target service.
 
@@ -52,6 +52,6 @@ Saving a project does not create the final image. Use **Export** separately to d
 - Confirm the intended document size and Background choice.
 - Review layer order, visibility, **Opacity**, and blend modes.
 - Confirm each intended effect is enabled, not merely assigned a value.
-- Preview transparent work over light and dark backgrounds.
+- If you temporarily selected **White** or **Black** to check contrast, return to **Transparent** before using **Export** for a transparent PNG.
 - Save a `.mledit.json` project if future editing matters.
 - Export the PNG and inspect the downloaded file before publishing it.

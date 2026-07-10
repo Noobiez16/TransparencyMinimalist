@@ -88,6 +88,8 @@ test('composition examples use current controls and cautious claims', () => {
     'Opacity', 'Brightness', 'Contrast', 'Saturation',
     'Blur', 'document pixels', '.mledit.json', 'PNG'
   ]) assert.match(examples, new RegExp(fact.replaceAll('.', '\\.')));
+  assert.match(examples, /return to \*\*Transparent\*\* before (?:using \*\*Export\*\*|exporting (?:the )?PNG)/i);
+  assert.doesNotMatch(examples, /White.*Black preview backgrounds|Preview transparent work over light and dark backgrounds/i);
   assert.doesNotMatch(examples, /xOffset|yOffset|Twitter\/X.*will reveal|guaranteed/i);
 });
 
