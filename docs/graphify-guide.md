@@ -1,53 +1,57 @@
-# Codebase Brain Graph Guide (Graphify)
+# Graphify Codebase Guide
 
-This project has been integrated with **Graphify**, a professional codebase knowledge-graph generator that replaces the legacy custom script `tools/codegraph.py`.
+## Purpose
 
-It maps TypeScript module dependencies as a directed force-directed graph, groups them automatically into cohesive communities, and enables interactive web exploration and natural language CLI querying.
+Graphify is an optional contributor tool for exploring code relationships. It is not required to install, build, test, or run Transparency. The commands below assume `python -m graphify` is already available in the contributor's environment and intentionally do not prescribe an installation method.
 
----
+## Generated Artifacts
 
-## Output Files
+Graphify writes its generated output under `graphify-out/`:
 
-All graph generation outputs are located in the `graphify-out/` directory:
+- `graphify-out/graph.html` is the interactive browser visualization.
+- `graphify-out/GRAPH_REPORT.md` is a generated structural report that highlights hubs, coupling, and questions for review.
+- `graphify-out/graph.json` contains the graph's node and edge data for programmatic use.
 
-*   **`graphify-out/graph.html`** - Interactive web visualization of the codebase brain graph (open this directly in your web browser).
-*   **`graphify-out/GRAPH_REPORT.md`** - A comprehensive audit report highlighting key codebase hubs ("God Nodes"), surprising coupling across boundaries, and recommended architectural questions.
-*   **`graphify-out/graph.json`** - Raw node and edge graph data in GraphRAG-ready format.
+Treat these as generated snapshots. Refresh them after relevant source or import changes rather than hand-editing the outputs.
 
----
+## Generate or Refresh the Graph
 
-## How to Rebuild or Update the Graph
-
-If you add new modules or change imports, you can regenerate the graph using the following command from the project root:
+From the repository root, generate a directed graph of the current tree:
 
 ```powershell
-# Build a directed graph of the current directory
 python -m graphify . --directed
 ```
 
-> [!NOTE]
-> Since we ignore third-party packages, configuration, and build folders (like `node_modules/` and `dist/`), the parser will only scan relevant source code in `src/`. Exclusions are controlled via the [.graphifyignore](file:///c:/Users/vladi/Documents/ProjectsIdeas/TransparencyTW/.graphifyignore) file.
+Run the same command to refresh an existing snapshot. Graphify applies the repository exclusions while scanning, so results focus on maintained source rather than dependencies and generated files.
 
----
+## Query the Graph
 
-## How to Query the Codebase
+Ask a natural-language question about module relationships:
 
-Graphify allows you to ask questions about the codebase structure directly from your terminal.
-
-### 1. Natural Language Queries
-Query module interactions, structure, and design flows:
 ```powershell
-python -m graphify query "How does the canvas interaction tools and move tool connect to the main viewport?"
+python -m graphify query "How do the canvas tools connect to the compositor?"
 ```
 
-### 2. Trace Dependency Paths
-Find the shortest path of dependency between two modules or functions:
+Find a dependency path between two known node identifiers:
+
 ```powershell
 python -m graphify path "src_main" "src_engine_compositor"
 ```
 
-### 3. Explain Components
-Get a clear explanation of any node or interface:
+Request an explanation of a node:
+
 ```powershell
 python -m graphify explain "src_engine_history"
 ```
+
+Exact node identifiers come from the generated graph, so inspect `graphify-out/graph.html` or `graphify-out/graph.json` before a path or explain query when an identifier is uncertain.
+
+## Read the Results
+
+Use the HTML graph to explore neighborhoods and directionality, the Markdown report to identify areas worth reviewing, and the JSON data when a script or another graph tool needs exact nodes and edges. Graph structure is evidence about static relationships, not proof that a dependency is problematic. Confirm important conclusions against the source and runtime behavior.
+
+## Exclusions and Maintenance
+
+The repository-level [`.graphifyignore`](../.graphifyignore) controls the scan boundary. Current exclusions cover dependencies, build output, configuration files, package metadata, documentation, and Superpowers artifacts. In particular, they omit directories such as `node_modules/`, `dist/`, `.git/`, `.vscode/`, `.superpowers/`, and `docs/`, plus the package lockfile, package manifest, TypeScript configuration, and Vite configuration.
+
+Review the ignore file when the project layout changes. Add only paths that are generated, third-party, administrative, or otherwise outside the graph's intended source boundary.

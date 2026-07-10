@@ -80,4 +80,46 @@ test('design guide documents the implemented spatial-glass system', () => {
   assert.doesNotMatch(design, /#FFFFFF.*Primary Background|three-column|0px border-radii|No Drop Shadows/i);
 });
 
+test('composition examples use current controls and cautious claims', () => {
+  const examples = readPublicDoc('docs/examples.md');
+  assertProfessionalMarkdown('docs/examples.md', examples);
+  for (const fact of [
+    'Transparent', 'Multiply', 'Screen', 'Overlay',
+    'Opacity', 'Brightness', 'Contrast', 'Saturation',
+    'Blur', 'document pixels', '.mledit.json', 'PNG'
+  ]) assert.match(examples, new RegExp(fact.replaceAll('.', '\\.')));
+  assert.doesNotMatch(examples, /xOffset|yOffset|Twitter\/X.*will reveal|guaranteed/i);
+});
+
+test('Graphify guide is portable and explains generated artifacts', () => {
+  const graphify = readPublicDoc('docs/graphify-guide.md');
+  assertProfessionalMarkdown('docs/graphify-guide.md', graphify);
+  for (const fact of [
+    'python -m graphify . --directed',
+    'graphify-out/graph.html',
+    'graphify-out/GRAPH_REPORT.md',
+    'graphify-out/graph.json',
+    '.graphifyignore'
+  ]) assert.match(graphify, new RegExp(fact.replaceAll('.', '\\.')));
+  assert.doesNotMatch(graphify, /file:\/\/|C:\\Users\\/);
+});
+
+test('security guide documents safeguards and remaining limitations', () => {
+  const security = readPublicDoc('docs/security-audit.md');
+  assertProfessionalMarkdown('docs/security-audit.md', security);
+  for (const fact of [
+    'Engineering review',
+    'Google Fonts',
+    'CanvasRenderingContext2D',
+    'object URL',
+    'IndexedDB',
+    'minimalist-editor',
+    'version: 1',
+    'resource exhaustion',
+    'Content-Security-Policy'
+  ]) assert.match(security, new RegExp(fact.replaceAll('.', '\\.')));
+  assert.match(security, /does not fully validate|remaining limitation/i);
+  assert.doesNotMatch(security, /completely client-side.*No.*external|inherently immune|formal certification/i);
+});
+
 export { assertProfessionalMarkdown, publicFiles, readPublicDoc, root };
