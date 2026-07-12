@@ -73,7 +73,6 @@
         <div class="rail-divider"></div>
         <button class="rail-btn" id="rail-add-image" title="Add image layer" aria-label="Add image layer"></button>
         <button class="rail-btn" id="rail-add-text" title="Add text layer" aria-label="Add text layer"></button>
-        <button class="rail-btn" id="rail-graph" title="Document graph (G)" aria-label="Document graph"></button>
         <div class="rail-spacer"></div>
         <button class="rail-btn active" id="rail-layers" title="Toggle layers panel" aria-label="Toggle layers panel"></button>
         <button class="rail-btn active" id="rail-props" title="Toggle properties panel" aria-label="Toggle properties panel"></button>
@@ -247,22 +246,6 @@
     <span class="statusbar-center">Move · Hand · Zoom</span>
     <span id="status-doc-size">1024 × 1024</span>
   </footer>
-
-  <div class="graph-overlay" id="graph-overlay">
-    <canvas id="graph-canvas"></canvas>
-    <aside class="graph-side">
-      <input type="text" id="graph-search" placeholder="Search nodes...">
-      <div class="graph-section">
-        <div class="lbl">Node Info</div>
-        <div class="graph-info" id="graph-info">Click or hover a node to inspect it</div>
-      </div>
-      <div class="graph-section">
-        <div class="lbl">Legend</div>
-        <div class="graph-legend" id="graph-legend"></div>
-      </div>
-      <div class="graph-footer" id="graph-footer"></div>
-    </aside>
-  </div>
 
   <script type="module" src="/src/main.ts"></script>
 </body>

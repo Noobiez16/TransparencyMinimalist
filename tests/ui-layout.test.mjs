@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
@@ -9,6 +9,8 @@ const root = resolve(here, '..');
 const html = readFileSync(resolve(root, 'index.html'), 'utf8');
 const css = readFileSync(resolve(root, 'src/style.css'), 'utf8');
 const topbar = readFileSync(resolve(root, 'src/topbar.ts'), 'utf8');
+const main = readFileSync(resolve(root, 'src/main.ts'), 'utf8');
+const dom = readFileSync(resolve(root, 'src/dom.ts'), 'utf8');
 
 function hasClass(source, className) {
   return new RegExp(`class=["'][^"']*\\b${className}\\b[^"']*["']`).test(source);
@@ -50,13 +52,12 @@ test('feature-owned ids remain available after the layout move', () => {
   for (const id of [
     'btn-open', 'btn-save', 'btn-undo', 'btn-redo', 'btn-export',
     'options-host', 'size-chip', 'canvas-width', 'canvas-height',
-    'rail-tools', 'rail-add-image', 'rail-add-text', 'rail-graph',
+    'rail-tools', 'rail-add-image', 'rail-add-text',
     'rail-layers', 'rail-props', 'btn-add-image', 'btn-add-text',
     'upload-zone', 'file-input', 'layers-list-container',
     'canvas-container', 'canvas-viewport', 'doc-canvas',
     'zoom-out', 'zoom-readout', 'zoom-in', 'bg-color-picker',
-    'tab-properties', 'properties-editor-container', 'history-list',
-    'graph-overlay', 'graph-canvas'
+    'tab-properties', 'properties-editor-container', 'history-list'
   ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`), `missing #${id}`);
   }
@@ -93,4 +94,18 @@ test('compact, fallback, and reduced-motion rules are present', () => {
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 });
 
-export { html, css, topbar };
+test('the in-editor Document Graph runtime is fully removed', () => {
+  for (const id of [
+    'rail-graph', 'graph-overlay', 'graph-canvas', 'graph-search',
+    'graph-info', 'graph-legend', 'graph-footer'
+  ]) {
+    assert.doesNotMatch(html, new RegExp(`id=["']${id}["']`), `unexpected #${id}`);
+  }
+
+  assert.doesNotMatch(main, /graph-panel|initGraphPanel/);
+  assert.doesNotMatch(dom, /\bgraph\s*:/);
+  assert.doesNotMatch(css, /(?:\.|#)graph-(?:overlay|canvas|side|search|info|legend|footer)\b/);
+  assert.equal(existsSync(resolve(root, 'src/graph-panel.ts')), false);
+});
+
+export { html, css, topbar, main, dom };

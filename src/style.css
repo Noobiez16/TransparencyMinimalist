@@ -1194,75 +1194,6 @@ input[type="range"]:active::-webkit-slider-thumb {
   font-weight: 600;
 }
 
-/* Graph overlay */
-.graph-overlay {
-  display: none;
-  position: fixed;
-  inset: 58px 8px 34px 58px;
-  z-index: 60;
-  overflow: hidden;
-  border: 1px solid var(--glass-line);
-  border-radius: 10px;
-  background: var(--glass-strong);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.62), inset 0 1px var(--glass-shine);
-  backdrop-filter: blur(20px);
-}
-
-.graph-overlay.open {
-  display: flex;
-}
-
-#graph-canvas {
-  flex: 1;
-  display: block;
-  cursor: grab;
-}
-
-.graph-side {
-  width: 230px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  border-left: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.025);
-}
-
-#graph-search {
-  width: 100%;
-}
-
-.graph-info,
-.graph-legend {
-  color: var(--mut);
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.graph-info {
-  min-height: 64px;
-}
-
-.graph-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.graph-legend .dot {
-  width: 8px;
-  height: 8px;
-  margin-right: 8px;
-  display: inline-block;
-  border-radius: 50%;
-}
-
-.graph-footer {
-  margin-top: auto;
-  color: var(--mut);
-  font-size: 9px;
-}
-
 @keyframes canvas-flash {
   0% { box-shadow: 0 28px 58px rgba(0, 0, 0, 0.65), 0 0 0 2px rgba(238, 245, 255, 0.55); }
   100% { box-shadow: 0 28px 58px rgba(0, 0, 0, 0.65); }
@@ -1346,14 +1277,6 @@ input[type="range"]:active::-webkit-slider-thumb {
     display: none;
   }
 
-  .graph-overlay {
-    inset: 8px;
-  }
-
-  .graph-side {
-    display: none;
-  }
-
   .statusbar-center {
     display: none;
   }
@@ -1416,8 +1339,7 @@ input[type="range"]:active::-webkit-slider-thumb {
 @supports not (backdrop-filter: blur(1px)) {
   .glass-surface,
   .size-menu,
-  .toast,
-  .graph-overlay {
+  .toast {
     background: var(--glass-strong);
   }
 }
