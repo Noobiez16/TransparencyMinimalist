@@ -12,6 +12,7 @@ let geometry: typeof import('../src/engine/transform-geometry');
 let move: typeof import('../src/tools/move');
 let moveTool: typeof import('../src/tools/move').moveTool;
 let tools: typeof import('../src/engine/tools');
+let sessionGuard: typeof import('../src/transform-session-guard');
 
 beforeAll(async () => {
   vi.stubGlobal('document', {
@@ -36,6 +37,7 @@ beforeAll(async () => {
   move = await import('../src/tools/move');
   moveTool = move.moveTool;
   tools = await import('../src/engine/tools');
+  sessionGuard = await import('../src/transform-session-guard');
 });
 
 beforeEach(() => {
@@ -256,6 +258,37 @@ describe('canvas transform controls', () => {
 });
 
 describe('Move tool transform delegation', () => {
+  test('an explicit session accepts a handle gesture and remains open after pointerup', () => {
+    const layer = addImageLayer();
+    const event = { shiftKey: false, ctrlKey: false, metaKey: false } as PointerEvent;
+    sessions.beginTransform(layer.id, 'explicit');
+
+    moveTool.onDown({ x: 450, y: 325 }, event);
+    expect(sessions.getTransformSession()?.gesture?.handle).toBe('se');
+    moveTool.onMove({ x: 500, y: 350 }, event);
+    moveTool.onUp({ x: 500, y: 350 }, event);
+
+    expect(sessions.getTransformSession()?.mode).toBe('explicit');
+    expect(sessions.getTransformSession()?.gesture).toBeNull();
+    expect(history.entries()).toHaveLength(0);
+    expect(layer.scaleX).toBe(150);
+  });
+
+  test('an explicit session accepts interior dragging without opening a direct session', () => {
+    const layer = addImageLayer();
+    const event = { shiftKey: false, ctrlKey: false, metaKey: false } as PointerEvent;
+    sessions.beginTransform(layer.id, 'explicit');
+
+    moveTool.onDown({ x: 400, y: 300 }, event);
+    expect(sessions.getTransformSession()?.gesture?.handle).toBe('move');
+    moveTool.onMove({ x: 430, y: 320 }, event);
+    moveTool.onUp({ x: 430, y: 320 }, event);
+
+    expect(sessions.getTransformSession()?.mode).toBe('explicit');
+    expect(transformOf(layer)).toEqual({ x: 430, y: 320, scaleX: 100, scaleY: 100, rotation: 0 });
+    expect(history.entries()).toHaveLength(0);
+  });
+
   test('hits a corner handle before the layer interior and commits one resize command', () => {
     const layer = addImageLayer();
     const event = { shiftKey: false, ctrlKey: false, metaKey: false } as PointerEvent;
@@ -292,6 +325,21 @@ describe('Move tool transform delegation', () => {
 
     expect(layer.scaleX).toBe(150);
     expect(layer.scaleY).toBe(100);
+  });
+});
+
+describe('explicit-session keyboard routing', () => {
+  const target = (tagName: string, isContentEditable = false) => ({ tagName, isContentEditable }) as Element;
+
+  test('interactive controls keep Enter for their native activation semantics', () => {
+    expect(sessionGuard.isInteractiveTarget(target('BUTTON'))).toBe(true);
+    expect(sessionGuard.isInteractiveTarget(target('INPUT'))).toBe(true);
+    expect(sessionGuard.getGuardKeyboardResolution('Enter', target('BUTTON'))).toBeNull();
+  });
+
+  test('the modal resolves keyboard commands only from non-interactive targets', () => {
+    expect(sessionGuard.getGuardKeyboardResolution('Enter', target('SECTION'))).toBe('apply');
+    expect(sessionGuard.getGuardKeyboardResolution('Escape', target('BUTTON'))).toBe('cancel');
   });
 });
 

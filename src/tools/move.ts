@@ -76,13 +76,19 @@ export function setTransformFieldValue(field: TransformField, value: number): bo
 const hasLayer = () => !getActiveLayer();
 const hasExplicitSession = () => getTransformSession()?.mode !== 'explicit';
 
+function preparePointerTransform(layerId: string): boolean {
+  const session = getTransformSession();
+  if (!session) return beginTransform(layerId, 'direct');
+  return session.mode === 'explicit' && session.layerId === layerId && !session.gesture;
+}
+
 export const moveTool: Tool = {
   id: 'move', label: 'Move', icon: icons.move, cursor: 'default', shortcut: 'v',
   onDown(p: DocPoint) {
     const active = getActiveLayer();
     const handle = active ? hitTestCanvasOverlay(state.doc, p, getOverlayScale()) : null;
     if (active && handle) {
-      if (beginTransform(active.id, 'direct')) {
+      if (preparePointerTransform(active.id)) {
         beginHandleGesture(handle, p, proportionsLinked && LINKED_HANDLES.has(handle));
       }
       return;
@@ -90,6 +96,8 @@ export const moveTool: Tool = {
 
     const hit = layerAt(p);
     if (!autoSelect && hit?.id !== active?.id) return;
+    const session = getTransformSession();
+    if (session?.mode === 'explicit' && session.layerId !== hit?.id) return;
     if (!hit) {
       state.doc.activeLayerId = null;
       notify('selection', 'composite');
@@ -99,7 +107,7 @@ export const moveTool: Tool = {
       state.doc.activeLayerId = hit.id;
       notify('selection', 'composite');
     }
-    if (beginTransform(hit.id, 'direct')) beginHandleGesture('move', p, false);
+    if (preparePointerTransform(hit.id)) beginHandleGesture('move', p, false);
   },
   onMove(p: DocPoint, e: PointerEvent) {
     if (!getTransformSession()?.gesture) return;

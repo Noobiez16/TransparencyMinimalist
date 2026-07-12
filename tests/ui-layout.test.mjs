@@ -167,6 +167,10 @@ test('one spatial-glass guard owns unresolved explicit-session exits', () => {
   assert.match(guard, /getTransformSession/);
   assert.match(guard, /applyTransform/);
   assert.match(guard, /cancelTransform/);
+  assert.match(guard, /previousFocus/);
+  assert.match(guard, /\.inert\s*=\s*true/);
+  assert.match(guard, /event\.key\s*===\s*['"]Tab['"]/);
+  assert.match(main, /isInteractiveTarget\(t\)/);
   for (const source of [rail, layersPanel, persistence, exportSource]) {
     assert.match(source, /guardTransformSession/);
   }

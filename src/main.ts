@@ -17,11 +17,7 @@ import { zoomTool } from './tools/zoom';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
 import { toast } from './toast';
-import { guardTransformSession, initTransformSessionGuard, isTransformSessionGuardOpen } from './transform-session-guard';
-
-function isEditableTarget(target: Element | null): boolean {
-  return Boolean(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || (target as HTMLElement).isContentEditable));
-}
+import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, isTransformSessionGuardOpen } from './transform-session-guard';
 
 function initHistoryUI(): void {
   const undoBtn = $<HTMLButtonElement>('btn-undo');
@@ -38,7 +34,7 @@ function initHistoryUI(): void {
   refresh();
   document.addEventListener('keydown', (e) => {
     const t = document.activeElement;
-    if (isEditableTarget(t)) return;
+    if (isInteractiveTarget(t)) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? history.redo() : history.undo(); }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); history.redo(); }
   });
@@ -53,7 +49,7 @@ let toolBeforeSpace: string | null = null;
 
 document.addEventListener('keydown', (e) => {
   const t = document.activeElement;
-  if (isEditableTarget(t) || isTransformSessionGuardOpen()) return;
+  if (isInteractiveTarget(t) || isTransformSessionGuardOpen()) return;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
     e.preventDefault();
     const activeLayer = state.doc.layers.find((layer) => layer.id === state.doc.activeLayerId);
