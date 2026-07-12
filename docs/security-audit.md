@@ -18,9 +18,7 @@ This local flow does not eliminate all external communication: the Google Fonts 
 
 Text layers are rendered by `CanvasRenderingContext2D.fillText`, which paints glyphs rather than inserting the layer text into the HTML document. UI-generated layer names and status strings are assigned through `textContent`. These paths keep user strings out of HTML parsing.
 
-Some fixed internal icon, layer-card, effect-row, and legend templates use `innerHTML` with markup and values defined by the application. The graph detail card is different: although it escapes the layer name, its HTML-formatted summary directly interpolates the layer's opacity, blend mode, and enabled effect values. Those nested values can come from a loaded project and are not fully validated or escaped before the `innerHTML` assignment.
-
-A crafted `.mledit.json` project can therefore place markup in a nested layer value and cause DOM injection when a user opens the graph and displays that layer's details. Depending on the injected markup and the deployment's browser policy, this creates a script-execution risk. Canvas text rendering and `textContent` use elsewhere do not protect this separate DOM sink.
+Some fixed internal icon, layer-card, and effect-row templates use `innerHTML` with application-defined markup. Current user-facing layer names and status strings remain on `textContent` paths, while layer text remains in Canvas 2D rendering. Contributors should keep untrusted project values out of HTML interpolation when adding future UI.
 
 ## Image Import, Clipboard, and Drop Handling
 
@@ -34,7 +32,7 @@ The document-level paste handler suppresses image-layer creation when the active
 
 Saved projects use a JSON envelope with the app marker `minimalist-editor` and `version: 1`. The loader checks the app marker, requires a document, and rejects versions newer than it supports. It then reconstructs image canvases from serialized bitmap strings.
 
-The loader does not fully validate the nested document and layer data against a schema or enforce every string enum and numeric range before casting it to the application types. In particular, it assigns any truthy serialized `bitmap` string to an image source. A crafted project can therefore cause an arbitrary remote image request when opened. Besides the request-metadata privacy impact, a cross-origin response without suitable CORS can taint the canvas and prevent PNG export or other canvas readback. A malformed or adversarial project can also reach browser decoding, allocation, rendering, and graph-detail DOM paths with unexpected values. Treat `.mledit.json` files as untrusted input.
+The loader does not fully validate the nested document and layer data against a schema or enforce every string enum and numeric range before casting it to the application types. In particular, it assigns any truthy serialized `bitmap` string to an image source. A crafted project can therefore cause an arbitrary remote image request when opened. Besides the request-metadata privacy impact, a cross-origin response without suitable CORS can taint the canvas and prevent PNG export or other canvas readback. A malformed or adversarial project can also reach browser decoding, allocation, and rendering paths with unexpected values. Treat `.mledit.json` files as untrusted input.
 
 Autosave serializes the same project representation into IndexedDB database `mledit`, including Base64 image data URLs, under the latest autosave entry. That data persists until browser storage is cleared or the browser evicts site data; the project has no in-app autosave deletion control.
 
@@ -62,12 +60,11 @@ The current import path has no explicit upload-size or decoded-dimension ceiling
 - Review and update build dependencies regularly, and review any new runtime or remote dependency before deployment.
 - Add file-size, decoded-image-dimension, document-dimension, layer-count, and project-schema validation before accepting hostile or public uploads.
 - Before assigning a serialized image source, accept only the expected PNG data URL form beginning with `data:image/png;base64,` and reject remote or alternate schemes. Enforce bitmap payload size and decoded dimension limits.
-- Eliminate project-derived `innerHTML` in graph details: build DOM nodes and assign project values with `textContent`. As defense in depth, validate nested project enums and ranges, and escape any unavoidable HTML interpolation.
 - Offer self-hosted Inter files or a system-font-only build for deployments with stricter privacy or offline requirements.
 - Test save, restore, import, and export limits on representative low-memory devices and browsers.
 
 ## Remaining Limitations
 
-This review is source-based and does not include browser-engine fuzzing, third-party infrastructure assessment, penetration testing, or exhaustive malformed-file testing. MIME-prefix checks do not verify file signatures. Project deserialization does not enforce a complete schema or all ranges, accepts arbitrary truthy bitmap strings, and can therefore issue remote requests or load a cross-origin image that taints the canvas and blocks export. Project-derived graph details also retain a DOM-injection and script-execution risk while they use `innerHTML`. Imported images, large Base64 projects, and expensive compositions can still exhaust resources. IndexedDB retains autosaves beyond the current session, and the default page contacts Google Fonts.
+This review is source-based and does not include browser-engine fuzzing, third-party infrastructure assessment, penetration testing, or exhaustive malformed-file testing. MIME-prefix checks do not verify file signatures. Project deserialization does not enforce a complete schema or all ranges, accepts arbitrary truthy bitmap strings, and can therefore issue remote requests or load a cross-origin image that taints the canvas and blocks export. Imported images, large Base64 projects, and expensive compositions can still exhaust resources. IndexedDB retains autosaves beyond the current session, and the default page contacts Google Fonts.
 
 Future changes to dependencies, hosting headers, remote assets, parser behavior, or browser APIs require a new review. Contributors should treat this document as a current snapshot and keep claims aligned with implemented safeguards and remaining limitations.

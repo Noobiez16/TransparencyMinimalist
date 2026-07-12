@@ -121,18 +121,38 @@ test('security guide documents safeguards and remaining limitations', () => {
     'Content-Security-Policy'
   ]) assert.match(security, new RegExp(fact.replaceAll('.', '\\.')));
   assert.match(security, /does not fully validate|remaining limitation/i);
-  assert.match(security, /DOM injection/i);
-  assert.match(security, /crafted `?\.mledit\.json`?/i);
-  assert.match(security, /(?:eliminate|avoid) project-derived `innerHTML`/i);
-  assert.match(security, /(?:DOM nodes.*`textContent`|`textContent`.*DOM nodes)/i);
+  assert.match(security, /crafted (?:`?\.mledit\.json`? )?project/i);
   assert.match(security, /crafted [^\n.]*project[^\n.]*bitmap[^\n.]*remote image request/i);
   assert.match(security, /remote image request[^\n.]*request metadata[^\n.]*privacy/i);
   assert.match(security, /cross-origin[^\n.]*taint[^\n.]*canvas[^\n.]*export/i);
   assert.match(security, /`data:image\/png;base64,/i);
   assert.match(security, /bitmap[^\n.]*size[^\n.]*dimension limits/i);
   assert.match(security, /`img-src 'self' data: blob:`/i);
-  assert.doesNotMatch(security, /main remaining.*resource exhaustion rather than script execution/i);
+  assert.doesNotMatch(security, /graph detail|project-derived `innerHTML`|DOM injection|script-execution risk/i);
   assert.doesNotMatch(security, /completely client-side.*No.*external|inherently immune|formal certification/i);
+});
+
+test('public docs preserve Graphify and Mermaid without advertising an editor graph', () => {
+  for (const path of [
+    'README.md',
+    'docs/architecture.md',
+    'docs/design.md',
+    'docs/security-audit.md'
+  ]) {
+    const text = readPublicDoc(path);
+    assert.doesNotMatch(
+      text,
+      /Document graph|graph overlay|src\/graph-panel\.ts|graph animation|graph detail/i,
+      `${path} still describes the removed editor graph`
+    );
+  }
+
+  const architecture = readPublicDoc('docs/architecture.md');
+  const graphify = readPublicDoc('docs/graphify-guide.md');
+  assert.match(architecture, /```mermaid/);
+  assert.match(graphify, /python -m graphify \. --directed/);
+  assert.match(graphify, /graphify-out\/graph\.html/);
+  assert.match(graphify, /\.graphifyignore/);
 });
 
 test('all public documents meet global Markdown and terminology rules', () => {

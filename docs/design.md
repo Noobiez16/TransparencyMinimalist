@@ -46,7 +46,7 @@ Within the editor shell, the default grid is a 44px tool rail, a flexible canvas
 
 - The **application bar** contains product identity, open/save and undo/redo actions, plus PNG export.
 - The **contextual options bar** exposes the active tool's options, document background controls, and preset or custom canvas sizing.
-- The **tool rail** holds registered Move, Hand, and Zoom tools, quick layer creation, the document graph, and inspector visibility controls.
+- The **tool rail** holds registered Move, Hand, and Zoom tools, quick layer creation, and inspector visibility controls.
 - The **document tab and canvas workspace** frame the active composition, checkerboard or configured background, and the floating zoom control.
 - **Properties** occupies the upper inspector region and adapts to the selected image or text layer.
 - **Layers / History** shares the lower inspector region, with tabs for layer management and command navigation.
@@ -56,7 +56,7 @@ The inspector dock has two stacked glass panels. Rail toggles can hide either pa
 
 ## Component Patterns
 
-**Glass surfaces.** Use `.glass-surface` for major chrome that sits over the environment. Nested controls use quieter translucent fills and one-pixel borders. Reserve `--glass-strong` for floating menus, toasts, and the graph overlay where foreground separation matters more than seeing the environment.
+**Glass surfaces.** Use `.glass-surface` for major chrome that sits over the environment. Nested controls use quieter translucent fills and one-pixel borders. Reserve `--glass-strong` for floating menus and toasts where foreground separation matters more than seeing the environment.
 
 **Buttons.** Icon buttons and rail buttons start muted, brighten on hover, and compress slightly on press where applicable. Primary actions use the light selection treatment with dark text. Disabled controls lower foreground opacity and remove the action cursor.
 
@@ -66,7 +66,7 @@ The inspector dock has two stacked glass panels. Rail toggles can hide either pa
 
 **Toggles.** A switch uses a dim pill and light thumb when off. `aria-checked="true"` changes the track to a light gradient and moves a dark thumb to the right. Keep the ARIA state synchronized with the visual state.
 
-**Transient surfaces.** Toasts enter from below with opacity and translation, can include a high-contrast action, and sit above the status bar. The graph overlay uses `--glass-strong`, a strong shadow, and its own inspector side panel so the document relationship view remains readable.
+**Transient surfaces.** Toasts enter from below with opacity and translation, can include a high-contrast action, and sit above the status bar.
 
 ## Interaction States
 
@@ -78,7 +78,6 @@ State must be visible through more than motion alone:
 - **Range:** the thumb enlarges and gains a surrounding halo on hover or active drag.
 - **Toggle:** `aria-checked="true"` changes both track and thumb position/color.
 - **Toast:** `.show` raises opacity to one and removes the entry translation; an optional action remains visually primary.
-- **Graph overlay:** `.open` changes the overlay from hidden to flex layout; the graph canvas keeps a grab cursor and supporting detail panel.
 - **Focus-visible:** every keyboard-focused element receives a two-pixel `--selection` outline with a two-pixel offset.
 
 Hover may reinforce an affordance but must not be the only indication of selection, checked state, or keyboard focus. New icon-only buttons need an accessible name and a useful title where the existing pattern provides one.
@@ -87,7 +86,7 @@ Hover may reinforce an affordance but must not be the only indication of selecti
 
 Desktop applies at 1024px and above. The rail, centered canvas, and stacked inspector dock remain side by side, with the canvas receiving flexible width.
 
-Compact stacking applies at 1023px and below. The page becomes vertically scrollable; the dashboard becomes a column; the tool rail becomes a horizontal row; the canvas comes next with a minimum height of 58vh; and Properties plus Layers / History stack below it. The application bar wraps its actions, options can wrap, the graph side panel is hidden, and the status bar drops its center label. Existing rail visibility states still hide their corresponding inspector panels.
+Compact stacking applies at 1023px and below. The page becomes vertically scrollable; the dashboard becomes a column; the tool rail becomes a horizontal row; the canvas comes next with a minimum height of 58vh; and Properties plus Layers / History stack below it. The application bar wraps its actions, options can wrap, and the status bar drops its center label. Existing rail visibility states still hide their corresponding inspector panels.
 
 Narrow refinements apply at 640px and below. Outer gap and padding shrink to 4px, the application actions occupy their own centered row, secondary product and control labels disappear, canvas/background controls take the full width, theme toggles may scroll horizontally, the document tab fills the available width, and the canvas minimum height rises to 66vh.
 
@@ -97,7 +96,7 @@ When adding layout rules, preserve those exact breakpoint boundaries. Prefer ada
 
 The universal `:focus-visible` rule provides a high-contrast keyboard indicator. Tab controls expose tab roles and selection state; switches expose `role="switch"` and `aria-checked`; icon-only controls carry labels. Text uses `--txt` and `--mut` against dark fills, while primary light controls use dark foreground text.
 
-Glass cannot depend on blur support. The `@supports not (backdrop-filter: blur(1px))` rule gives `.glass-surface`, menus, toasts, and the graph overlay a solid-surface `--glass-strong` fallback. Keep the fill whenever adding `backdrop-filter`; include the WebKit-prefixed property on reusable glass surfaces when matching the existing browser coverage.
+Glass cannot depend on blur support. The `@supports not (backdrop-filter: blur(1px))` rule gives `.glass-surface`, menus, and toasts a solid-surface `--glass-strong` fallback. Keep the fill whenever adding `backdrop-filter`; include the WebKit-prefixed property on reusable glass surfaces when matching the existing browser coverage.
 
 The `@media (prefers-reduced-motion: reduce)` rule effectively removes animation and transition duration, limits animation iteration to one, and disables smooth scrolling. New motion must use CSS transitions or animations covered by that rule, and content or state must never depend on an animation completing visibly.
 

@@ -9,7 +9,6 @@ Transparency is a browser-based layer image editor with a Photoshop-style spatia
 - Move, Hand, and Zoom tools with keyboard shortcuts and direct canvas interaction.
 - Undo/redo history with coalescing and jump-to-entry navigation.
 - `.mledit.json` project save/open, IndexedDB autosave, and session restore.
-- Document graph overlay for inspecting layer/effect relationships.
 - Responsive Photoshop-style spatial-glass workspace.
 
 ## Workspace
@@ -18,7 +17,7 @@ Transparency is a browser-based layer image editor with a Photoshop-style spatia
 |---|---|
 | Application bar | Open, save, undo, redo, and export |
 | Contextual options bar | Active-tool options, background, and document size |
-| Tool rail | Move, Hand, Zoom, layer creation, graph, and panel visibility |
+| Tool rail | Move, Hand, Zoom, layer creation, and panel visibility |
 | Canvas workspace | Interactive document rendering, selection outline, pan, and zoom |
 | Properties | Selected-layer transforms, opacity, blending, effects, and text settings |
 | Layers / History | Layer stack management and reversible command navigation |
@@ -53,8 +52,6 @@ npm run build
 | Temporary Hand tool | Hold `Space` |
 | Undo | `Ctrl+Z` / `Cmd+Z` |
 | Redo | `Ctrl+Shift+Z`, `Ctrl+Y`, or platform equivalent |
-| Document graph | `G` |
-| Close graph overlay | `Escape` |
 
 ## Project Structure
 
@@ -65,7 +62,7 @@ src/                        Editor UI, state, panels, export, and orchestration
 │   └── compositor.ts       Shared preview/export renderer
 └── tools/                  Move, Hand, and Zoom tool implementations
 tests/                      UI layout and public documentation contracts
-docs/                       Architecture, design, examples, graph, and security guides
+docs/                       Architecture, design, examples, Graphify, and security guides
 graphify-out/               Generated graph visualization, report, and graph data
 ```
 

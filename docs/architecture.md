@@ -148,14 +148,13 @@ Autosave uses IndexedDB database `mledit`, object store `autosave`, and key `lat
 | `src/layers-panel.ts` | Creates, imports, selects, reorders, renames, hides, and deletes layers through commands. |
 | `src/properties-panel.ts` | Synchronizes selected-layer controls and pushes property/effect commands. |
 | `src/history-panel.ts` | Renders history state, switches the Layers/History view, and invokes jump navigation. |
-| `src/graph-panel.ts` | Presents the interactive document graph without owning editor state. |
 | `src/export.ts` | Converts the shared compositor output into the downloadable PNG. |
 
 ## Performance Characteristics
 
 State fan-out is frame-batched, so a burst of notifications produces one subscriber pass per animation frame. The screen context is capped at a device pixel ratio of 2, while the coordinate conversion and selection-outline calculation account for fitted canvas size. The compositor draws only visible layers and uses the layer bitmap already held in memory.
 
-History limits bound the command stack by both count and estimated memory. Coalescing reduces high-frequency control gestures to one reversible action. Autosaves are delayed by two seconds and serialized, avoiding concurrent document encodes or out-of-order IndexedDB writes. The graph animation maintains its own animation-frame loop and is separate from document compositing.
+History limits bound the command stack by both count and estimated memory. Coalescing reduces high-frequency control gestures to one reversible action. Autosaves are delayed by two seconds and serialized, avoiding concurrent document encodes or out-of-order IndexedDB writes.
 
 ## Extending the Editor Safely
 
