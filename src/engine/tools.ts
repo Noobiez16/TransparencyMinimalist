@@ -1,5 +1,6 @@
 import { state } from '../state';
-import { type Layer, layerContainsPoint } from './document';
+import { type Layer, layerNaturalSize } from './document';
+import { hitTestLayer } from './transform-geometry';
 
 export interface DocPoint { x: number; y: number }
 export interface ToolOption { key: string; label: string; kind: 'slider' | 'toggle' | 'select' | 'display'; min?: number; max?: number; choices?: string[]; get(): unknown; set(v: unknown): void }
@@ -30,7 +31,7 @@ export function allTools(): Tool[] { return [...tools.values()]; }
 export function layerAt(p: DocPoint): Layer | null {
   for (const layer of state.doc.layers) {          // index 0 = topmost
     if (!layer.visible) continue;
-    if (layerContainsPoint(layer, p)) return layer;
+    if (hitTestLayer(layer, layerNaturalSize(layer), p)) return layer;
   }
   return null;
 }

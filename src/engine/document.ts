@@ -1,3 +1,7 @@
+import { getLayerQuad, hitTestLayer, type LayerTransform, type Point, type Size } from './transform-geometry';
+
+export type { LayerTransform, Point, Size } from './transform-geometry';
+
 export type BlendMode = 'normal' | 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten';
 
 export interface Effects {
@@ -6,14 +10,6 @@ export interface Effects {
   contrast: number; contrastOn: boolean;
   saturation: number; saturationOn: boolean;
   invert: boolean;
-}
-
-export interface LayerTransform {
-  x: number;
-  y: number;
-  scaleX: number;
-  scaleY: number;
-  rotation: number;
 }
 
 export interface LayerBase extends LayerTransform {
@@ -118,7 +114,7 @@ export function getFilterString(effects: Effects, kind: 'image' | 'text'): strin
 const measureCanvas = document.createElement('canvas');
 const measureCtx = measureCanvas.getContext('2d')!;
 
-export function layerNaturalSize(layer: Layer): { w: number; h: number } {
+export function layerNaturalSize(layer: Layer): Size {
   if (layer.kind === 'image') {
     return layer.bitmap ? { w: layer.bitmap.width, h: layer.bitmap.height } : { w: 0, h: 0 };
   }
@@ -136,23 +132,14 @@ export function layerDisplaySize(layer: Layer): { w: number; h: number } {
 }
 
 export function layerBounds(layer: Layer): { x: number; y: number; w: number; h: number } {
-  const display = layerDisplaySize(layer);
-  const radians = (layer.rotation * Math.PI) / 180;
-  const cos = Math.abs(Math.cos(radians)) < 1e-12 ? 0 : Math.abs(Math.cos(radians));
-  const sin = Math.abs(Math.sin(radians)) < 1e-12 ? 0 : Math.abs(Math.sin(radians));
-  const w = Math.abs(display.w) * cos + Math.abs(display.h) * sin;
-  const h = Math.abs(display.w) * sin + Math.abs(display.h) * cos;
-  return { x: layer.x - w / 2, y: layer.y - h / 2, w, h };
+  const { corners } = getLayerQuad(layer, layerNaturalSize(layer));
+  const xs = corners.map((corner) => corner.x);
+  const ys = corners.map((corner) => corner.y);
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
 }
 
-export function layerContainsPoint(layer: Layer, point: { x: number; y: number }): boolean {
-  const { w, h } = layerDisplaySize(layer);
-  const radians = (layer.rotation * Math.PI) / 180;
-  const cos = Math.cos(radians);
-  const sin = Math.sin(radians);
-  const dx = point.x - layer.x;
-  const dy = point.y - layer.y;
-  const localX = dx * cos + dy * sin;
-  const localY = -dx * sin + dy * cos;
-  return Math.abs(localX) <= Math.abs(w) / 2 && Math.abs(localY) <= Math.abs(h) / 2;
+export function layerContainsPoint(layer: Layer, point: Point): boolean {
+  return hitTestLayer(layer, layerNaturalSize(layer), point);
 }
