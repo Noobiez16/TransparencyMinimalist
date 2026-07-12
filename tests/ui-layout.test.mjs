@@ -12,6 +12,15 @@ const topbar = readFileSync(resolve(root, 'src/topbar.ts'), 'utf8');
 const main = readFileSync(resolve(root, 'src/main.ts'), 'utf8');
 const dom = readFileSync(resolve(root, 'src/dom.ts'), 'utf8');
 const canvas = readFileSync(resolve(root, 'src/canvas.ts'), 'utf8');
+const optionsBar = readFileSync(resolve(root, 'src/options-bar.ts'), 'utf8');
+const propertiesPanel = readFileSync(resolve(root, 'src/properties-panel.ts'), 'utf8');
+const tools = readFileSync(resolve(root, 'src/engine/tools.ts'), 'utf8');
+const guardPath = resolve(root, 'src/transform-session-guard.ts');
+const guard = existsSync(guardPath) ? readFileSync(guardPath, 'utf8') : '';
+const rail = readFileSync(resolve(root, 'src/rail.ts'), 'utf8');
+const layersPanel = readFileSync(resolve(root, 'src/layers-panel.ts'), 'utf8');
+const persistence = readFileSync(resolve(root, 'src/engine/persistence.ts'), 'utf8');
+const exportSource = readFileSync(resolve(root, 'src/export.ts'), 'utf8');
 
 function hasClass(source, className) {
   return new RegExp(`class=["'][^"']*\\b${className}\\b[^"']*["']`).test(source);
@@ -113,6 +122,60 @@ test('pointer interruption has a distinct cancellation route', () => {
   assert.match(canvas, /addEventListener\(['"]pointercancel['"],\s*cancelPointer\)/);
   assert.match(canvas, /addEventListener\(['"]lostpointercapture['"],\s*cancelPointer\)/);
   assert.doesNotMatch(canvas, /else\s+tool\.onUp\(/);
+});
+
+test('Option A exposes contextual affine controls and explicit session actions', () => {
+  for (const kind of ['number', 'toggle', 'select', 'action']) {
+    assert.match(tools, new RegExp(`['"]${kind}['"]`), `missing ${kind} option kind`);
+  }
+  assert.match(optionsBar, /aria-pressed/);
+  assert.match(optionsBar, /document\.activeElement/);
+  assert.match(optionsBar, /data-option-key/);
+  assert.match(main, /key\.toLowerCase\(\)\s*===\s*['"]t['"]/);
+  assert.match(main, /beginTransform\([^,]+,\s*['"]explicit['"]\)/);
+  assert.match(main, /e\.key\s*===\s*['"]Enter['"]/);
+  assert.match(main, /e\.key\s*===\s*['"]Escape['"]/);
+  assert.match(html, /id=["']status-context["']/);
+});
+
+test('Properties uses affine geometry fields instead of uniform scale', () => {
+  for (const id of [
+    'prop-transform-x', 'prop-transform-y', 'prop-transform-width',
+    'prop-transform-height', 'prop-transform-rotation', 'prop-transform-link'
+  ]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`), `missing #${id}`);
+  }
+  assert.doesNotMatch(html, /id=["']prop-scale["']/);
+  assert.match(propertiesPanel, /layerNaturalSize/);
+  assert.match(propertiesPanel, /scaleX/);
+  assert.match(propertiesPanel, /scaleY/);
+});
+
+test('native SVG icon system covers free-transform workflow', () => {
+  for (const key of ['crop', 'rotate', 'link', 'unlink', 'snap', 'apply', 'cancel']) {
+    assert.match(dom, new RegExp(`\\b${key}\\s*:`), `missing ${key} SVG icon`);
+  }
+  assert.doesNotMatch(dom, /<img\b|https?:\/\//);
+});
+
+test('one spatial-glass guard owns unresolved explicit-session exits', () => {
+  for (const id of ['transform-session-guard', 'transform-session-apply', 'transform-session-cancel']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`), `missing #${id}`);
+  }
+  assert.match(css, /\.transform-session-guard/);
+  assert.match(css, /\.transform-session-prompt/);
+  assert.match(guard, /getTransformSession/);
+  assert.match(guard, /applyTransform/);
+  assert.match(guard, /cancelTransform/);
+  for (const source of [rail, layersPanel, persistence, exportSource]) {
+    assert.match(source, /guardTransformSession/);
+  }
+});
+
+test('compact options wrap while transform decisions stay visible', () => {
+  assert.match(css, /@media\s*\(max-width:\s*1023px\)[\s\S]*\.options-host[\s\S]*flex-wrap\s*:\s*wrap/);
+  assert.match(css, /\.opt-essential/);
+  assert.match(css, /\.transform-session-actions/);
 });
 
 export { html, css, topbar, main, dom, canvas };

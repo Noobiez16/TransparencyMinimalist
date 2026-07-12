@@ -2,6 +2,7 @@ import { type Doc, type Layer } from './document';
 import { state, notify } from '../state';
 import * as history from './history';
 import { toast } from '../toast';
+import { guardTransformSession } from '../transform-session-guard';
 
 interface SerialLayer extends Omit<Layer, 'bitmap'> { bitmap?: string | null }
 interface ProjectFile { app: 'minimalist-editor'; version: 2; doc: Omit<Doc, 'layers'> & { layers: SerialLayer[] } }
@@ -92,6 +93,10 @@ export async function deserializeDoc(json: string): Promise<Doc> {
 }
 
 export async function saveProject(): Promise<void> {
+  guardTransformSession(saveProjectNow);
+}
+
+async function saveProjectNow(): Promise<void> {
   try {
     const json = await serializeDoc(state.doc);
     const blob = new Blob([json], { type: 'application/json' });
@@ -109,6 +114,10 @@ export async function saveProject(): Promise<void> {
 }
 
 export async function openProjectFile(file: File): Promise<void> {
+  guardTransformSession(() => openProjectFileNow(file));
+}
+
+async function openProjectFileNow(file: File): Promise<void> {
   if (history.isDirty() && !window.confirm('Open project? Unsaved changes will be lost.')) return;
   try {
     const doc = await deserializeDoc(await file.text());

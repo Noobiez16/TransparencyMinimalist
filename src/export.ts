@@ -2,8 +2,13 @@ import { state } from './state';
 import { renderToCanvas } from './engine/compositor';
 import { toast } from './toast';
 import { $ } from './dom';
+import { guardTransformSession } from './transform-session-guard';
 
 export function exportComposition(): void {
+  guardTransformSession(exportCompositionNow);
+}
+
+function exportCompositionNow(): void {
   if (state.doc.layers.length === 0) { toast('Add at least one layer to export.'); return; }
   renderToCanvas(state.doc).toBlob((blob) => {
     if (!blob) { toast('Export failed.'); return; }

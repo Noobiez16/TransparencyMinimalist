@@ -10,11 +10,18 @@ import { initRail } from './rail';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
 import { $, icons } from './dom';
-import { registerTool, setActiveTool, getActiveTool, allTools } from './engine/tools';
+import { registerTool, setActiveTool, getActiveTool, allTools, onToolChange } from './engine/tools';
 import { moveTool } from './tools/move';
 import { handTool } from './tools/hand';
 import { zoomTool } from './tools/zoom';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
+import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
+import { toast } from './toast';
+import { guardTransformSession, initTransformSessionGuard, isTransformSessionGuardOpen } from './transform-session-guard';
+
+function isEditableTarget(target: Element | null): boolean {
+  return Boolean(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || (target as HTMLElement).isContentEditable));
+}
 
 function initHistoryUI(): void {
   const undoBtn = $<HTMLButtonElement>('btn-undo');
@@ -31,7 +38,7 @@ function initHistoryUI(): void {
   refresh();
   document.addEventListener('keydown', (e) => {
     const t = document.activeElement;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t as HTMLElement).isContentEditable)) return;
+    if (isEditableTarget(t)) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? history.redo() : history.undo(); }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); history.redo(); }
   });
@@ -46,7 +53,19 @@ let toolBeforeSpace: string | null = null;
 
 document.addEventListener('keydown', (e) => {
   const t = document.activeElement;
-  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t as HTMLElement).isContentEditable)) return;
+  if (isEditableTarget(t) || isTransformSessionGuardOpen()) return;
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
+    e.preventDefault();
+    const activeLayer = state.doc.layers.find((layer) => layer.id === state.doc.activeLayerId);
+    if (!activeLayer) { toast('Select a layer before starting Free Transform.'); return; }
+    if (getTransformSession()) return;
+    setActiveTool('move');
+    beginTransform(activeLayer.id, 'explicit');
+    return;
+  }
+  const transformSession = getTransformSession();
+  if (transformSession?.mode === 'explicit' && e.key === 'Enter') { e.preventDefault(); applyTransform(); return; }
+  if (transformSession?.mode === 'explicit' && e.key === 'Escape') { e.preventDefault(); cancelTransform(); return; }
   if (e.code === 'Space') e.preventDefault();
   if (e.code === 'Space' && !e.repeat && !spaceHeld) {
     spaceHeld = true;
@@ -56,7 +75,7 @@ document.addEventListener('keydown', (e) => {
   }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const tool = allTools().find((x) => x.shortcut === e.key.toLowerCase());
-  if (tool) setActiveTool(tool.id);
+  if (tool) guardTransformSession(() => setActiveTool(tool.id));
 });
 document.addEventListener('keyup', (e) => {
   if (e.code === 'Space' && spaceHeld) {
@@ -66,6 +85,7 @@ document.addEventListener('keyup', (e) => {
   }
 });
 
+initTransformSessionGuard();
 initCanvas();
 initLayersPanel();
 initPropertiesPanel();
@@ -75,6 +95,23 @@ initExport();
 initRail();
 initOptionsBar();
 initHistoryUI();
+
+const syncContextStatus = () => {
+  const session = getTransformSession();
+  const status = $('status-context');
+  if (session?.mode === 'explicit') {
+    status.textContent = session.gesture
+      ? 'Free Transform · Shift constrains · Enter applies · Esc cancels'
+      : 'Free Transform · Drag handles or edit fields · Enter applies · Esc cancels';
+  } else if (session?.gesture) {
+    status.textContent = 'Transforming · Shift constrains';
+  } else {
+    status.textContent = `${getActiveTool().label} · Shift constrains transforms · Snap UI only`;
+  }
+};
+onToolChange(syncContextStatus);
+subscribeTransformSession(syncContextStatus);
+syncContextStatus();
 
 const text = createTextLayer(state.doc, 'Text Overlay');
 text.text = 'Minimalist Editor';

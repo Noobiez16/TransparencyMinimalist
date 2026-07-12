@@ -1,8 +1,14 @@
 import { state, subscribe, getActiveLayer, PROP_DEFAULTS } from './state';
-import type { Layer, Effects, BlendMode, LayerBase } from './engine/document';
-import { $, inlineEdit } from './dom';
+import { layerNaturalSize, type Layer, type Effects, type BlendMode, type LayerBase } from './engine/document';
+import { $, icons, inlineEdit } from './dom';
 import * as history from './engine/history';
 import { cmdPatchLayer, cmdPatchEffects } from './engine/commands';
+import {
+  getTransformProportionsLinked,
+  setTransformFieldValue,
+  setTransformProportionsLinked,
+  type TransformField
+} from './tools/move';
 
 // --- UI Rendering & Sync ---
 const propertiesEditorContainer = $('properties-editor-container');
@@ -10,9 +16,14 @@ const noActiveWarning = $('no-active-warning');
 const nameChip = $('prop-layer-name');
 
 const propOpacityRange = $('prop-opacity') as HTMLInputElement;
-const propXOffset = $('prop-x-offset') as HTMLInputElement;
-const propYOffset = $('prop-y-offset') as HTMLInputElement;
-const propScale = $('prop-scale') as HTMLInputElement;
+const transformInputs: Record<TransformField, HTMLInputElement> = {
+  x: $('prop-transform-x') as HTMLInputElement,
+  y: $('prop-transform-y') as HTMLInputElement,
+  width: $('prop-transform-width') as HTMLInputElement,
+  height: $('prop-transform-height') as HTMLInputElement,
+  rotation: $('prop-transform-rotation') as HTMLInputElement
+};
+const transformLink = $<HTMLButtonElement>('prop-transform-link');
 
 const sectionTextProps = $('section-text-properties');
 const propTextContent = $('prop-text-content') as HTMLTextAreaElement;
@@ -21,9 +32,6 @@ const propFontSize = $('prop-font-size') as HTMLInputElement;
 const propTextColor = $('prop-text-color') as HTMLInputElement;
 
 const opacityValueEl = $('opacity-value');
-const xValueEl = $('x-offset-value');
-const yValueEl = $('y-offset-value');
-const scaleValueEl = $('scale-value');
 const fontSizeValueEl = $('font-size-value');
 
 let lastSyncedLayerId: string | null = null;
@@ -155,11 +163,23 @@ function syncEffectRow(key: EffectKey, layer: Layer): void {
   els.chip.textContent = `${layer.effects[key]}${fx.unit}`;
 }
 
-function updateXYRange(): void {
-  propXOffset.min = String(-state.doc.width / 2);
-  propXOffset.max = String(1.5 * state.doc.width);
-  propYOffset.min = String(-state.doc.height / 2);
-  propYOffset.max = String(1.5 * state.doc.height);
+function transformValue(layer: Layer, field: TransformField): number {
+  if (field === 'width' || field === 'height') {
+    const natural = layerNaturalSize(layer);
+    return field === 'width'
+      ? Math.abs(natural.w * layer.scaleX / 100)
+      : Math.abs(natural.h * layer.scaleY / 100);
+  }
+  return layer[field];
+}
+
+function syncTransformFields(layer: Layer): void {
+  for (const [field, input] of Object.entries(transformInputs) as Array<[TransformField, HTMLInputElement]>) {
+    if (document.activeElement !== input) input.value = String(Math.round(transformValue(layer, field) * 100) / 100);
+  }
+  const linked = getTransformProportionsLinked();
+  transformLink.setAttribute('aria-pressed', String(linked));
+  transformLink.innerHTML = linked ? icons.link : icons.unlink;
 }
 
 function syncPanel(): void {
@@ -179,12 +199,7 @@ function syncPanel(): void {
   syncVal(propOpacityRange, layer.opacity.toString());
   opacityValueEl.textContent = `${layer.opacity}%`;
   syncBlendUI(layer.blendMode);
-  syncVal(propXOffset, Math.round(layer.x).toString());
-  xValueEl.textContent = `${Math.round(layer.x)}px`;
-  syncVal(propYOffset, Math.round(layer.y).toString());
-  yValueEl.textContent = `${Math.round(layer.y)}px`;
-  syncVal(propScale, layer.scaleX.toString());
-  scaleValueEl.textContent = `${layer.scaleX}%`;
+  syncTransformFields(layer);
 
   EFFECTS.forEach((fx) => syncEffectRow(fx.key, layer));
   $('prop-invert').setAttribute('aria-checked', String(layer.effects.invert));
@@ -222,7 +237,7 @@ function updateVisibility(): void {
   }
 }
 
-function bindSlider(input: HTMLInputElement, key: 'opacity' | 'x' | 'y', labelId?: string, suffix = ''): void {
+function bindSlider(input: HTMLInputElement, key: 'opacity', labelId?: string, suffix = ''): void {
   const labelEl = labelId ? $(labelId) : null;
   input.addEventListener('input', () => {
     const layer = getActiveLayer();
@@ -234,7 +249,6 @@ function bindSlider(input: HTMLInputElement, key: 'opacity' | 'x' | 'y', labelId
 
 export function initPropertiesPanel(): void {
   buildEffectRows();
-  updateXYRange();
 
   // --- Active Layer Change Listeners ---
   nameChip.addEventListener('click', () => {
@@ -266,21 +280,25 @@ export function initPropertiesPanel(): void {
     }
   });
 
-  bindSlider(propXOffset, 'x', 'x-offset-value', 'px');
-  attachChip(propXOffset, xValueEl, 'px');
-  attachReset(propXOffset, () => Math.round(state.doc.width / 2));
-  bindSlider(propYOffset, 'y', 'y-offset-value', 'px');
-  attachChip(propYOffset, yValueEl, 'px');
-  attachReset(propYOffset, () => Math.round(state.doc.height / 2));
-  propScale.addEventListener('input', () => {
+  for (const [field, input] of Object.entries(transformInputs) as Array<[TransformField, HTMLInputElement]>) {
+    const commit = () => {
+      const value = Number(input.value);
+      if (!Number.isFinite(value)) { const layer = getActiveLayer(); if (layer) syncTransformFields(layer); return; }
+      const clamped = Math.min(Number(input.max), Math.max(Number(input.min), value));
+      input.value = String(clamped);
+      setTransformFieldValue(field, clamped);
+    };
+    input.addEventListener('change', commit);
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') { event.preventDefault(); commit(); input.blur(); }
+      if (event.key === 'Escape') { event.preventDefault(); const layer = getActiveLayer(); if (layer) syncTransformFields(layer); input.blur(); }
+    });
+  }
+  transformLink.addEventListener('click', () => {
+    setTransformProportionsLinked(!getTransformProportionsLinked());
     const layer = getActiveLayer();
-    if (!layer) return;
-    const scale = parseInt(propScale.value, 10);
-    history.push(cmdPatchLayer(layer.id, 'Scale', { scaleX: scale, scaleY: scale }, `${layer.id}:scale`));
-    scaleValueEl.textContent = `${propScale.value}%`;
+    if (layer) syncTransformFields(layer);
   });
-  attachChip(propScale, scaleValueEl, '%');
-  attachReset(propScale, PROP_DEFAULTS.scaleX);
 
   $('prop-invert').addEventListener('click', () => {
     const layer = getActiveLayer();
@@ -322,7 +340,6 @@ export function initPropertiesPanel(): void {
   });
 
   subscribe((dirty) => {
-    if (dirty.has('canvasConfig')) updateXYRange();
     if (dirty.has('selection') || dirty.has('structure') || dirty.has('layerProps') || dirty.has('canvasConfig')) updateVisibility();
   });
   updateVisibility();

@@ -3,6 +3,7 @@ import { $, icons } from './dom';
 import * as history from './engine/history';
 import { cmdPatchDoc } from './engine/commands';
 import { saveProject, openProjectFile } from './engine/persistence';
+import { guardTransformSession } from './transform-session-guard';
 
 const PRESETS: Record<string, [number, number]> = {
   '1:1': [1024, 1024], '16:9': [1920, 1080], '9:16': [1080, 1920], '4:5': [1080, 1350]
@@ -14,7 +15,7 @@ export function initTopbar(): void {
   const projectInput = $('project-input') as unknown as HTMLInputElement;
   openBtn.innerHTML = icons.open;
   saveBtn.innerHTML = icons.save;
-  openBtn.addEventListener('click', () => projectInput.click());
+  openBtn.addEventListener('click', () => guardTransformSession(() => projectInput.click()));
   saveBtn.addEventListener('click', () => void saveProject());
   projectInput.addEventListener('change', () => {
     const file = projectInput.files?.[0];

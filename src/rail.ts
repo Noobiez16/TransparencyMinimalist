@@ -1,5 +1,6 @@
 import { $, icons } from './dom';
 import { allTools, setActiveTool, onToolChange, getActiveTool } from './engine/tools';
+import { guardTransformSession } from './transform-session-guard';
 
 export function initRail(): void {
   const wrapper = document.querySelector('.dashboard-wrapper') as HTMLElement;
@@ -15,7 +16,7 @@ export function initRail(): void {
     btn.title = `${tool.label} (${tool.shortcut.toUpperCase()})`;
     btn.dataset.tool = tool.id;
     btn.innerHTML = tool.icon;
-    btn.addEventListener('click', () => setActiveTool(tool.id));
+    btn.addEventListener('click', () => guardTransformSession(() => setActiveTool(tool.id)));
     toolsHost.appendChild(btn);
   });
   const syncToolButtons = () => {

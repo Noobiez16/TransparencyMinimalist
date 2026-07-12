@@ -21,6 +21,13 @@ export const icons = {
   move: svg('<path d="M8 2v12M2 8h12"/><path d="M8 2 6 4M8 2l2 2M8 14l-2-2M8 14l2-2M2 8l2-2M2 8l2 2M14 8l-2-2M14 8l-2 2"/>'),
   hand: svg('<path d="M5 8V4.5a1 1 0 0 1 2 0V8m0-4.5v-1a1 1 0 0 1 2 0V8m0-4a1 1 0 0 1 2 0v5.5"/><path d="M11 9.5c1-1 2.5-.5 2 1l-1.5 3A3 3 0 0 1 8.7 15H8a3 3 0 0 1-3-3V6"/>'),
   zoom: svg('<circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/>'),
+  crop: svg('<path d="M4 2v9a1 1 0 0 0 1 1h9M2 4h9a1 1 0 0 1 1 1v9"/>'),
+  rotate: svg('<path d="M12.5 5.5A5 5 0 1 0 13 10"/><path d="M10 2.5h3v3"/>'),
+  link: svg('<path d="M6.5 10.5 5 12a2.1 2.1 0 0 1-3-3l2-2a2.1 2.1 0 0 1 3 0"/><path d="m9.5 5.5 1.5-1.5a2.1 2.1 0 0 1 3 3l-2 2a2.1 2.1 0 0 1-3 0"/><path d="m5.5 10.5 5-5"/>'),
+  unlink: svg('<path d="M6 11 5 12a2.1 2.1 0 0 1-3-3l2-2M10 5l1-1a2.1 2.1 0 0 1 3 3l-2 2M6 8l2-2M8 10l2-2M3 3l10 10"/>'),
+  snap: svg('<path d="M3 2v7a5 5 0 0 0 10 0V2"/><path d="M3 5h3M10 5h3"/>'),
+  apply: svg('<path d="m3 8 3 3 7-7"/>'),
+  cancel: svg('<path d="m4 4 8 8M12 4l-8 8"/>'),
   open: svg('<path d="M2 5a1 1 0 0 1 1-1h3l1.5 2H13a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1Z"/>'),
   save: svg('<path d="M3 2h8l3 3v9a0 0 0 0 1 0 0H3a0 0 0 0 1 0 0V2Z"/><rect x="5" y="9" width="6" height="5"/><rect x="5" y="2" width="5" height="3"/>')
 };

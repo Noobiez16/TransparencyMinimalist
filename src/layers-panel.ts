@@ -7,6 +7,7 @@ import * as history from './engine/history';
 import type { Command } from './engine/history';
 import { cmdAddLayer, cmdDeleteLayer, cmdPatchLayer, cmdReorderLayer } from './engine/commands';
 import { openProjectFile } from './engine/persistence';
+import { guardTransformSession } from './transform-session-guard';
 
 const container = $('layers-list-container');
 const cards = new Map<string, HTMLElement>();
@@ -40,22 +41,24 @@ function createCard(id: string): HTMLElement {
     const layer = findLayer(id);
     if (!layer) return;
     const target = e.target as HTMLElement;
-    if (target.classList.contains('btn-layer-vis')) {
-      history.push(cmdPatchLayer(id, layer.visible ? 'Hide layer' : 'Show layer', { visible: !layer.visible }));
-      return;
-    }
-    if (target.classList.contains('btn-layer-del')) {
-      if (deleting.has(id)) return;
-      deleting.add(id);
-      card.classList.add('leaving');
-      setTimeout(() => {
-        deleting.delete(id);
-        history.push(cmdDeleteLayer(id, 'Delete layer'));
-      }, 150);
-      return;
-    }
-    state.doc.activeLayerId = id;
-    notify('selection', 'composite');
+    guardTransformSession(() => {
+      if (target.classList.contains('btn-layer-vis')) {
+        history.push(cmdPatchLayer(id, layer.visible ? 'Hide layer' : 'Show layer', { visible: !layer.visible }));
+        return;
+      }
+      if (target.classList.contains('btn-layer-del')) {
+        if (deleting.has(id)) return;
+        deleting.add(id);
+        card.classList.add('leaving');
+        setTimeout(() => {
+          deleting.delete(id);
+          history.push(cmdDeleteLayer(id, 'Delete layer'));
+        }, 150);
+        return;
+      }
+      state.doc.activeLayerId = id;
+      notify('selection', 'composite');
+    });
   });
 
   const nameEl = card.querySelector('.layer-name-label') as HTMLElement;
@@ -63,9 +66,9 @@ function createCard(id: string): HTMLElement {
     e.stopPropagation();
     const layer = findLayer(id);
     if (!layer) return;
-    inlineEdit(nameEl, layer.name, (v) => {
+    guardTransformSession(() => inlineEdit(nameEl, layer.name, (v) => {
       history.push(cmdPatchLayer(id, 'Rename layer', { name: v }));
-    });
+    }));
   });
 
   card.addEventListener('dragstart', (e) => {
@@ -85,11 +88,12 @@ function createCard(id: string): HTMLElement {
     e.preventDefault();
     card.classList.remove('drop-above');
     if (!draggedId || draggedId === id) return;
-    const from = state.doc.layers.findIndex((l) => l.id === draggedId);
+    const draggedLayerId = draggedId;
+    const from = state.doc.layers.findIndex((l) => l.id === draggedLayerId);
     const to = state.doc.layers.findIndex((l) => l.id === id);
-    if (from !== -1 && to !== -1) {
-      history.push(cmdReorderLayer(draggedId, to, 'Reorder layer'));
-    }
+    if (from !== -1 && to !== -1) guardTransformSession(() => {
+      history.push(cmdReorderLayer(draggedLayerId, to, 'Reorder layer'));
+    });
     draggedId = null;
   });
   card.addEventListener('dragend', () => {
@@ -161,7 +165,7 @@ function placeBitmap(layer: ImageLayer, bitmap: HTMLCanvasElement, name: string)
   layer.y = state.doc.height / 2;
 }
 
-function decodeImageFile(file: File): void {
+function decodeImageFileNow(file: File): void {
   if (!file.type.startsWith('image/')) { toast('Only image files are supported.'); return; }
   const url = URL.createObjectURL(file);
   const img = new Image();
@@ -222,21 +226,25 @@ function decodeImageFile(file: File): void {
   img.src = url;
 }
 
+function decodeImageFile(file: File): void {
+  guardTransformSession(() => decodeImageFileNow(file));
+}
+
 export function initLayersPanel(): void {
-  $('btn-add-image').addEventListener('click', () => {
+  $('btn-add-image').addEventListener('click', () => guardTransformSession(() => {
     const layer = createImageLayer(state.doc);
     history.push(cmdAddLayer(layer, 0, 'Add image layer'));
     flashCanvas();
-  });
-  $('btn-add-text').addEventListener('click', () => {
+  }));
+  $('btn-add-text').addEventListener('click', () => guardTransformSession(() => {
     const layer = createTextLayer(state.doc);
     history.push(cmdAddLayer(layer, 0, 'Add text layer'));
     flashCanvas();
-  });
+  }));
 
   const uploadZone = $('upload-zone');
   const fileInput = $('file-input') as unknown as HTMLInputElement;
-  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('click', () => guardTransformSession(() => fileInput.click()));
   uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
   uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
   uploadZone.addEventListener('drop', (e) => {

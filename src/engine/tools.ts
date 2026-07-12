@@ -3,7 +3,13 @@ import { type Layer, layerNaturalSize } from './document';
 import { hitTestLayer } from './transform-geometry';
 
 export interface DocPoint { x: number; y: number }
-export interface ToolOption { key: string; label: string; kind: 'slider' | 'toggle' | 'select' | 'display'; min?: number; max?: number; choices?: string[]; get(): unknown; set(v: unknown): void }
+interface ToolOptionBase { key: string; label: string; group?: string; icon?: string | (() => string); disabled?: () => boolean; essential?: boolean }
+export interface NumberToolOption extends ToolOptionBase { kind: 'number'; min?: number; max?: number; step?: number; get(): number; set(v: number): void }
+export interface ToggleToolOption extends ToolOptionBase { kind: 'toggle'; get(): boolean; set(v: boolean): void }
+export interface SelectToolOption extends ToolOptionBase { kind: 'select'; choices: string[]; get(): string; set(v: string): void }
+export interface ActionToolOption extends ToolOptionBase { kind: 'action'; run(): void }
+export interface DisplayToolOption extends ToolOptionBase { kind: 'display'; get(): string }
+export type ToolOption = NumberToolOption | ToggleToolOption | SelectToolOption | ActionToolOption | DisplayToolOption;
 export interface Tool {
   id: string; label: string; icon: string; cursor: string; shortcut: string;
   onDown(p: DocPoint, e: PointerEvent): void;

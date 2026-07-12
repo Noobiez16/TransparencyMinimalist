@@ -150,22 +150,13 @@
 
               <section class="config-section">
                 <h3>Transformations</h3>
-                <div class="control-row">
-                  <label for="prop-x-offset">Position X (px)</label>
-                  <input type="range" id="prop-x-offset" min="-512" max="1536" value="512">
-                  <span class="value-display" id="x-offset-value">512px</span>
-                </div>
-
-                <div class="control-row">
-                  <label for="prop-y-offset">Position Y (px)</label>
-                  <input type="range" id="prop-y-offset" min="-512" max="1536" value="512">
-                  <span class="value-display" id="y-offset-value">512px</span>
-                </div>
-
-                <div class="control-row">
-                  <label for="prop-scale">Scale (%)</label>
-                  <input type="range" id="prop-scale" min="10" max="400" value="100">
-                  <span class="value-display" id="scale-value">100%</span>
+                <div class="transform-field-grid">
+                  <label for="prop-transform-x">X<input type="number" id="prop-transform-x" min="-16384" max="16384" step="1"></label>
+                  <label for="prop-transform-y">Y<input type="number" id="prop-transform-y" min="-16384" max="16384" step="1"></label>
+                  <label for="prop-transform-width">W<input type="number" id="prop-transform-width" min="1" max="16384" step="1"></label>
+                  <label for="prop-transform-height">H<input type="number" id="prop-transform-height" min="1" max="16384" step="1"></label>
+                  <label for="prop-transform-rotation">Rotation<input type="number" id="prop-transform-rotation" min="-360" max="360" step="0.1"></label>
+                  <button type="button" class="transform-link" id="prop-transform-link" aria-label="Link proportions" aria-pressed="true"></button>
                 </div>
               </section>
 
@@ -241,9 +232,22 @@
     </div>
   </div>
 
+  <div class="transform-session-guard" id="transform-session-guard" hidden>
+    <section class="transform-session-prompt glass-surface" role="dialog" aria-modal="true" aria-labelledby="transform-session-title">
+      <div>
+        <strong id="transform-session-title">Finish Free Transform?</strong>
+        <p>Apply the current transform or cancel it before continuing.</p>
+      </div>
+      <div class="transform-session-prompt-actions">
+        <button type="button" class="btn btn-primary" id="transform-session-apply">Apply</button>
+        <button type="button" class="btn" id="transform-session-cancel">Cancel</button>
+      </div>
+    </section>
+  </div>
+
   <footer class="statusbar glass-surface">
     <span>Professional canvas workspace</span>
-    <span class="statusbar-center">Move · Hand · Zoom</span>
+    <span class="statusbar-center" id="status-context">Move · Drag to transform · Shift constrains</span>
     <span id="status-doc-size">1024 × 1024</span>
   </footer>
 

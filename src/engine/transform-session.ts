@@ -30,6 +30,9 @@ export interface TransformSession {
   gesture: TransformGesture | null;
 }
 
+type DeepReadonly<T> = T extends (...args: never[]) => unknown ? T :
+  T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> } : T;
+
 const listeners = new Set<() => void>();
 let activeSession: TransformSession | null = null;
 
@@ -171,6 +174,21 @@ export function interruptGesture(): void {
   else emit();
 }
 
+export function updateTransform(patch: Partial<LayerTransform>): boolean {
+  if (!activeSession || activeSession.mode !== 'explicit' || activeSession.gesture) return false;
+  const layer = findLayer();
+  if (!layer) { clearSession(); return false; }
+  for (const value of Object.values(patch)) {
+    if (value !== undefined && !Number.isFinite(value)) return false;
+  }
+  const next = { ...activeSession.current, ...patch };
+  Object.assign(layer, next);
+  activeSession.current = copyTransform(next);
+  notify('layerProps', 'composite');
+  emit();
+  return true;
+}
+
 export function applyTransform(): boolean {
   if (!activeSession) return false;
   const layer = findLayer();
@@ -193,8 +211,21 @@ export function cancelTransform(): boolean {
   return restored;
 }
 
-export function getTransformSession(): Readonly<TransformSession> | null {
-  return activeSession;
+export function getTransformSession(): DeepReadonly<TransformSession> | null {
+  if (!activeSession) return null;
+  return {
+    layerId: activeSession.layerId,
+    mode: activeSession.mode,
+    start: copyTransform(activeSession.start),
+    current: copyTransform(activeSession.current),
+    gesture: activeSession.gesture ? {
+      handle: activeSession.gesture.handle,
+      startPointer: { ...activeSession.gesture.startPointer },
+      startTransform: copyTransform(activeSession.gesture.startTransform),
+      naturalSize: { ...activeSession.gesture.naturalSize },
+      linked: activeSession.gesture.linked
+    } : null
+  };
 }
 
 export function subscribeTransformSession(listener: () => void): () => void {

@@ -9,6 +9,7 @@ let stateModule: typeof import('../src/state');
 let sessions: typeof import('../src/engine/transform-session');
 let overlay: typeof import('../src/canvas-overlay');
 let geometry: typeof import('../src/engine/transform-geometry');
+let move: typeof import('../src/tools/move');
 let moveTool: typeof import('../src/tools/move').moveTool;
 let tools: typeof import('../src/engine/tools');
 
@@ -32,7 +33,8 @@ beforeAll(async () => {
   sessions = await import('../src/engine/transform-session');
   overlay = await import('../src/canvas-overlay');
   geometry = await import('../src/engine/transform-geometry');
-  moveTool = (await import('../src/tools/move')).moveTool;
+  move = await import('../src/tools/move');
+  moveTool = move.moveTool;
   tools = await import('../src/engine/tools');
 });
 
@@ -41,6 +43,7 @@ beforeEach(() => {
   stateModule.state.doc = documentModel.createDoc(800, 600);
   history.clear();
   overlay.setShowTransformControls(true);
+  move.setTransformProportionsLinked(true);
 });
 
 function transformOf(layer: LayerTransform): LayerTransform {
@@ -171,6 +174,44 @@ describe('transform transaction lifecycle', () => {
 
     expect(observed).toEqual(['direct:idle', 'direct:move', 'direct:move', null]);
   });
+
+  test('published session state is a detached deep-readonly snapshot', () => {
+    const layer = addImageLayer();
+    sessions.beginTransform(layer.id, 'explicit');
+    sessions.beginHandleGesture('move', { x: 12, y: 18 }, true);
+
+    const published = sessions.getTransformSession();
+    expect(published?.gesture).not.toBeNull();
+    if (!published?.gesture) throw new Error('expected a gesture snapshot');
+
+    (published.start as LayerTransform).x = -999;
+    (published.current as LayerTransform).scaleX = -999;
+    (published.gesture.startPointer as { x: number; y: number }).x = -999;
+    (published.gesture.startTransform as LayerTransform).rotation = -999;
+    (published.gesture.naturalSize as { w: number; h: number }).w = -999;
+
+    const next = sessions.getTransformSession();
+    expect(next?.start.x).toBe(layer.x);
+    expect(next?.current.scaleX).toBe(layer.scaleX);
+    expect(next?.gesture?.startPointer.x).toBe(12);
+    expect(next?.gesture?.startTransform.rotation).toBe(layer.rotation);
+    expect(next?.gesture?.naturalSize.w).toBe(100);
+  });
+
+  test('explicit field updates preview and commit through the active transaction', () => {
+    const layer = addImageLayer();
+    const before = transformOf(layer);
+    sessions.beginTransform(layer.id, 'explicit');
+
+    expect(sessions.updateTransform({ x: 450, scaleX: 125, rotation: 30 })).toBe(true);
+    expect(transformOf(layer)).toEqual({ ...before, x: 450, scaleX: 125, rotation: 30 });
+    expect(history.entries()).toHaveLength(0);
+
+    sessions.applyTransform();
+    expect(history.entries()).toEqual([{ label: 'Transform layer' }]);
+    history.undo();
+    expect(transformOf(layer)).toEqual(before);
+  });
 });
 
 describe('canvas transform controls', () => {
@@ -238,6 +279,19 @@ describe('Move tool transform delegation', () => {
 
     expect(transformOf(layer)).toEqual(before);
     expect(history.entries()).toHaveLength(0);
+  });
+
+  test('unlinked proportions allow a corner handle to change one affine axis', () => {
+    const layer = addImageLayer();
+    const event = { shiftKey: false, ctrlKey: false, metaKey: false } as PointerEvent;
+    move.setTransformProportionsLinked(false);
+
+    moveTool.onDown({ x: 450, y: 325 }, event);
+    moveTool.onMove({ x: 500, y: 325 }, event);
+    moveTool.onUp({ x: 500, y: 325 }, event);
+
+    expect(layer.scaleX).toBe(150);
+    expect(layer.scaleY).toBe(100);
   });
 });
 
