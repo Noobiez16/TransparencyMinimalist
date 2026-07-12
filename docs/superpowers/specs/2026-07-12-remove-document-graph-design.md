@@ -5,9 +5,9 @@
 
 ## Purpose
 
-Transparency currently includes an in-editor Document Graph overlay opened from the tool rail or with the `G` key. The feature duplicates the repository-level Graphify visualization while adding application code, event listeners, animation work, responsive CSS, documentation claims, and a project-data-to-`innerHTML` security risk.
+Transparency currently includes an in-editor Document Graph overlay opened from the tool rail or with the `G` key. The feature adds application code, event listeners, animation work, responsive CSS, documentation claims, and a project-data-to-`innerHTML` security risk without supporting the core editing workflow.
 
-Remove the in-editor Document Graph completely. Graphify remains the only interactive graph associated with the project, and it remains an optional contributor tool outside the editor runtime.
+Remove the in-editor Document Graph completely.
 
 ## Goals
 
@@ -16,13 +16,11 @@ Remove the in-editor Document Graph completely. Graphify remains the only intera
 - Remove security-review claims that describe the graph-detail DOM-injection path, because deleting the sink resolves that specific path.
 - Keep the editor workspace, canvas compositor, persistence format, history, layer controls, and responsive behavior otherwise unchanged.
 - Keep `G` intentionally unassigned for a future editor feature.
-- Preserve Graphify configuration, documentation, and generated artifacts.
 - Preserve the Mermaid system diagram in `docs/architecture.md`; it explains application data flow and is not the removed UI feature.
 
 ## Non-Goals
 
-- Do not connect the editor to `graphify-out/` or open Graphify from the `G` key.
-- Do not remove `.graphifyignore`, `docs/graphify-guide.md`, or `graphify-out/`.
+- Do not replace the removed feature with another in-editor graph or assign the `G` key.
 - Do not remove or redesign the Mermaid diagram in `docs/architecture.md`.
 - Do not reorganize the tool rail, inspector dock, canvas workspace, or responsive layout beyond allowing the removed rail button's space to collapse naturally.
 - Do not change document state, project serialization, autosave, history, rendering, or export behavior.
@@ -70,12 +68,10 @@ After removal:
 
 Update public documents that currently describe the runtime feature:
 
-- `README.md`: remove the Document Graph highlight, workspace/rail wording, and `G`/Escape shortcut rows. Preserve the Graphify project-tree entry and Graphify guide link.
+- `README.md`: remove the Document Graph highlight, workspace/rail wording, and `G`/Escape shortcut rows.
 - `docs/architecture.md`: remove the `src/graph-panel.ts` module row and graph-animation performance sentence. Preserve the Mermaid system diagram.
 - `docs/design.md`: remove graph-overlay references from workspace, component, interaction, responsive, and fallback guidance.
 - `docs/security-audit.md`: remove the graph-detail `innerHTML` injection path and its remediation because the sink no longer exists. Preserve all remaining trust-boundary findings, including incomplete nested project validation, remote bitmap requests, canvas tainting, Google Fonts, persistence, object URL, and resource-exhaustion risks.
-
-`docs/graphify-guide.md` remains unchanged because Graphify is explicitly preserved.
 
 ## Data, Compatibility, and Failure Behavior
 
@@ -90,8 +86,7 @@ Implementation follows test-first removal contracts:
 1. Update the UI layout contract so it no longer requires graph identifiers and instead rejects `rail-graph`, `graph-overlay`, `graph-canvas`, and remaining graph initialization references.
 2. Update documentation contracts so public documents no longer advertise the in-editor graph or require the removed graph-injection limitation.
 3. Add a filesystem assertion that `src/graph-panel.ts` is absent.
-4. Preserve positive contracts for the Graphify guide and its repository-relative `.graphifyignore` link.
-5. Preserve a positive assertion that the architecture Mermaid fence remains present.
+4. Preserve a positive assertion that the architecture Mermaid fence remains present.
 
 Final verification includes:
 
@@ -100,7 +95,7 @@ Final verification includes:
 - `npm.cmd run build`
 - `git diff --check`
 - A targeted source scan showing no runtime graph identifiers, imports, initialization calls, icons, or selectors remain.
-- A targeted documentation scan confirming runtime graph claims are gone while Graphify and the architecture Mermaid diagram remain.
+- A targeted documentation scan confirming runtime graph claims are gone while the architecture Mermaid diagram remains.
 
 ## Acceptance Criteria
 
@@ -110,7 +105,7 @@ Final verification includes:
 - No graph-owned DOM, TypeScript, icon, CSS, event, animation, or test reference remains.
 - The tool rail, canvas workspace, inspector dock, responsive layout, existing projects, and exports continue to work.
 - Public documentation accurately describes the editor without a Document Graph.
-- Graphify configuration, guide, generated artifacts, and the architecture Mermaid diagram remain intact.
+- The architecture Mermaid diagram remains intact.
 - The graph-detail DOM-injection finding is removed from the security guide, while unrelated security limitations remain documented.
 - UI tests, documentation tests, production build, and whitespace checks pass.
 

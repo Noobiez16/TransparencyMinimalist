@@ -12,7 +12,6 @@ const publicFiles = [
   'docs/architecture.md',
   'docs/design.md',
   'docs/examples.md',
-  'docs/graphify-guide.md',
   'docs/security-audit.md'
 ];
 
@@ -43,6 +42,12 @@ test('README is the professional user and contributor entry point', () => {
   for (const shortcut of ['V', 'H', 'Z', 'Space', 'Ctrl+Z']) {
     assert.match(readme, new RegExp(`\\b${shortcut.replace('+', '\\+')}\\b`), `README must document ${shortcut}`);
   }
+});
+
+test('README exposes only public project guides', () => {
+  const readme = readPublicDoc('README.md');
+  const privateToolName = new RegExp(['graph', 'ify'].join(''), 'i');
+  assert.doesNotMatch(readme, privateToolName);
 });
 
 test('architecture guide matches the current document and rendering model', () => {
@@ -93,19 +98,6 @@ test('composition examples use current controls and cautious claims', () => {
   assert.doesNotMatch(examples, /xOffset|yOffset|Twitter\/X.*will reveal|guaranteed/i);
 });
 
-test('Graphify guide is portable and explains generated artifacts', () => {
-  const graphify = readPublicDoc('docs/graphify-guide.md');
-  assertProfessionalMarkdown('docs/graphify-guide.md', graphify);
-  for (const fact of [
-    'python -m graphify . --directed',
-    'graphify-out/graph.html',
-    'graphify-out/GRAPH_REPORT.md',
-    'graphify-out/graph.json',
-    '.graphifyignore'
-  ]) assert.match(graphify, new RegExp(fact.replaceAll('.', '\\.')));
-  assert.doesNotMatch(graphify, /file:\/\/|C:\\Users\\/);
-});
-
 test('security guide documents safeguards and remaining limitations', () => {
   const security = readPublicDoc('docs/security-audit.md');
   assertProfessionalMarkdown('docs/security-audit.md', security);
@@ -132,7 +124,7 @@ test('security guide documents safeguards and remaining limitations', () => {
   assert.doesNotMatch(security, /completely client-side.*No.*external|inherently immune|formal certification/i);
 });
 
-test('public docs preserve Graphify and Mermaid without advertising an editor graph', () => {
+test('public docs preserve the architecture diagram without advertising an editor graph', () => {
   for (const path of [
     'README.md',
     'docs/architecture.md',
@@ -148,11 +140,7 @@ test('public docs preserve Graphify and Mermaid without advertising an editor gr
   }
 
   const architecture = readPublicDoc('docs/architecture.md');
-  const graphify = readPublicDoc('docs/graphify-guide.md');
   assert.match(architecture, /```mermaid/);
-  assert.match(graphify, /python -m graphify \. --directed/);
-  assert.match(graphify, /graphify-out\/graph\.html/);
-  assert.match(graphify, /\.graphifyignore/);
 });
 
 test('all public documents meet global Markdown and terminology rules', () => {

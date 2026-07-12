@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Remove Transparency's in-editor Document Graph completely while preserving Graphify and the architecture Mermaid diagram.
+**Goal:** Remove Transparency's in-editor Document Graph completely while preserving the architecture Mermaid diagram.
 
-**Architecture:** Delete the graph as one runtime feature boundary: markup, initialization, module, icon, listeners, animation, and CSS disappear together. Protect that removal with negative runtime contracts, then update only the public documents that advertise or assess the deleted feature while retaining positive Graphify and Mermaid contracts.
+**Architecture:** Delete the graph as one runtime feature boundary: markup, initialization, module, icon, listeners, animation, and CSS disappear together. Protect that removal with negative runtime contracts, then update only the public documents that advertise or assess the deleted feature while retaining the positive Mermaid contract.
 
 **Tech Stack:** TypeScript, browser DOM and Canvas APIs, HTML, CSS, Node's built-in `node:test`, Vite 5.
 
@@ -12,14 +12,12 @@
 
 - Delete the in-editor Document Graph; do not hide it or retain dormant feature-flagged code.
 - Leave `G` intentionally unassigned.
-- Preserve `.graphifyignore`, `docs/graphify-guide.md`, and all existing `graphify-out/` content.
 - Preserve the Mermaid system diagram in `docs/architecture.md`.
 - Do not change document state, project serialization, autosave, history, compositor, export, or project compatibility.
 - Do not redesign the tool rail, canvas workspace, inspector dock, or responsive grid.
 - Remove only the graph-detail DOM-injection security finding; preserve all unrelated security limitations and deployment recommendations.
 - Do not implement resizable panels, video layers, or any later editing feature from the broader request.
 - Use `npm.cmd` for package commands in PowerShell.
-- Keep the pre-existing untracked `graphify-out/` directory untouched.
 
 ---
 
@@ -31,7 +29,7 @@
 - Modify `src/dom.ts`: remove the now-unused graph icon.
 - Modify `src/style.css`: remove graph base, responsive, and fallback selectors.
 - Modify `tests/ui-layout.test.mjs`: replace graph-presence requirements with full-removal contracts.
-- Modify `README.md`: remove the runtime graph highlight, rail claim, and shortcuts while preserving Graphify navigation.
+- Modify `README.md`: remove the runtime graph highlight, rail claim, and shortcuts.
 - Modify `docs/architecture.md`: remove the runtime module/performance claims while preserving Mermaid.
 - Modify `docs/design.md`: remove runtime graph component, interaction, responsive, and fallback guidance.
 - Modify `docs/security-audit.md`: remove the deleted graph-detail sink and remediation while retaining other risks.
@@ -192,11 +190,10 @@ git commit -m "refactor: remove document graph runtime"
 - Modify: `docs/architecture.md:140-165`
 - Modify: `docs/design.md:41-102`
 - Modify: `docs/security-audit.md:17-24,35-73`
-- Preserve unchanged: `docs/graphify-guide.md`
 
 **Interfaces:**
 - Consumes: Task 1's absence of `src/graph-panel.ts` and all runtime graph entry points.
-- Produces: public documentation that describes no editor graph, retains the Graphify contributor workflow and architecture Mermaid diagram, and removes only the resolved graph-detail injection finding.
+- Produces: public documentation that describes no editor graph, retains the architecture Mermaid diagram, and removes only the resolved graph-detail injection finding.
 
 - [ ] **Step 1: Add failing documentation distinction contracts**
 
@@ -218,7 +215,7 @@ assert.doesNotMatch(security, /graph detail|project-derived `innerHTML`|DOM inje
 Append this separate preservation/removal contract:
 
 ```js
-test('public docs preserve Graphify and Mermaid without advertising an editor graph', () => {
+test('public docs preserve Mermaid without advertising an editor graph', () => {
   for (const path of [
     'README.md',
     'docs/architecture.md',
@@ -234,11 +231,7 @@ test('public docs preserve Graphify and Mermaid without advertising an editor gr
   }
 
   const architecture = readPublicDoc('docs/architecture.md');
-  const graphify = readPublicDoc('docs/graphify-guide.md');
   assert.match(architecture, /```mermaid/);
-  assert.match(graphify, /python -m graphify \. --directed/);
-  assert.match(graphify, /graphify-out\/graph\.html/);
-  assert.match(graphify, /\.graphifyignore/);
 });
 ```
 
@@ -250,7 +243,7 @@ Run:
 npm.cmd run test:docs
 ```
 
-Expected: the new contract fails because README, architecture, design, and security still describe the removed editor graph. Graphify and Mermaid assertions already pass.
+Expected: the new contract fails because README, architecture, design, and security still describe the removed editor graph. The Mermaid assertion already passes.
 
 - [ ] **Step 3: Update README, architecture, and design guidance**
 
@@ -259,8 +252,7 @@ Make these exact content changes in `README.md`:
 - Delete `Document graph overlay for inspecting layer/effect relationships.` from Highlights.
 - Change the Tool rail purpose to `Move, Hand, Zoom, layer creation, and panel visibility`.
 - Delete the `Document graph | G` and `Close graph overlay | Escape` shortcut rows.
-- Change the project-tree docs description to `Architecture, design, examples, Graphify, and security guides`.
-- Preserve `graphify-out/`, the Graphify explanatory paragraph, and the Graphify guide link.
+- Keep the project-tree description aligned with the public guide set.
 
 In `docs/architecture.md`:
 
@@ -315,7 +307,7 @@ npm.cmd run test:ui
 npm.cmd run build
 git diff --check
 rg -n -i "Document graph|graph overlay|src/graph-panel\.ts|graph animation|graph detail|project-derived" README.md docs/architecture.md docs/design.md docs/security-audit.md
-rg -n "mermaid|python -m graphify|graphify-out|\.graphifyignore" README.md docs/architecture.md docs/graphify-guide.md
+rg -n "mermaid" docs/architecture.md
 git status --short
 ```
 
@@ -325,8 +317,8 @@ Expected:
 - TypeScript/Vite build succeeds.
 - Diff check reports no errors.
 - The first `rg` exits 1 with no matches.
-- The second `rg` reports the Mermaid fence plus README/Graphify guide preservation references.
-- Status shows only the planned Task 2 files plus the pre-existing untracked `graphify-out/` directory.
+- The second `rg` reports the Mermaid fence.
+- Status shows only the planned Task 2 files.
 
 - [ ] **Step 6: Review final scope and commit Task 2**
 
@@ -337,7 +329,7 @@ git diff --name-status HEAD~1..HEAD
 git diff -- README.md docs/architecture.md docs/design.md docs/security-audit.md tests/documentation.test.mjs
 ```
 
-Confirm that the Task 1 commit contains only runtime/test removal and the pending Task 2 diff contains only documentation/test reconciliation. Confirm `docs/graphify-guide.md`, `.graphifyignore`, and `graphify-out/` are unchanged.
+Confirm that the Task 1 commit contains only runtime/test removal and the pending Task 2 diff contains only documentation/test reconciliation.
 
 Commit:
 
@@ -365,8 +357,7 @@ Acceptance evidence must show:
 
 - No in-editor graph button, overlay, module, icon, listener, animation, CSS, or runtime documentation claim remains.
 - `G` has no assignment.
-- Graphify and the architecture Mermaid diagram remain.
+- The architecture Mermaid diagram remains.
 - Existing project files, rendering, history, Layers/History panels, canvas workspace, inspector controls, and responsive layout are unchanged.
 - The graph-detail injection finding is gone, while unrelated security limitations remain.
 - UI tests, documentation tests, and production build pass.
-- The pre-existing untracked `graphify-out/` directory remains untouched.

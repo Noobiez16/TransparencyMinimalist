@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-09  
 **Status:** Approved for implementation planning  
-**Scope:** Rewrite the public README and five top-level documentation guides so they accurately describe the current Transparency editor and serve both users and contributors.
+**Scope:** Rewrite the public README and four top-level documentation guides so they accurately describe the current Transparency editor and serve both users and contributors.
 
 ## 1. Goal
 
@@ -15,7 +15,7 @@ The refresh must preserve the project's clean Markdown presentation while replac
 The documentation serves two audiences:
 
 - **Users** need a clear product overview, setup instructions, workspace orientation, shortcuts, and practical composition recipes.
-- **Contributors and maintainers** need accurate architecture, design-system, Graphify, security, source-layout, and verification references.
+- **Contributors and maintainers** need accurate architecture, design-system, security, source-layout, and verification references.
 
 The README prioritizes users and routes contributors to deeper guides. The top-level guides provide the technical depth.
 
@@ -41,7 +41,7 @@ The public landing page owns:
 - installation, development, testing, and production-build commands;
 - primary tools and keyboard shortcuts;
 - a compact source-tree overview;
-- links to all five top-level guides.
+- links to all four top-level guides.
 
 The README does not duplicate detailed architecture, design tokens, threat analysis, or full recipes.
 
@@ -85,20 +85,7 @@ The examples guide owns practical composition workflows:
 
 Every recipe uses current control names, pixel-based position values, supported blend modes, current effect behavior, and realistic export instructions. Social-platform behavior is described cautiously and not guaranteed when a third-party service may process exported images.
 
-### 4.5 `docs/graphify-guide.md`
-
-The Graphify guide owns:
-
-- the purpose of the code graph;
-- generated output files;
-- portable generation and query commands;
-- `.graphifyignore` behavior;
-- guidance for reading the report and graph;
-- regeneration expectations after module/import changes.
-
-Absolute machine-specific paths are replaced by relative repository links.
-
-### 4.6 `docs/security-audit.md`
+### 4.5 `docs/security-audit.md`
 
 The security guide owns:
 
@@ -172,8 +159,7 @@ Documentation must be verified against:
 - `src/engine/tools.ts` and `src/tools/` for tool behavior and shortcuts;
 - `src/engine/compositor.ts`, `src/canvas.ts`, and `src/export.ts` for rendering/export;
 - `src/engine/persistence.ts` for project files and autosave;
-- `src/layers-panel.ts`, `src/properties-panel.ts`, `src/history-panel.ts`, `src/options-bar.ts`, `src/topbar.ts`, `src/rail.ts`, and `src/graph-panel.ts` for UI behavior;
-- `.graphifyignore` and current graph output names for Graphify instructions.
+- `src/layers-panel.ts`, `src/properties-panel.ts`, `src/history-panel.ts`, `src/options-bar.ts`, `src/topbar.ts`, and `src/rail.ts` for UI behavior.
 
 Historical specs may explain intent but cannot override implemented source behavior.
 
@@ -191,7 +177,7 @@ Historical specs may explain intent but cannot override implemented source behav
 
 ### 9.1 Content checks
 
-- Confirm all six public documents use the approved product name and terminology.
+- Confirm all five public documents use the approved product name and terminology.
 - Search for corrupted character sequences and obsolete product/UI names.
 - Search for absolute local paths and `file://` links.
 - Confirm every source path, command, ID, shortcut, field, and module named in the documentation exists.
@@ -214,4 +200,4 @@ These commands verify that documentation edits did not accidentally disturb the 
 
 ## 10. Completion Criteria
 
-The refresh is complete when `README.md` and the five top-level guides are accurate, professionally consistent, cross-linked, free of corrupted symbols and machine-specific paths, aligned with the current source, and verified by the content, Markdown, UI-contract, build, and diff checks above.
+The refresh is complete when `README.md` and the four top-level guides are accurate, professionally consistent, cross-linked, free of corrupted symbols and machine-specific paths, aligned with the current source, and verified by the content, Markdown, UI-contract, build, and diff checks above.

@@ -20,7 +20,6 @@
 - Provide a solid high-opacity fallback when `backdrop-filter` is unavailable.
 - Honor `prefers-reduced-motion: reduce`.
 - Inspect the current working-tree version of each shared file immediately before editing so concurrent work is not overwritten.
-- Leave `graphify-out/` untouched.
 
 ---
 
@@ -56,7 +55,7 @@ git status --short
 git diff -- index.html src/style.css src/history-panel.ts src/rail.ts package.json
 ```
 
-Expected: only known plan/spec changes or unrelated `graphify-out/` output; stop and reconcile if concurrent edits appear in a target file.
+Expected: only known plan/spec changes; stop and reconcile if concurrent edits appear in a target file.
 
 - [ ] **Step 2: Add the failing layout contract test**
 
@@ -690,4 +689,4 @@ git diff HEAD~2..HEAD --name-only
 git log -3 --oneline
 ```
 
-Expected: only the plan/spec, `package.json`, `tests/ui-layout.test.mjs`, `index.html`, `src/style.css`, and `src/history-panel.ts` appear in this feature's commits; `graphify-out/` remains untracked and untouched.
+Expected: only the plan/spec, `package.json`, `tests/ui-layout.test.mjs`, `index.html`, `src/style.css`, and `src/history-panel.ts` appear in this feature's commits.

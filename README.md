@@ -62,18 +62,14 @@ src/                        Editor UI, state, panels, export, and orchestration
 │   └── compositor.ts       Shared preview/export renderer
 └── tools/                  Move, Hand, and Zoom tool implementations
 tests/                      UI layout and public documentation contracts
-docs/                       Architecture, design, examples, Graphify, and security guides
-graphify-out/               Generated graph visualization, report, and graph data
+docs/                       Architecture, design, examples, and security guides
 ```
-
-The generated `graphify-out/` artifacts are documented in the [Graphify guide](docs/graphify-guide.md) and are not application source.
 
 ## Documentation
 
 - [Architecture](docs/architecture.md)
 - [Design system](docs/design.md)
 - [Composition examples](docs/examples.md)
-- [Graphify guide](docs/graphify-guide.md)
 - [Security review](docs/security-audit.md)
 
 ## Data and privacy

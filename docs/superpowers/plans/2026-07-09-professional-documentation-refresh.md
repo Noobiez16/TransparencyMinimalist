@@ -2,19 +2,19 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rewrite the public README and five top-level guides into an accurate, cohesive documentation set for Transparency users and contributors.
+**Goal:** Rewrite the public README and four top-level guides into an accurate, cohesive documentation set for Transparency users and contributors.
 
-**Architecture:** Treat the current TypeScript, HTML, CSS, package scripts, Graphify configuration, and generated output names as the only technical source of truth. Give each public document one authoritative topic, connect the set through repository-relative links, and protect terminology, paths, headings, and critical implementation facts with a dependency-free Node documentation contract.
+**Architecture:** Treat the current TypeScript, HTML, CSS, and package scripts as the only technical source of truth. Give each public document one authoritative topic, connect the set through repository-relative links, and protect terminology, paths, headings, and critical implementation facts with a dependency-free Node documentation contract.
 
 **Tech Stack:** GitHub-Flavored Markdown, Mermaid, TypeScript source references, Node's built-in `node:test` runner, Vite 5 project commands.
 
 ## Global Constraints
 
-- Update only `README.md`, the five top-level `docs/*.md` guides, `package.json`, and `tests/documentation.test.mjs`.
+- Update only `README.md`, the four top-level `docs/*.md` guides, `package.json`, and `tests/documentation.test.mjs`.
 - Keep prior files under `docs/superpowers/` unchanged except for this approved spec and plan.
 - Standardize the product name as **Transparency**.
 - Describe the interface as a **Photoshop-style spatial-glass workspace**.
-- Serve users through the README and examples; serve contributors through architecture, design, Graphify, and security guides.
+- Serve users through the README and examples; serve contributors through architecture, design, and security guides.
 - Derive technical claims from the current implementation, never from historical specs alone.
 - Use repository-relative links; never use `file://` URLs or developer-machine paths.
 - Remove corrupted character sequences and obsolete product/UI terminology.
@@ -23,7 +23,7 @@
 - Do not claim fully offline operation while Google Fonts load remotely.
 - Treat the security guide as an engineering review, not a certification.
 - Use one H1 per document, logical heading levels, closed language-tagged code fences, and Mermaid only where relationships benefit materially.
-- Leave application source, UI behavior, and generated `graphify-out/` files untouched.
+- Leave application source and UI behavior untouched.
 
 ---
 
@@ -35,7 +35,6 @@
 - Rewrite `docs/architecture.md`: authoritative current technical architecture.
 - Rewrite `docs/design.md`: authoritative spatial-glass design system.
 - Rewrite `docs/examples.md`: current, reproducible composition recipes.
-- Rewrite `docs/graphify-guide.md`: portable contributor Graphify workflow.
 - Rewrite `docs/security-audit.md`: current security posture, limitations, and deployment recommendations.
 
 ---
@@ -48,8 +47,8 @@
 - Modify: `README.md:1-end`
 
 **Interfaces:**
-- Consumes: current scripts from `package.json`, shortcuts from `src/engine/tools.ts` and `src/main.ts`, and the six-document ownership model from the approved spec.
-- Produces: reusable `readPublicDoc()`, `assertProfessionalMarkdown()`, and `publicFiles` test helpers; a user-first README linking all five guides.
+- Consumes: current scripts from `package.json`, shortcuts from `src/engine/tools.ts` and `src/main.ts`, and the five-document ownership model from the approved spec.
+- Produces: reusable `readPublicDoc()`, `assertProfessionalMarkdown()`, and `publicFiles` test helpers; a user-first README linking all four guides.
 
 - [ ] **Step 1: Re-check target files for unrelated edits**
 
@@ -81,7 +80,6 @@ const publicFiles = [
   'docs/architecture.md',
   'docs/design.md',
   'docs/examples.md',
-  'docs/graphify-guide.md',
   'docs/security-audit.md'
 ];
 
@@ -137,7 +135,7 @@ Run:
 npm.cmd run test:docs
 ```
 
-Expected: FAIL because the current README title is not `Transparency`, contains corrupted symbols, and does not link all five guides.
+Expected: FAIL because the current README title is not `Transparency`, contains corrupted symbols, and does not link all four guides.
 
 - [ ] **Step 4: Rewrite the README as the public landing page**
 
@@ -204,14 +202,13 @@ npm run build
 
 ## Project Structure
 
-Describe `index.html`, `src/`, `src/engine/`, `src/tools/`, `tests/`, `docs/`, and `graphify-out/` in a compact tree. List only current files and describe `src/engine/compositor.ts` as the shared preview/export renderer.
+Describe `index.html`, `src/`, `src/engine/`, `src/tools/`, `tests/`, and `docs/` in a compact tree. List only current files and describe `src/engine/compositor.ts` as the shared preview/export renderer.
 
 ## Documentation
 
 - [Architecture](docs/architecture.md)
 - [Design system](docs/design.md)
 - [Composition examples](docs/examples.md)
-- [Graphify guide](docs/graphify-guide.md)
 - [Security review](docs/security-audit.md)
 
 ## Data and privacy
@@ -382,19 +379,18 @@ git commit -m "docs: align architecture and design guides"
 
 ---
 
-### Task 3: Rewrite examples, Graphify, and security guides
+### Task 3: Rewrite examples and security guides
 
 **Files:**
 - Modify: `tests/documentation.test.mjs`
 - Modify: `docs/examples.md:1-end`
-- Modify: `docs/graphify-guide.md:1-end`
 - Modify: `docs/security-audit.md:1-end`
 
 **Interfaces:**
-- Consumes: current UI labels and effect/blend options, `.graphifyignore`, persistence/file import code, IndexedDB behavior, and external font dependency.
+- Consumes: current UI labels and effect/blend options, persistence/file import code, IndexedDB behavior, and external font dependency.
 - Produces: reproducible user workflows and accurate contributor/security references.
 
-- [ ] **Step 1: Append failing examples/Graphify/security contracts**
+- [ ] **Step 1: Append failing examples/security contracts**
 
 Append:
 
@@ -408,19 +404,6 @@ test('composition examples use current controls and cautious claims', () => {
     'Blur', 'document pixels', '.mledit.json', 'PNG'
   ]) assert.match(examples, new RegExp(fact.replaceAll('.', '\\.')));
   assert.doesNotMatch(examples, /xOffset|yOffset|Twitter\/X.*will reveal|guaranteed/i);
-});
-
-test('Graphify guide is portable and explains generated artifacts', () => {
-  const graphify = readPublicDoc('docs/graphify-guide.md');
-  assertProfessionalMarkdown('docs/graphify-guide.md', graphify);
-  for (const fact of [
-    'python -m graphify . --directed',
-    'graphify-out/graph.html',
-    'graphify-out/GRAPH_REPORT.md',
-    'graphify-out/graph.json',
-    '.graphifyignore'
-  ]) assert.match(graphify, new RegExp(fact.replaceAll('.', '\\.')));
-  assert.doesNotMatch(graphify, /file:\/\/|C:\\Users\\/);
 });
 
 test('security guide documents safeguards and remaining limitations', () => {
@@ -450,7 +433,7 @@ Run:
 npm.cmd run test:docs
 ```
 
-Expected: earlier contracts pass; examples fail on percentage/stale social claims, Graphify fails on the absolute `file://` path, and security fails on obsolete code/module claims and missing limitations.
+Expected: earlier contracts pass; examples fail on percentage/stale social claims, and security fails on obsolete code/module claims and missing limitations.
 
 - [ ] **Step 3: Rewrite `docs/examples.md`**
 
@@ -476,30 +459,7 @@ Required content:
 - State PNG preserves transparency, but hosting/social services may recompress or flatten images.
 - Show save/open with `.mledit.json`, autosave restore, and separate PNG export.
 
-- [ ] **Step 4: Rewrite `docs/graphify-guide.md`**
-
-Use this section order:
-
-```markdown
-# Graphify Codebase Guide
-
-## Purpose
-## Generated Artifacts
-## Generate or Refresh the Graph
-## Query the Graph
-## Read the Results
-## Exclusions and Maintenance
-```
-
-Required content:
-
-- State Graphify is an optional contributor tool and show installation-neutral commands assuming `python -m graphify` is available.
-- Document graph HTML, report, and JSON outputs.
-- Keep the generation, query, path, and explain examples.
-- Link `.graphifyignore` as `../.graphifyignore` from the guide.
-- Explain current exclusions include dependencies, build output, configuration files, package metadata, docs, and Superpowers artifacts.
-
-- [ ] **Step 5: Rewrite `docs/security-audit.md`**
+- [ ] **Step 4: Rewrite `docs/security-audit.md`**
 
 Use this section order:
 
@@ -528,7 +488,7 @@ Required content:
 - Document memory/CPU risks from large image dimensions, Base64 project size, compositor work, and history's 150 MiB estimate cap.
 - Recommend CSP, restrictive hosting headers, dependency review, upload-size/dimension validation, and a self-hosted/system-font option for stricter privacy.
 
-- [ ] **Step 6: Verify and commit Task 3**
+- [ ] **Step 5: Verify and commit Task 3**
 
 Run:
 
@@ -543,7 +503,7 @@ Expected: all topic contracts and UI contracts pass.
 Commit:
 
 ```powershell
-git add docs/examples.md docs/graphify-guide.md docs/security-audit.md tests/documentation.test.mjs
+git add docs/examples.md docs/security-audit.md tests/documentation.test.mjs
 git commit -m "docs: refresh workflows and security guidance"
 ```
 
@@ -556,7 +516,7 @@ git commit -m "docs: refresh workflows and security guidance"
 - Modify only if audit finds a factual or link defect: the owning public Markdown document.
 
 **Interfaces:**
-- Consumes: all six rewritten documents and the reusable Task 1 helpers.
+- Consumes: all five rewritten documents and the reusable Task 1 helpers.
 - Produces: repository-relative link validation and final documentation-quality evidence.
 
 - [ ] **Step 1: Add the global integrity tests**
@@ -616,7 +576,7 @@ Expected: no matches. If a command exits with code 1 because no matches were fou
 Run:
 
 ```powershell
-git diff HEAD~3..HEAD -- README.md docs/architecture.md docs/design.md docs/examples.md docs/graphify-guide.md docs/security-audit.md tests/documentation.test.mjs package.json
+git diff HEAD~3..HEAD -- README.md docs/architecture.md docs/design.md docs/examples.md docs/security-audit.md tests/documentation.test.mjs package.json
 ```
 
 Check each source claim against the owning TypeScript/CSS/config file listed in the approved spec. Correct only factual, structural, terminology, or link defects found during this audit.
@@ -624,7 +584,7 @@ Check each source claim against the owning TypeScript/CSS/config file listed in 
 - [ ] **Step 5: Commit final integrity checks or audit corrections**
 
 ```powershell
-git add tests/documentation.test.mjs README.md docs/architecture.md docs/design.md docs/examples.md docs/graphify-guide.md docs/security-audit.md
+git add tests/documentation.test.mjs README.md docs/architecture.md docs/design.md docs/examples.md docs/security-audit.md
 git commit -m "test: verify public documentation integrity"
 ```
 
@@ -639,4 +599,4 @@ git status --short
 git diff --name-only 35d41ec..HEAD
 ```
 
-Expected changed files for this documentation refresh: `README.md`, `package.json`, `tests/documentation.test.mjs`, `docs/architecture.md`, `docs/design.md`, `docs/examples.md`, `docs/graphify-guide.md`, and `docs/security-audit.md`, plus this plan. Application source and generated graph output must not change.
+Expected changed files for this documentation refresh: `README.md`, `package.json`, `tests/documentation.test.mjs`, `docs/architecture.md`, `docs/design.md`, `docs/examples.md`, and `docs/security-audit.md`, plus this plan. Application source must not change.
