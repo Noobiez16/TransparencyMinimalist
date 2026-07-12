@@ -8,14 +8,20 @@ export interface Effects {
   invert: boolean;
 }
 
-export interface LayerBase {
+export interface LayerTransform {
+  x: number;
+  y: number;
+  scaleX: number;
+  scaleY: number;
+  rotation: number;
+}
+
+export interface LayerBase extends LayerTransform {
   id: string;
   name: string;
   visible: boolean;
   opacity: number;                          // 0-100
   blendMode: BlendMode;
-  x: number; y: number;                     // layer CENTER in document pixels
-  scale: number;                            // percent 10-400
   effects: Effects;
 }
 
@@ -37,7 +43,7 @@ export interface TextLayer extends LayerBase {
 export type Layer = ImageLayer | TextLayer;
 
 export interface Doc {
-  version: 1;
+  version: 2;
   width: number;
   height: number;
   bgType: 'transparent' | 'white' | 'black' | 'custom';
@@ -68,14 +74,16 @@ function baseLayer(doc: Doc, name: string): LayerBase {
     blendMode: 'normal',
     x: doc.width / 2,
     y: doc.height / 2,
-    scale: 100,
+    scaleX: 100,
+    scaleY: 100,
+    rotation: 0,
     effects: defaultEffects()
   };
 }
 
 export function createDoc(width = 1024, height = 1024): Doc {
   return {
-    version: 1, width, height,
+    version: 2, width, height,
     bgType: 'transparent', bgColor: '#ffffff',
     layers: [], activeLayerId: null
   };
@@ -110,7 +118,7 @@ export function getFilterString(effects: Effects, kind: 'image' | 'text'): strin
 const measureCanvas = document.createElement('canvas');
 const measureCtx = measureCanvas.getContext('2d')!;
 
-export function layerSize(layer: Layer): { w: number; h: number } {
+export function layerNaturalSize(layer: Layer): { w: number; h: number } {
   if (layer.kind === 'image') {
     return layer.bitmap ? { w: layer.bitmap.width, h: layer.bitmap.height } : { w: 0, h: 0 };
   }
@@ -122,9 +130,29 @@ export function layerSize(layer: Layer): { w: number; h: number } {
   return { w, h };
 }
 
+export function layerDisplaySize(layer: Layer): { w: number; h: number } {
+  const { w, h } = layerNaturalSize(layer);
+  return { w: (w * layer.scaleX) / 100, h: (h * layer.scaleY) / 100 };
+}
+
 export function layerBounds(layer: Layer): { x: number; y: number; w: number; h: number } {
-  const { w, h } = layerSize(layer);
-  const sw = (w * layer.scale) / 100;
-  const sh = (h * layer.scale) / 100;
-  return { x: layer.x - sw / 2, y: layer.y - sh / 2, w: sw, h: sh };
+  const display = layerDisplaySize(layer);
+  const radians = (layer.rotation * Math.PI) / 180;
+  const cos = Math.abs(Math.cos(radians)) < 1e-12 ? 0 : Math.abs(Math.cos(radians));
+  const sin = Math.abs(Math.sin(radians)) < 1e-12 ? 0 : Math.abs(Math.sin(radians));
+  const w = Math.abs(display.w) * cos + Math.abs(display.h) * sin;
+  const h = Math.abs(display.w) * sin + Math.abs(display.h) * cos;
+  return { x: layer.x - w / 2, y: layer.y - h / 2, w, h };
+}
+
+export function layerContainsPoint(layer: Layer, point: { x: number; y: number }): boolean {
+  const { w, h } = layerDisplaySize(layer);
+  const radians = (layer.rotation * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const dx = point.x - layer.x;
+  const dy = point.y - layer.y;
+  const localX = dx * cos + dy * sin;
+  const localY = -dx * sin + dy * cos;
+  return Math.abs(localX) <= Math.abs(w) / 2 && Math.abs(localY) <= Math.abs(h) / 2;
 }

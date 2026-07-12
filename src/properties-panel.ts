@@ -183,8 +183,8 @@ function syncPanel(): void {
   xValueEl.textContent = `${Math.round(layer.x)}px`;
   syncVal(propYOffset, Math.round(layer.y).toString());
   yValueEl.textContent = `${Math.round(layer.y)}px`;
-  syncVal(propScale, layer.scale.toString());
-  scaleValueEl.textContent = `${layer.scale}%`;
+  syncVal(propScale, layer.scaleX.toString());
+  scaleValueEl.textContent = `${layer.scaleX}%`;
 
   EFFECTS.forEach((fx) => syncEffectRow(fx.key, layer));
   $('prop-invert').setAttribute('aria-checked', String(layer.effects.invert));
@@ -222,7 +222,7 @@ function updateVisibility(): void {
   }
 }
 
-function bindSlider(input: HTMLInputElement, key: 'opacity' | 'x' | 'y' | 'scale', labelId?: string, suffix = ''): void {
+function bindSlider(input: HTMLInputElement, key: 'opacity' | 'x' | 'y', labelId?: string, suffix = ''): void {
   const labelEl = labelId ? $(labelId) : null;
   input.addEventListener('input', () => {
     const layer = getActiveLayer();
@@ -272,9 +272,15 @@ export function initPropertiesPanel(): void {
   bindSlider(propYOffset, 'y', 'y-offset-value', 'px');
   attachChip(propYOffset, yValueEl, 'px');
   attachReset(propYOffset, () => Math.round(state.doc.height / 2));
-  bindSlider(propScale, 'scale', 'scale-value', '%');
+  propScale.addEventListener('input', () => {
+    const layer = getActiveLayer();
+    if (!layer) return;
+    const scale = parseInt(propScale.value, 10);
+    history.push(cmdPatchLayer(layer.id, 'Scale', { scaleX: scale, scaleY: scale }, `${layer.id}:scale`));
+    scaleValueEl.textContent = `${propScale.value}%`;
+  });
   attachChip(propScale, scaleValueEl, '%');
-  attachReset(propScale, PROP_DEFAULTS.scale);
+  attachReset(propScale, PROP_DEFAULTS.scaleX);
 
   $('prop-invert').addEventListener('click', () => {
     const layer = getActiveLayer();

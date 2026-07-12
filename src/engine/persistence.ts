@@ -4,7 +4,20 @@ import * as history from './history';
 import { toast } from '../toast';
 
 interface SerialLayer extends Omit<Layer, 'bitmap'> { bitmap?: string | null }
-interface ProjectFile { app: 'minimalist-editor'; version: 1; doc: Omit<Doc, 'layers'> & { layers: SerialLayer[] } }
+interface ProjectFile { app: 'minimalist-editor'; version: 2; doc: Omit<Doc, 'layers'> & { layers: SerialLayer[] } }
+
+interface RawProjectFile {
+  app?: unknown;
+  version?: unknown;
+  doc?: Record<string, unknown>;
+}
+
+export function migrateSerialLayer(raw: Record<string, unknown>, fileVersion: 1 | 2): Record<string, unknown> {
+  if (fileVersion === 2) return { ...raw };
+  const { scale, ...layer } = raw;
+  const uniformScale = typeof scale === 'number' ? scale : 100;
+  return { ...layer, scaleX: uniformScale, scaleY: uniformScale, rotation: 0 };
+}
 
 function canvasToDataUrl(c: HTMLCanvasElement): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -42,25 +55,30 @@ export async function serializeDoc(doc: Doc): Promise<string> {
       layers.push({ ...layer } as SerialLayer);
     }
   }
-  const file: ProjectFile = { app: 'minimalist-editor', version: 1, doc: { ...doc, layers } };
+  const file: ProjectFile = { app: 'minimalist-editor', version: 2, doc: { ...doc, version: 2, layers } };
   return JSON.stringify(file);
 }
 
 export async function deserializeDoc(json: string): Promise<Doc> {
-  let parsed: ProjectFile;
-  try { parsed = JSON.parse(json); } catch { throw new Error('Not a valid project file.'); }
+  let parsed: RawProjectFile;
+  try { parsed = JSON.parse(json) as RawProjectFile; } catch { throw new Error('Not a valid project file.'); }
   if (parsed?.app !== 'minimalist-editor' || !parsed.doc) throw new Error('Not a valid project file.');
-  if (parsed.version > 1) throw new Error('This project was saved by a newer version.');
+  if (typeof parsed.version !== 'number' || parsed.version < 1) throw new Error('Not a valid project file.');
+  if (parsed.version > 2) throw new Error('This project was saved by a newer version.');
+  const fileVersion = parsed.version as 1 | 2;
+  if (!Array.isArray(parsed.doc.layers)) throw new Error('Not a valid project file.');
   const layers: Layer[] = [];
-  for (const sl of parsed.doc.layers) {
+  for (const rawLayer of parsed.doc.layers) {
+    if (!rawLayer || typeof rawLayer !== 'object') throw new Error('Not a valid project file.');
+    const sl = migrateSerialLayer(rawLayer as Record<string, unknown>, fileVersion);
     if (sl.kind === 'image') {
-      const bitmap = sl.bitmap ? await dataUrlToCanvas(sl.bitmap) : null;
+      const bitmap = typeof sl.bitmap === 'string' ? await dataUrlToCanvas(sl.bitmap) : null;
       layers.push({ ...(sl as object), bitmap, bitmapRev: 0 } as Layer);
     } else {
       layers.push({ ...(sl as object) } as Layer);
     }
   }
-  return { ...parsed.doc, layers } as Doc;
+  return { ...parsed.doc, version: 2, layers } as unknown as Doc;
 }
 
 export async function saveProject(): Promise<void> {

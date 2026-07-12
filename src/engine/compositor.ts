@@ -1,4 +1,4 @@
-import { type Doc, type Layer, type BlendMode, getFilterString, getActiveLayer, layerSize } from './document';
+import { type Doc, type Layer, type BlendMode, getFilterString, getActiveLayer, layerNaturalSize } from './document';
 
 const BLEND_TO_OP: Record<BlendMode, GlobalCompositeOperation> = {
   normal: 'source-over', multiply: 'multiply', screen: 'screen',
@@ -11,7 +11,8 @@ function drawLayer(ctx: CanvasRenderingContext2D, layer: Layer): void {
   ctx.globalCompositeOperation = BLEND_TO_OP[layer.blendMode];
   ctx.filter = getFilterString(layer.effects, layer.kind);
   ctx.translate(layer.x, layer.y);
-  ctx.scale(layer.scale / 100, layer.scale / 100);
+  ctx.rotate((layer.rotation * Math.PI) / 180);
+  ctx.scale(layer.scaleX / 100, layer.scaleY / 100);
   if (layer.kind === 'image') {
     if (layer.bitmap) ctx.drawImage(layer.bitmap, -layer.bitmap.width / 2, -layer.bitmap.height / 2);
   } else {
@@ -44,14 +45,15 @@ export function composite(doc: Doc, ctx: CanvasRenderingContext2D, opts: { overl
 }
 
 function drawOutline(ctx: CanvasRenderingContext2D, layer: Layer, screenScale: number): void {
-  const { w, h } = layerSize(layer);
+  const { w, h } = layerNaturalSize(layer);
   if (w === 0 && h === 0) return;
   ctx.save();
   ctx.translate(layer.x, layer.y);
-  ctx.scale(layer.scale / 100, layer.scale / 100);
+  ctx.rotate((layer.rotation * Math.PI) / 180);
+  ctx.scale(layer.scaleX / 100, layer.scaleY / 100);
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
   // 1 SCREEN pixel regardless of doc scale and zoom
-  ctx.lineWidth = (100 / layer.scale) / screenScale;
+  ctx.lineWidth = (100 / Math.max(Math.abs(layer.scaleX), Math.abs(layer.scaleY))) / screenScale;
   ctx.strokeRect(-w / 2, -h / 2, w, h);
   ctx.restore();
 }

@@ -156,7 +156,7 @@ function placeBitmap(layer: ImageLayer, bitmap: HTMLCanvasElement, name: string)
   layer.sourceName = name;
   // cover-fit the document, preserving the old look; clamp to the scale slider's max
   const cover = Math.max(state.doc.width / bitmap.width, state.doc.height / bitmap.height) * 100;
-  layer.scale = Math.round(Math.min(400, Math.max(10, cover)));
+  layer.scaleX = layer.scaleY = Math.round(Math.min(400, Math.max(10, cover)));
   layer.x = state.doc.width / 2;
   layer.y = state.doc.height / 2;
 }
@@ -174,13 +174,15 @@ function decodeImageFile(file: File): void {
     if (active && active.kind === 'image' && !active.bitmap) {
       const layer = active;
       const prevBitmap = layer.bitmap;
-      const prevScale = layer.scale;
+      const prevScaleX = layer.scaleX;
+      const prevScaleY = layer.scaleY;
       const prevX = layer.x;
       const prevY = layer.y;
       const prevSourceName = layer.sourceName;
       placeBitmap(layer, c, file.name);
       const nextBitmap = layer.bitmap;
-      const nextScale = layer.scale;
+      const nextScaleX = layer.scaleX;
+      const nextScaleY = layer.scaleY;
       const nextX = layer.x;
       const nextY = layer.y;
       const nextSourceName = layer.sourceName;
@@ -188,7 +190,8 @@ function decodeImageFile(file: File): void {
         label: 'Place image',
         do: () => {
           layer.bitmap = nextBitmap;
-          layer.scale = nextScale;
+          layer.scaleX = nextScaleX;
+          layer.scaleY = nextScaleY;
           layer.x = nextX;
           layer.y = nextY;
           layer.sourceName = nextSourceName;
@@ -197,7 +200,8 @@ function decodeImageFile(file: File): void {
         },
         undo: () => {
           layer.bitmap = prevBitmap;
-          layer.scale = prevScale;
+          layer.scaleX = prevScaleX;
+          layer.scaleY = prevScaleY;
           layer.x = prevX;
           layer.y = prevY;
           layer.sourceName = prevSourceName;
