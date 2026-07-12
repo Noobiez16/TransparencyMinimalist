@@ -1,4 +1,5 @@
-import { type Doc, type Layer, type BlendMode, getFilterString, getActiveLayer, layerNaturalSize } from './document';
+import { type Doc, type Layer, type BlendMode, getFilterString } from './document';
+import { drawCanvasOverlay } from '../canvas-overlay';
 
 const BLEND_TO_OP: Record<BlendMode, GlobalCompositeOperation> = {
   normal: 'source-over', multiply: 'multiply', screen: 'screen',
@@ -39,23 +40,8 @@ export function composite(doc: Doc, ctx: CanvasRenderingContext2D, opts: { overl
     drawLayer(ctx, layer);
   }
   if (opts.overlay) {
-    const active = getActiveLayer(doc);
-    if (active && active.visible) drawOutline(ctx, active, opts.overlayScale ?? 1);
+    drawCanvasOverlay(ctx, doc, { overlayScale: opts.overlayScale ?? 1 });
   }
-}
-
-function drawOutline(ctx: CanvasRenderingContext2D, layer: Layer, screenScale: number): void {
-  const { w, h } = layerNaturalSize(layer);
-  if (w === 0 && h === 0) return;
-  ctx.save();
-  ctx.translate(layer.x, layer.y);
-  ctx.rotate((layer.rotation * Math.PI) / 180);
-  ctx.scale(layer.scaleX / 100, layer.scaleY / 100);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-  // 1 SCREEN pixel regardless of doc scale and zoom
-  ctx.lineWidth = (100 / Math.max(Math.abs(layer.scaleX), Math.abs(layer.scaleY))) / screenScale;
-  ctx.strokeRect(-w / 2, -h / 2, w, h);
-  ctx.restore();
 }
 
 export function renderToCanvas(doc: Doc): HTMLCanvasElement {

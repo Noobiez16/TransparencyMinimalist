@@ -1,0 +1,274 @@
+import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
+import type { LayerTransform } from '../src/engine/document';
+
+vi.mock('../src/canvas', () => ({ getOverlayScale: () => 1 }));
+
+let documentModel: typeof import('../src/engine/document');
+let history: typeof import('../src/engine/history');
+let stateModule: typeof import('../src/state');
+let sessions: typeof import('../src/engine/transform-session');
+let overlay: typeof import('../src/canvas-overlay');
+let geometry: typeof import('../src/engine/transform-geometry');
+let moveTool: typeof import('../src/tools/move').moveTool;
+let tools: typeof import('../src/engine/tools');
+
+beforeAll(async () => {
+  vi.stubGlobal('document', {
+    createElement: () => ({
+      getContext: () => ({
+        font: '',
+        measureText: (text: string) => ({ width: text.length * 10 })
+      })
+    })
+  });
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    callback(0);
+    return 1;
+  });
+
+  documentModel = await import('../src/engine/document');
+  stateModule = await import('../src/state');
+  history = await import('../src/engine/history');
+  sessions = await import('../src/engine/transform-session');
+  overlay = await import('../src/canvas-overlay');
+  geometry = await import('../src/engine/transform-geometry');
+  moveTool = (await import('../src/tools/move')).moveTool;
+  tools = await import('../src/engine/tools');
+});
+
+beforeEach(() => {
+  sessions.cancelTransform();
+  stateModule.state.doc = documentModel.createDoc(800, 600);
+  history.clear();
+  overlay.setShowTransformControls(true);
+});
+
+function transformOf(layer: LayerTransform): LayerTransform {
+  return {
+    x: layer.x,
+    y: layer.y,
+    scaleX: layer.scaleX,
+    scaleY: layer.scaleY,
+    rotation: layer.rotation
+  };
+}
+
+function addImageLayer() {
+  const layer = documentModel.createImageLayer(stateModule.state.doc, 'Subject');
+  layer.bitmap = { width: 100, height: 50 } as HTMLCanvasElement;
+  stateModule.state.doc.layers.push(layer);
+  stateModule.state.doc.activeLayerId = layer.id;
+  return layer;
+}
+
+describe('transform transaction lifecycle', () => {
+  test('direct pointer completion creates exactly one reversible command', () => {
+    const layer = addImageLayer();
+    const before = transformOf(layer);
+
+    expect(sessions.beginTransform(layer.id, 'direct')).toBe(true);
+    expect(sessions.beginHandleGesture('move', { x: 400, y: 300 }, false)).toBe(true);
+    sessions.previewTransform({ x: 455, y: 270 }, { shift: false, bypassSnap: false });
+
+    expect(transformOf(layer)).toEqual({ ...before, x: before.x + 55, y: before.y - 30 });
+    expect(history.entries()).toHaveLength(0);
+
+    sessions.finishGesture();
+
+    expect(history.entries()).toEqual([{ label: 'Transform layer' }]);
+    expect(sessions.getTransformSession()).toBeNull();
+    history.undo();
+    expect(transformOf(layer)).toEqual(before);
+  });
+
+  test('explicit previews across multiple gestures commit only once on Apply', () => {
+    const layer = addImageLayer();
+    const before = transformOf(layer);
+
+    expect(sessions.beginTransform(layer.id, 'explicit')).toBe(true);
+    expect(sessions.beginHandleGesture('move', { x: 400, y: 300 }, false)).toBe(true);
+    sessions.previewTransform({ x: 420, y: 315 }, { shift: false, bypassSnap: false });
+    sessions.finishGesture();
+    expect(history.entries()).toHaveLength(0);
+
+    expect(sessions.beginHandleGesture('move', { x: 420, y: 315 }, false)).toBe(true);
+    sessions.previewTransform({ x: 450, y: 325 }, { shift: false, bypassSnap: false });
+    sessions.finishGesture();
+    const after = transformOf(layer);
+    expect(history.entries()).toHaveLength(0);
+
+    expect(sessions.applyTransform()).toBe(true);
+    expect(history.entries()).toEqual([{ label: 'Transform layer' }]);
+    expect(transformOf(layer)).toEqual(after);
+    history.undo();
+    expect(transformOf(layer)).toEqual(before);
+    history.redo();
+    expect(transformOf(layer)).toEqual(after);
+  });
+
+  test('Cancel restores the exact session-start snapshot without history', () => {
+    const layer = addImageLayer();
+    layer.scaleX = 135.5;
+    layer.scaleY = 62.25;
+    layer.rotation = 347.75;
+    const before = transformOf(layer);
+
+    sessions.beginTransform(layer.id, 'explicit');
+    sessions.beginHandleGesture('move', { x: 0, y: 0 }, false);
+    sessions.previewTransform({ x: -22.5, y: 91.25 }, { shift: false, bypassSnap: false });
+
+    expect(sessions.cancelTransform()).toBe(true);
+    expect(transformOf(layer)).toEqual(before);
+    expect(history.entries()).toHaveLength(0);
+    expect(sessions.getTransformSession()).toBeNull();
+  });
+
+  test('pointer interruption restores the active gesture snapshot', () => {
+    const layer = addImageLayer();
+    const before = transformOf(layer);
+
+    sessions.beginTransform(layer.id, 'direct');
+    sessions.beginHandleGesture('move', { x: 10, y: 20 }, false);
+    sessions.previewTransform({ x: 200, y: 240 }, { shift: false, bypassSnap: false });
+    sessions.interruptGesture();
+
+    expect(transformOf(layer)).toEqual(before);
+    expect(history.entries()).toHaveLength(0);
+    expect(sessions.getTransformSession()).toBeNull();
+  });
+
+  test('deleted and missing layers are handled without stale session state', () => {
+    expect(sessions.beginTransform('missing', 'direct')).toBe(false);
+    expect(sessions.getTransformSession()).toBeNull();
+
+    const layer = addImageLayer();
+    sessions.beginTransform(layer.id, 'direct');
+    sessions.beginHandleGesture('move', { x: 0, y: 0 }, false);
+    stateModule.state.doc.layers = [];
+
+    expect(() => {
+      sessions.previewTransform({ x: 20, y: 30 }, { shift: false, bypassSnap: false });
+      sessions.finishGesture();
+    }).not.toThrow();
+    expect(sessions.getTransformSession()).toBeNull();
+    expect(history.entries()).toHaveLength(0);
+  });
+
+  test('subscribers observe session transitions and can unsubscribe', () => {
+    const layer = addImageLayer();
+    const observed: Array<string | null> = [];
+    const unsubscribe = sessions.subscribeTransformSession(() => {
+      const session = sessions.getTransformSession();
+      observed.push(session ? `${session.mode}:${session.gesture?.handle ?? 'idle'}` : null);
+    });
+
+    sessions.beginTransform(layer.id, 'direct');
+    sessions.beginHandleGesture('move', { x: 0, y: 0 }, false);
+    sessions.previewTransform({ x: 5, y: 7 }, { shift: false, bypassSnap: false });
+    sessions.finishGesture();
+    unsubscribe();
+    sessions.beginTransform(layer.id, 'direct');
+
+    expect(observed).toEqual(['direct:idle', 'direct:move', 'direct:move', null]);
+  });
+});
+
+describe('canvas transform controls', () => {
+  test('show-controls workspace state defaults on and remains toggleable', () => {
+    expect(overlay.getShowTransformControls()).toBe(true);
+    overlay.setShowTransformControls(false);
+    expect(overlay.getShowTransformControls()).toBe(false);
+  });
+
+  test('hit targets and rotation offset remain constant in screen pixels', () => {
+    const layer = addImageLayer();
+    const scale = 2;
+    const rotate = geometry.getHandlePoints(layer, { w: 100, h: 50 }, 32 / scale).rotate;
+
+    expect(overlay.hitTestCanvasOverlay(stateModule.state.doc, rotate, scale)).toBe('rotate');
+    expect(overlay.hitTestCanvasOverlay(
+      stateModule.state.doc,
+      { x: rotate.x + 11 / scale, y: rotate.y },
+      scale
+    )).toBeNull();
+  });
+
+  test('draws eight square handles and one rotation handle, but suppresses invalid targets', () => {
+    const layer = addImageLayer();
+    const ctx = {
+      save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(), closePath: vi.fn(),
+      moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(), fill: vi.fn(),
+      fillRect: vi.fn(), strokeRect: vi.fn(), arc: vi.fn(),
+      strokeStyle: '', fillStyle: '', lineWidth: 0
+    } as unknown as CanvasRenderingContext2D;
+
+    overlay.drawCanvasOverlay(ctx, stateModule.state.doc, { overlayScale: 2 });
+    expect(ctx.strokeRect).toHaveBeenCalledTimes(8);
+    expect(ctx.arc).toHaveBeenCalledTimes(1);
+    expect(ctx.lineWidth).toBe(0.5);
+
+    layer.visible = false;
+    vi.mocked(ctx.strokeRect).mockClear();
+    overlay.drawCanvasOverlay(ctx, stateModule.state.doc, { overlayScale: 2 });
+    expect(ctx.strokeRect).not.toHaveBeenCalled();
+  });
+});
+
+describe('Move tool transform delegation', () => {
+  test('hits a corner handle before the layer interior and commits one resize command', () => {
+    const layer = addImageLayer();
+    const event = { shiftKey: false, ctrlKey: false, metaKey: false } as PointerEvent;
+
+    moveTool.onDown({ x: 450, y: 325 }, event);
+    moveTool.onMove({ x: 500, y: 350 }, event);
+    moveTool.onUp({ x: 500, y: 350 }, event);
+
+    expect(transformOf(layer)).toEqual({ x: 425, y: 312.5, scaleX: 150, scaleY: 150, rotation: 0 });
+    expect(history.entries()).toEqual([{ label: 'Transform layer' }]);
+  });
+
+  test('pointer cancellation restores an interior drag instead of committing it', () => {
+    const layer = addImageLayer();
+    const before = transformOf(layer);
+    const event = { shiftKey: false, ctrlKey: false, metaKey: false } as PointerEvent;
+
+    moveTool.onDown({ x: 400, y: 300 }, event);
+    moveTool.onMove({ x: 475, y: 360 }, event);
+    moveTool.onCancel!({ x: 475, y: 360 }, event);
+
+    expect(transformOf(layer)).toEqual(before);
+    expect(history.entries()).toHaveLength(0);
+  });
+});
+
+describe('captured pointer routing', () => {
+  test('keeps move, release, and cancellation with the tool that received pointerdown', () => {
+    const calls: string[] = [];
+    const tool = (id: string): import('../src/engine/tools').Tool => ({
+      id, label: id, icon: '', cursor: 'default', shortcut: id,
+      onDown: () => calls.push(`${id}:down`),
+      onMove: () => calls.push(`${id}:move`),
+      onUp: () => calls.push(`${id}:up`),
+      onCancel: () => calls.push(`${id}:cancel`)
+    });
+    const move = tool('move');
+    const hand = tool('hand');
+    let active = move;
+    const router = tools.createToolPointerRouter(() => active);
+    const point = { x: 0, y: 0 };
+    const first = { pointerId: 1 } as PointerEvent;
+
+    router.onDown(point, first);
+    active = hand;
+    router.onMove(point, first);
+    router.onUp(point, first);
+
+    active = move;
+    const second = { pointerId: 2 } as PointerEvent;
+    router.onDown(point, second);
+    active = hand;
+    router.onCancel(point, second);
+
+    expect(calls).toEqual(['move:down', 'move:move', 'move:up', 'move:down', 'move:cancel']);
+  });
+});

@@ -1,16 +1,32 @@
 import { type Tool, type DocPoint, layerAt } from '../engine/tools';
-import { state, notify } from '../state';
-import * as history from '../engine/history';
+import { getActiveLayer, state, notify } from '../state';
 import { icons } from '../dom';
+import { hitTestCanvasOverlay } from '../canvas-overlay';
+import { getOverlayScale } from '../canvas';
+import {
+  beginHandleGesture,
+  beginTransform,
+  finishGesture,
+  getTransformSession,
+  interruptGesture,
+  previewTransform
+} from '../engine/transform-session';
+import type { HandleId } from '../engine/transform-geometry';
 
-let drag: { id: string; startX: number; startY: number; origX: number; origY: number; moved: boolean } | null = null;
-
-function clampX(v: number): number { return Math.max(-state.doc.width / 2, Math.min(1.5 * state.doc.width, Math.round(v))); }
-function clampY(v: number): number { return Math.max(-state.doc.height / 2, Math.min(1.5 * state.doc.height, Math.round(v))); }
+const LINKED_HANDLES = new Set<HandleId>(['nw', 'ne', 'se', 'sw']);
 
 export const moveTool: Tool = {
   id: 'move', label: 'Move', icon: icons.move, cursor: 'default', shortcut: 'v',
   onDown(p: DocPoint) {
+    const active = getActiveLayer();
+    const handle = active ? hitTestCanvasOverlay(state.doc, p, getOverlayScale()) : null;
+    if (active && handle) {
+      if (beginTransform(active.id, 'direct')) {
+        beginHandleGesture(handle, p, LINKED_HANDLES.has(handle));
+      }
+      return;
+    }
+
     const hit = layerAt(p);
     if (!hit) {
       state.doc.activeLayerId = null;
@@ -21,30 +37,19 @@ export const moveTool: Tool = {
       state.doc.activeLayerId = hit.id;
       notify('selection', 'composite');
     }
-    drag = { id: hit.id, startX: p.x, startY: p.y, origX: hit.x, origY: hit.y, moved: false };
+    if (beginTransform(hit.id, 'direct')) beginHandleGesture('move', p, false);
   },
-  onMove(p: DocPoint) {
-    if (!drag) return;
-    const layer = state.doc.layers.find((l) => l.id === drag!.id);
-    if (!layer) return;
-    layer.x = clampX(drag.origX + (p.x - drag.startX));
-    layer.y = clampY(drag.origY + (p.y - drag.startY));
-    drag.moved = true;
-    notify('layerProps', 'composite');
+  onMove(p: DocPoint, e: PointerEvent) {
+    if (!getTransformSession()?.gesture) return;
+    previewTransform(p, {
+      shift: e.shiftKey,
+      bypassSnap: e.ctrlKey || e.metaKey
+    });
   },
   onUp() {
-    if (drag && drag.moved) {
-      const d = drag;
-      const layer = state.doc.layers.find((l) => l.id === d.id);
-      if (layer) {
-        const fx = layer.x, fy = layer.y, ox = d.origX, oy = d.origY;
-        history.push({
-          label: 'Move layer',
-          do() { const l = state.doc.layers.find((x) => x.id === d.id); if (l) { l.x = fx; l.y = fy; notify('layerProps', 'composite'); } },
-          undo() { const l = state.doc.layers.find((x) => x.id === d.id); if (l) { l.x = ox; l.y = oy; notify('layerProps', 'composite'); } }
-        });
-      }
-    }
-    drag = null;
+    finishGesture();
+  },
+  onCancel() {
+    interruptGesture();
   }
 };

@@ -132,6 +132,32 @@ describe('reversible editor commands', () => {
     expect({ x: retained.x, y: retained.y }).toEqual({ x: 300, y: 220 });
     expect({ x: added.x, y: added.y }).toEqual({ x: 77, y: 88 });
     expect(retained.bitmap).toBe(bitmap);
+    expect(dirtyBatches.at(-1)).toEqual(new Set<DirtyFlag>(['canvasConfig', 'layerProps', 'composite']));
+  });
+
+  test('command snapshots are isolated from caller mutations after construction', () => {
+    const layer = documentModel.createTextLayer(stateModule.state.doc);
+    stateModule.state.doc.layers.push(layer);
+    const before = transformOf(layer);
+    const after = { x: 10, y: 20, scaleX: 130, scaleY: 70, rotation: 45 };
+    const transform = commands.cmdTransformLayer(layer.id, before, after);
+    const cropBefore = { width: 800, height: 600, positions: { [layer.id]: { x: 400, y: 300 } } };
+    const cropAfter = { width: 640, height: 480, positions: { [layer.id]: { x: 320, y: 240 } } };
+    const crop = commands.cmdCropDocument(cropBefore, cropAfter);
+
+    before.x = -999;
+    after.x = 999;
+    cropBefore.positions[layer.id].x = -999;
+    cropAfter.positions[layer.id].x = 999;
+
+    history.push(transform);
+    expect(layer.x).toBe(10);
+    history.undo();
+    expect(layer.x).toBe(400);
+    history.push(crop);
+    expect(layer.x).toBe(320);
+    history.undo();
+    expect(layer.x).toBe(400);
   });
 });
 

@@ -3,7 +3,7 @@ import { composite } from './engine/compositor';
 import { $ } from './dom';
 import * as history from './engine/history';
 import { cmdPatchDoc } from './engine/commands';
-import { getActiveTool, onToolChange } from './engine/tools';
+import { createToolPointerRouter, getActiveTool, onToolChange } from './engine/tools';
 
 const viewport = $('canvas-viewport');
 const screenCanvas = $('doc-canvas') as unknown as HTMLCanvasElement;
@@ -13,6 +13,7 @@ let dpr = Math.min(window.devicePixelRatio || 1, 2);
 let zoom = 1, panX = 0, panY = 0;
 const zoomWrap = $('zoom-wrap');
 const container = $('canvas-container');
+const pointerRouter = createToolPointerRouter(getActiveTool);
 
 function applyZoom(): void {
   zoomWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
@@ -39,6 +40,10 @@ export function zoomAt(factor: number, clientX?: number, clientY?: number): void
 }
 export function resetView(): void { zoom = 1; panX = 0; panY = 0; applyZoom(); }
 export function getZoomPercent(): number { return Math.round(zoom * 100); }
+export function getOverlayScale(): number {
+  const rect = screenCanvas.getBoundingClientRect();
+  return rect.width > 0 ? rect.width / state.doc.width : 1;
+}
 
 export function applyCanvasDimensions(): void {
   const { width, height } = state.doc;
@@ -64,9 +69,7 @@ function renderScreen(): void {
   // overlayScale = CSS screen px per document px. getBoundingClientRect already
   // includes the zoom transform; the dpr is already in the ctx transform, so it
   // must NOT appear here (it would double-count and thin the outline).
-  const rect = screenCanvas.getBoundingClientRect();
-  const overlayScale = rect.width / state.doc.width;
-  composite(state.doc, screenCtx, { overlay: true, overlayScale });
+  composite(state.doc, screenCtx, { overlay: true, overlayScale: getOverlayScale() });
 }
 
 export function screenToDoc(e: PointerEvent): { x: number; y: number } {
@@ -132,11 +135,15 @@ export function initCanvas(): void {
   // --- Pointer routing to the active tool ---
   screenCanvas.addEventListener('pointerdown', (e) => {
     screenCanvas.setPointerCapture(e.pointerId);
-    getActiveTool().onDown(screenToDoc(e), e);
+    pointerRouter.onDown(screenToDoc(e), e);
   });
-  screenCanvas.addEventListener('pointermove', (e) => getActiveTool().onMove(screenToDoc(e), e));
-  screenCanvas.addEventListener('pointerup', (e) => getActiveTool().onUp(screenToDoc(e), e));
-  screenCanvas.addEventListener('pointercancel', (e) => getActiveTool().onUp(screenToDoc(e), e));
+  screenCanvas.addEventListener('pointermove', (e) => pointerRouter.onMove(screenToDoc(e), e));
+  screenCanvas.addEventListener('pointerup', (e) => pointerRouter.onUp(screenToDoc(e), e));
+  const cancelPointer = (e: PointerEvent) => {
+    pointerRouter.onCancel(screenToDoc(e), e);
+  };
+  screenCanvas.addEventListener('pointercancel', cancelPointer);
+  screenCanvas.addEventListener('lostpointercapture', cancelPointer);
   onToolChange((tool) => { screenCanvas.style.cursor = tool.cursor; });
   screenCanvas.style.cursor = getActiveTool().cursor;
 

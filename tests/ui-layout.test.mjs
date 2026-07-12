@@ -11,6 +11,7 @@ const css = readFileSync(resolve(root, 'src/style.css'), 'utf8');
 const topbar = readFileSync(resolve(root, 'src/topbar.ts'), 'utf8');
 const main = readFileSync(resolve(root, 'src/main.ts'), 'utf8');
 const dom = readFileSync(resolve(root, 'src/dom.ts'), 'utf8');
+const canvas = readFileSync(resolve(root, 'src/canvas.ts'), 'utf8');
 
 function hasClass(source, className) {
   return new RegExp(`class=["'][^"']*\\b${className}\\b[^"']*["']`).test(source);
@@ -108,4 +109,10 @@ test('the in-editor Document Graph runtime is fully removed', () => {
   assert.equal(existsSync(resolve(root, 'src/graph-panel.ts')), false);
 });
 
-export { html, css, topbar, main, dom };
+test('pointer interruption has a distinct cancellation route', () => {
+  assert.match(canvas, /addEventListener\(['"]pointercancel['"],\s*cancelPointer\)/);
+  assert.match(canvas, /addEventListener\(['"]lostpointercapture['"],\s*cancelPointer\)/);
+  assert.doesNotMatch(canvas, /else\s+tool\.onUp\(/);
+});
+
+export { html, css, topbar, main, dom, canvas };

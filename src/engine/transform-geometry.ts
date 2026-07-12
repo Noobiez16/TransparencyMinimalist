@@ -146,12 +146,13 @@ export function hitTestHandle(
   transform: LayerTransform,
   natural: Size,
   point: Point,
-  radiusDoc: number
+  radiusDoc: number,
+  rotationOffset = DEFAULT_ROTATION_OFFSET
 ): HandleId | null {
   if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
   const radius = Math.max(0, finite(radiusDoc));
   const radiusSquared = radius * radius;
-  const handles = getHandlePoints(transform, natural);
+  const handles = getHandlePoints(transform, natural, rotationOffset);
   const order: HandleId[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'rotate'];
   for (const id of order) {
     const dx = point.x - handles[id].x;

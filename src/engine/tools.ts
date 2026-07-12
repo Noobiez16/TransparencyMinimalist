@@ -9,8 +9,47 @@ export interface Tool {
   onDown(p: DocPoint, e: PointerEvent): void;
   onMove(p: DocPoint, e: PointerEvent): void;
   onUp(p: DocPoint, e: PointerEvent): void;
+  onCancel?(p: DocPoint, e: PointerEvent): void;
   drawOverlay?(ctx: CanvasRenderingContext2D): void;
   options?: ToolOption[];
+}
+
+export interface ToolPointerRouter {
+  onDown(p: DocPoint, e: PointerEvent): void;
+  onMove(p: DocPoint, e: PointerEvent): void;
+  onUp(p: DocPoint, e: PointerEvent): void;
+  onCancel(p: DocPoint, e: PointerEvent): void;
+}
+
+export function createToolPointerRouter(resolveActiveTool: () => Tool): ToolPointerRouter {
+  let owner: { pointerId: number; tool: Tool } | null = null;
+  const matchingOwner = (event: PointerEvent) => owner?.pointerId === event.pointerId ? owner.tool : null;
+
+  return {
+    onDown(point, event) {
+      if (owner) return;
+      const tool = resolveActiveTool();
+      owner = { pointerId: event.pointerId, tool };
+      tool.onDown(point, event);
+    },
+    onMove(point, event) {
+      const tool = matchingOwner(event);
+      if (tool) tool.onMove(point, event);
+      else if (!owner) resolveActiveTool().onMove(point, event);
+    },
+    onUp(point, event) {
+      const tool = matchingOwner(event);
+      if (!tool) return;
+      owner = null;
+      tool.onUp(point, event);
+    },
+    onCancel(point, event) {
+      const tool = matchingOwner(event);
+      if (!tool) return;
+      owner = null;
+      tool.onCancel?.(point, event);
+    }
+  };
 }
 
 const tools = new Map<string, Tool>();
