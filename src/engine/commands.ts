@@ -1,5 +1,5 @@
 import { state, notify } from '../state';
-import { type Doc, type Layer, type LayerBase, type Effects } from './document';
+import { type Doc, type Layer, type LayerBase, type Effects, type LayerTransform } from './document';
 import type { Command } from './history';
 
 function findLayer(id: string): Layer | undefined { return state.doc.layers.find((l) => l.id === id); }
@@ -43,6 +43,74 @@ export function cmdPatchDoc(label: string, patch: Partial<Pick<Doc, 'width' | 'h
   const prev = captureKeys(state.doc, patch);
   const apply = (vals: object) => { Object.assign(state.doc, vals); notify('canvasConfig', 'composite'); };
   return { label, do: () => apply(patch), undo: () => apply(prev), coalesceKey };
+}
+
+export interface DocumentGeometry {
+  width: number;
+  height: number;
+  positions: Record<string, { x: number; y: number }>;
+}
+
+function copyTransform(transform: LayerTransform): LayerTransform {
+  return {
+    x: transform.x,
+    y: transform.y,
+    scaleX: transform.scaleX,
+    scaleY: transform.scaleY,
+    rotation: transform.rotation
+  };
+}
+
+export function cmdTransformLayer(
+  layerId: string,
+  before: LayerTransform,
+  after: LayerTransform,
+  label = 'Transform layer',
+  coalesceKey?: string
+): Command {
+  const beforeSnapshot = copyTransform(before);
+  const afterSnapshot = copyTransform(after);
+  const apply = (transform: LayerTransform) => {
+    const layer = findLayer(layerId);
+    if (!layer) return;
+    Object.assign(layer, transform);
+    notify('layerProps', 'composite');
+  };
+  return {
+    label,
+    do: () => apply(afterSnapshot),
+    undo: () => apply(beforeSnapshot),
+    coalesceKey
+  };
+}
+
+function copyDocumentGeometry(geometry: DocumentGeometry): DocumentGeometry {
+  return {
+    width: geometry.width,
+    height: geometry.height,
+    positions: Object.fromEntries(
+      Object.entries(geometry.positions).map(([id, position]) => [id, { x: position.x, y: position.y }])
+    )
+  };
+}
+
+export function cmdCropDocument(before: DocumentGeometry, after: DocumentGeometry): Command {
+  const beforeSnapshot = copyDocumentGeometry(before);
+  const afterSnapshot = copyDocumentGeometry(after);
+  const apply = (geometry: DocumentGeometry) => {
+    state.doc.width = geometry.width;
+    state.doc.height = geometry.height;
+    for (const layer of state.doc.layers) {
+      const position = geometry.positions[layer.id];
+      if (position) Object.assign(layer, position);
+    }
+    notify('canvasConfig', 'layerProps', 'composite');
+  };
+  return {
+    label: 'Crop document',
+    do: () => apply(afterSnapshot),
+    undo: () => apply(beforeSnapshot)
+  };
 }
 
 export function cmdAddLayer(layer: Layer, index: number, label: string): Command {
