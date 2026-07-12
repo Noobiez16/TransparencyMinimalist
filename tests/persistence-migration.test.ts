@@ -35,6 +35,23 @@ describe('project version migration', () => {
     expect(persistence.migrateSerialLayer(raw, 2)).toEqual(raw);
   });
 
+  test('version 2 missing affine fields use safe defaults and remove stray scale', () => {
+    const migrated = persistence.migrateSerialLayer(serialTextLayer({ scale: 250, scaleY: 75 }), 2);
+
+    expect(migrated).toMatchObject({ scaleX: 100, scaleY: 75, rotation: 0 });
+    expect(migrated).not.toHaveProperty('scale');
+  });
+
+  test('version 1 preserves provided affine values while filling from legacy scale', () => {
+    const migrated = persistence.migrateSerialLayer(
+      serialTextLayer({ scale: 125, scaleX: 140, rotation: 30 }),
+      1
+    );
+
+    expect(migrated).toMatchObject({ scaleX: 140, scaleY: 125, rotation: 30 });
+    expect(migrated).not.toHaveProperty('scale');
+  });
+
   test('serialization writes version 2 in both envelope and document', async () => {
     const serialized = JSON.parse(await persistence.serializeDoc(documentModel.createDoc()));
 
@@ -62,5 +79,11 @@ describe('project version migration', () => {
     const json = JSON.stringify({ app: 'minimalist-editor', version: 3, doc: { layers: [] } });
 
     await expect(persistence.deserializeDoc(json)).rejects.toThrow('newer version');
+  });
+
+  test.each([0, 1.5, 2.5])('unsupported envelope version %s is rejected', async (version) => {
+    const json = JSON.stringify({ app: 'minimalist-editor', version, doc: { layers: [] } });
+
+    await expect(persistence.deserializeDoc(json)).rejects.toThrow();
   });
 });

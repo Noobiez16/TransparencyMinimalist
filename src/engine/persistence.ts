@@ -13,10 +13,16 @@ interface RawProjectFile {
 }
 
 export function migrateSerialLayer(raw: Record<string, unknown>, fileVersion: 1 | 2): Record<string, unknown> {
-  if (fileVersion === 2) return { ...raw };
-  const { scale, ...layer } = raw;
-  const uniformScale = typeof scale === 'number' ? scale : 100;
-  return { ...layer, scaleX: uniformScale, scaleY: uniformScale, rotation: 0 };
+  const { scale, scaleX, scaleY, rotation, ...layer } = raw;
+  const finiteOr = (value: unknown, fallback: number): number =>
+    typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  const legacyScale = fileVersion === 1 ? finiteOr(scale, 100) : 100;
+  return {
+    ...layer,
+    scaleX: finiteOr(scaleX, legacyScale),
+    scaleY: finiteOr(scaleY, legacyScale),
+    rotation: finiteOr(rotation, 0)
+  };
 }
 
 function canvasToDataUrl(c: HTMLCanvasElement): Promise<string> {
@@ -63,9 +69,13 @@ export async function deserializeDoc(json: string): Promise<Doc> {
   let parsed: RawProjectFile;
   try { parsed = JSON.parse(json) as RawProjectFile; } catch { throw new Error('Not a valid project file.'); }
   if (parsed?.app !== 'minimalist-editor' || !parsed.doc) throw new Error('Not a valid project file.');
-  if (typeof parsed.version !== 'number' || parsed.version < 1) throw new Error('Not a valid project file.');
-  if (parsed.version > 2) throw new Error('This project was saved by a newer version.');
-  const fileVersion = parsed.version as 1 | 2;
+  if (parsed.version !== 1 && parsed.version !== 2) {
+    if (typeof parsed.version === 'number' && Number.isInteger(parsed.version) && parsed.version > 2) {
+      throw new Error('This project was saved by a newer version.');
+    }
+    throw new Error('Not a valid project file.');
+  }
+  const fileVersion = parsed.version;
   if (!Array.isArray(parsed.doc.layers)) throw new Error('Not a valid project file.');
   const layers: Layer[] = [];
   for (const rawLayer of parsed.doc.layers) {

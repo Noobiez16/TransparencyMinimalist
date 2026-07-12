@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test, vi } from 'vitest';
-import type { Doc, ImageLayer } from '../src/engine/document';
+import type { Doc, ImageLayer, LayerTransform } from '../src/engine/document';
 
 let documentModel: typeof import('../src/engine/document');
 let compositor: typeof import('../src/engine/compositor');
@@ -21,10 +21,13 @@ describe('version 2 affine document model', () => {
   test('new documents and layers use version 2 affine defaults', () => {
     const doc = documentModel.createDoc(640, 480);
     const layer = documentModel.createImageLayer(doc);
+    const typedDoc: Doc = doc;
+    const typedLayer: ImageLayer = layer;
+    const typedTransform: LayerTransform = typedLayer;
 
-    expect(doc.version).toBe(2);
-    expect(layer).toMatchObject({ scaleX: 100, scaleY: 100, rotation: 0 });
-    expect(layer).not.toHaveProperty('scale');
+    expect(typedDoc.version).toBe(2);
+    expect(typedTransform).toMatchObject({ scaleX: 100, scaleY: 100, rotation: 0 });
+    expect(typedLayer).not.toHaveProperty('scale');
   });
 
   test('display size applies independent axis percentages', () => {
@@ -86,9 +89,3 @@ describe('version 2 affine document model', () => {
     expect(documentModel.layerContainsPoint(layer, { x: layer.x + 49, y: layer.y })).toBe(false);
   });
 });
-
-// Compile-time fixture: the public model accepts affine image layers without a legacy scale.
-const affineLayerFixture: ImageLayer = {} as ImageLayer;
-const versionTwoFixture: Doc['version'] = 2;
-void affineLayerFixture;
-void versionTwoFixture;
