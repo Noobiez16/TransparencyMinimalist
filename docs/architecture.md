@@ -43,15 +43,20 @@ export interface Effects {
   invert: boolean;
 }
 
-export interface LayerBase {
+export interface LayerTransform {
+  x: number;
+  y: number;
+  scaleX: number;
+  scaleY: number;
+  rotation: number;
+}
+
+export interface LayerBase extends LayerTransform {
   id: string;
   name: string;
   visible: boolean;
   opacity: number;
   blendMode: BlendMode;
-  x: number;
-  y: number;
-  scale: number;
   effects: Effects;
 }
 
@@ -73,7 +78,7 @@ export interface TextLayer extends LayerBase {
 export type Layer = ImageLayer | TextLayer;
 
 export interface Doc {
-  version: 1;
+  version: 2;
   width: number;
   height: number;
   bgType: 'transparent' | 'white' | 'black' | 'custom';
@@ -85,7 +90,7 @@ export interface Doc {
 
 The layer array is also the visual stack: `layers[0]` is topmost. The compositor reverses the array while drawing so lower layers reach the canvas first, while hit testing walks it from index zero so the first visible hit is the frontmost layer.
 
-Layer `x` and `y` are the layer center in document pixels, not viewport units. `scale` is a percentage constrained by the editor to 10-400 percent. Effect blur and text `fontSize` are document pixels; font size is constrained to 8-512. Opacity is 0-100, and image contrast, saturation, and brightness use percent values when their corresponding effect switches are enabled.
+Layer `x` and `y` are the layer center in document pixels, not viewport units. `scaleX` and `scaleY` are independent per-axis percentages, and `rotation` is degrees normalized to a single turn, so every layer carries a full affine placement. Effect blur and text `fontSize` are document pixels; font size is constrained to 8-512. Opacity is 0-100, and image contrast, saturation, and brightness use percent values when their corresponding effect switches are enabled.
 
 ## State and Notification Flow
 
@@ -111,9 +116,17 @@ Pushing after an undo truncates the redo tail. The history cursor identifies the
 
 ## Tool System and Pointer Routing
 
-`src/engine/tools.ts` defines `Tool`, `ToolOption`, registration, active-tool selection, and layer hit testing. Startup in `src/main.ts` registers Move, Hand, and Zoom tools before the rail and canvas are initialized. The tool rail is generated from `allTools()`, and the contextual options bar renders the active tool's option descriptors. Keyboard shortcuts select registered tools; holding Space temporarily activates Hand and restores the previous tool on release.
+`src/engine/tools.ts` defines `Tool`, `ToolOption`, registration, active-tool selection, and layer hit testing. Startup in `src/main.ts` registers the Move, Hand, Zoom, and Crop tools before the rail and canvas are initialized. The tool rail is generated from `allTools()`, and the contextual options bar renders the active tool's option descriptors. Keyboard shortcuts select registered tools; holding Space temporarily activates Hand and restores the previous tool on release.
 
 `src/canvas.ts` owns pointer capture and routes pointer down, move, up, and cancel events to the active tool. Every routed event first passes through `screenToDoc()`, which maps the canvas bounding rectangle into the document width and height. Tool implementations therefore receive stable document pixels regardless of CSS fitting, zoom, pan, or device pixel ratio.
+
+## Editing Sessions, Snapping, and Crop
+
+Interactive edits run inside session modules so previews stay live while history receives exactly one reversible command per confirmed edit.
+
+- `src/engine/transform-session.ts` owns Move-tool drags and the explicit Free Transform session. A session snapshots the starting `LayerTransform`, previews handle gestures against the live layer, and on apply pushes a single transform command built from the start and end values. Cancel restores the snapshot without touching history.
+- `src/engine/snap-engine.ts` is pure geometry. At gesture start the session caches snap candidates (document center, document edges, then visible-layer edges and centers). `snapTranslation()` converts a fixed screen-pixel radius through the overlay scale, resolves ties deterministically, and returns the corrected position plus alignment and measurement guide descriptors that `src/canvas-overlay.ts` draws at constant screen size. Holding Ctrl/Cmd bypasses snapping for the duration of the gesture.
+- `src/engine/crop-session.ts` implements the non-destructive crop workflow behind the Crop tool. The session tracks a rect constrained to the document, aspect-ratio presets plus a validated custom ratio, and handle gestures. Apply rounds the rect, subtracts its origin from every layer center, and pushes one crop command that resizes the document; undo restores the previous geometry exactly because layer bitmaps and transforms are never resampled.
 
 ## Compositor and Export Parity
 
@@ -123,7 +136,7 @@ The interactive canvas in `src/canvas.ts` calls `composite()` with `overlay: tru
 
 ## Persistence and Autosave
 
-Project downloads use the `.mledit.json` suffix and a versioned envelope with `app: 'minimalist-editor'`, `version: 1`, and `doc`. Loading validates the application marker, rejects newer envelope versions, reconstructs image canvases, clears history, marks the loaded cursor as saved, and notifies the affected UI.
+Project downloads use the `.mledit.json` suffix and a versioned envelope with `app: 'minimalist-editor'`, `version: 2`, and `doc`. Loading validates the application marker, rejects newer envelope versions, reconstructs image canvases, clears history, marks the loaded cursor as saved, and notifies the affected UI. Version 1 projects still open: the loader migrates each legacy uniform `scale` into `scaleX`/`scaleY` with zero rotation and saves the result as version 2.
 
 Image-layer canvases are PNG-encoded image data URLs inside the JSON envelope; text layers remain ordinary JSON data. Saving creates a JSON blob and temporary object URL, clicks a transient download link, then revokes the URL. This keeps existing `.mledit.json` envelope compatibility while allowing runtime image layers to use `HTMLCanvasElement`.
 

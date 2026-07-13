@@ -143,6 +143,45 @@ test('public docs preserve the architecture diagram without advertising an edito
   assert.match(architecture, /```mermaid/);
 });
 
+test('README documents the professional core editing workflow', () => {
+  const readme = readPublicDoc('README.md');
+  assert.match(readme, /Free Transform/, 'README must name Free Transform');
+  assert.match(readme, /Ctrl\+T/, 'README must document the Ctrl+T shortcut');
+  assert.match(readme, /\bC\b/, 'README must document the Crop shortcut C');
+  assert.match(readme, /\bEnter\b/, 'README must document Enter as apply');
+  assert.match(readme, /\bEsc(?:ape)?\b/, 'README must document Escape as cancel');
+  assert.match(readme, /\bShift\b/, 'README must document the Shift constrain modifier');
+  assert.match(readme, /Ctrl\/Cmd|Ctrl or Cmd/, 'README must document the snap bypass modifier');
+  assert.match(readme, /smart (?:alignment )?guides/i, 'README must describe smart guides');
+  assert.match(readme, /non-destructive/i, 'README must state the crop is non-destructive');
+  assert.match(readme, /[Rr]oadmap/, 'README must carry the explicit future roadmap');
+  assert.match(readme, /groups[^\n.]*masks|masks[^\n.]*groups/i, 'roadmap must name groups and masks as future work');
+});
+
+test('architecture guide documents version 2 affine documents and the editing engines', () => {
+  const architecture = readPublicDoc('docs/architecture.md');
+  assert.match(architecture, /version 2/i, 'architecture must describe the version 2 format');
+  assert.match(architecture, /version 1[^\n.]*(?:migrat|open|upgrad)/i, 'architecture must explain version 1 compatibility');
+  for (const field of ['scaleX', 'scaleY', 'rotation']) {
+    assert.match(architecture, new RegExp(`\\b${field}\\b`), `architecture must document the ${field} affine field`);
+  }
+  for (const module of [
+    'src/engine/transform-session.ts',
+    'src/engine/snap-engine.ts',
+    'src/engine/crop-session.ts'
+  ]) {
+    assert.match(architecture, new RegExp(module.replaceAll('.', '\\.').replaceAll('/', '\\/')), `architecture must document ${module}`);
+  }
+  assert.match(architecture, /non-destructive[^\n.]*crop|crop[^\n.]*non-destructive/i);
+});
+
+test('examples walk through transform, snapping, and crop usage', () => {
+  const examples = readPublicDoc('docs/examples.md');
+  assert.match(examples, /Free Transform|Ctrl\+T/, 'examples must exercise Free Transform');
+  assert.match(examples, /smart (?:alignment )?guides|snap/i, 'examples must exercise snapping');
+  assert.match(examples, /\bCrop\b/, 'examples must exercise the Crop tool');
+});
+
 test('all public documents meet global Markdown and terminology rules', () => {
   for (const path of publicFiles) {
     const text = readPublicDoc(path);

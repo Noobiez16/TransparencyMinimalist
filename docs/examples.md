@@ -8,6 +8,14 @@ Choose a document size and a Background option before composing. Select **Transp
 
 The supported blending choices are **Normal**, **Multiply**, **Screen**, **Overlay**, **Darken**, and **Lighten**. **Opacity** and **Scale** apply to either layer type. **Blur** can apply to image or text layers, while **Brightness**, **Contrast**, and **Saturation** apply to image layers. Each effect has its own switch and must be enabled before its value affects the composition.
 
+## Precise Placement and Framing
+
+This workflow positions a layer exactly and then reframes the whole document without losing pixels.
+
+1. Select the layer with the Move tool and drag it. Smart alignment guides appear as the layer approaches the document center, a document edge, or another visible layer, and the drag snaps to the highlighted line. Hold `Ctrl/Cmd` to bypass snapping for one gesture, or turn **Snap** off in the options bar.
+2. For exact values, press `Ctrl+T` to open Free Transform, then edit the X, Y, width, height, or rotation fields in the options bar. Hold `Shift` while dragging a handle to constrain it. Press `Enter` to apply the session or `Escape` to discard every change from it.
+3. To reframe the composition, switch to the **Crop** tool (`C`). Pick a ratio such as **1:1** or **16:9** (or enter a custom ratio), drag the handles or the window, and press `Enter` to apply. The crop changes only the document bounds and layer positions, so one undo restores the previous framing exactly.
+
 ## Transparency-Aware Artwork
 
 This workflow creates artwork whose transparent and partially transparent regions can respond to the background chosen by a viewer or publishing service.
