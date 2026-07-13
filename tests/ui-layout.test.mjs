@@ -182,4 +182,36 @@ test('compact options wrap while transform decisions stay visible', () => {
   assert.match(css, /\.transform-session-actions/);
 });
 
+test('Crop tool ships with shortcut C, session lifecycle, and Enter/Escape decisions', () => {
+  const crop = readFileSync(resolve(root, 'src/tools/crop.ts'), 'utf8');
+  assert.match(crop, /id:\s*['"]crop['"]/);
+  assert.match(crop, /shortcut:\s*['"]c['"]/);
+  assert.match(crop, /icons\.crop/);
+  assert.match(main, /registerTool\(cropTool\)/);
+  assert.match(main, /getCropSession\(\)\s*&&\s*e\.key\s*===\s*['"]Enter['"]/);
+  assert.match(main, /getCropSession\(\)\s*&&\s*e\.key\s*===\s*['"]Escape['"]/);
+  assert.match(main, /cancelCrop\(\)/);
+  assert.match(main, /beginCrop\(\)/);
+});
+
+test('Crop overlay draws shading, thirds, and constant-size handles', () => {
+  const overlay = readFileSync(resolve(root, 'src/canvas-overlay.ts'), 'utf8');
+  assert.match(overlay, /evenodd/);
+  assert.match(overlay, /step\s*<=\s*2/);
+  assert.match(overlay, /hitTestCropOverlay/);
+  assert.match(overlay, /HANDLE_SIZE_PX\s*\/\s*scale/);
+  assert.match(overlay, /getCropSession/);
+});
+
+test('Crop contextual controls expose ratio presets, dimensions, and decisions', () => {
+  const crop = readFileSync(resolve(root, 'src/tools/crop.ts'), 'utf8');
+  for (const ratio of ['free', 'original', '1:1', '4:5', '16:9', '9:16', 'custom']) {
+    assert.match(crop, new RegExp(`['"]${ratio.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`), `missing ratio ${ratio}`);
+  }
+  for (const key of ['crop-width', 'crop-height', 'crop-reset', 'crop-apply', 'crop-cancel']) {
+    assert.match(crop, new RegExp(`['"]${key}['"]`), `missing option ${key}`);
+  }
+  assert.match(crop, /essential:\s*true/);
+});
+
 export { html, css, topbar, main, dom, canvas };

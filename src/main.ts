@@ -14,8 +14,10 @@ import { registerTool, setActiveTool, getActiveTool, allTools, onToolChange } fr
 import { moveTool } from './tools/move';
 import { handTool } from './tools/hand';
 import { zoomTool } from './tools/zoom';
+import { cropTool } from './tools/crop';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
+import { applyCrop, beginCrop, cancelCrop, getCropSession, subscribeCropSession } from './engine/crop-session';
 import { toast } from './toast';
 import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, isTransformSessionGuardOpen } from './transform-session-guard';
 
@@ -43,6 +45,16 @@ function initHistoryUI(): void {
 registerTool(moveTool);
 registerTool(handTool);
 registerTool(zoomTool);
+registerTool(cropTool);
+
+// The Crop tool owns exactly one session: entering the tool opens it,
+// leaving the tool (or Enter/Escape below) closes it.
+let lastToolId = getActiveTool().id;
+onToolChange((tool) => {
+  if (lastToolId === 'crop' && tool.id !== 'crop') cancelCrop();
+  if (tool.id === 'crop' && !getCropSession()) beginCrop();
+  lastToolId = tool.id;
+});
 
 let spaceHeld = false;
 let toolBeforeSpace: string | null = null;
@@ -62,6 +74,8 @@ document.addEventListener('keydown', (e) => {
   const transformSession = getTransformSession();
   if (transformSession?.mode === 'explicit' && e.key === 'Enter') { e.preventDefault(); applyTransform(); return; }
   if (transformSession?.mode === 'explicit' && e.key === 'Escape') { e.preventDefault(); cancelTransform(); return; }
+  if (getCropSession() && e.key === 'Enter') { e.preventDefault(); applyCrop(); setActiveTool('move'); return; }
+  if (getCropSession() && e.key === 'Escape') { e.preventDefault(); cancelCrop(); setActiveTool('move'); return; }
   if (e.code === 'Space') e.preventDefault();
   if (e.code === 'Space' && !e.repeat && !spaceHeld) {
     spaceHeld = true;
@@ -95,7 +109,9 @@ initHistoryUI();
 const syncContextStatus = () => {
   const session = getTransformSession();
   const status = $('status-context');
-  if (session?.mode === 'explicit') {
+  if (getCropSession()) {
+    status.textContent = 'Crop · Drag handles or edit ratio · Enter applies · Esc cancels';
+  } else if (session?.mode === 'explicit') {
     status.textContent = session.gesture
       ? 'Free Transform · Shift constrains · Enter applies · Esc cancels'
       : 'Free Transform · Drag handles or edit fields · Enter applies · Esc cancels';
@@ -107,6 +123,7 @@ const syncContextStatus = () => {
 };
 onToolChange(syncContextStatus);
 subscribeTransformSession(syncContextStatus);
+subscribeCropSession(syncContextStatus);
 syncContextStatus();
 
 const text = createTextLayer(state.doc, 'Text Overlay');

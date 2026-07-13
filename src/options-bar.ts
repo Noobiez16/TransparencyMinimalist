@@ -1,6 +1,7 @@
 import { getActiveTool, onToolChange, type ToolOption } from './engine/tools';
 import { subscribe } from './state';
 import { subscribeTransformSession } from './engine/transform-session';
+import { subscribeCropSession } from './engine/crop-session';
 import { $ } from './dom';
 
 interface FocusedDraft { key: string; value: string }
@@ -127,5 +128,6 @@ export function initOptionsBar(): void {
     if (dirty.has('selection') || dirty.has('layerProps') || dirty.has('structure')) render();
   });
   subscribeTransformSession(render);
+  subscribeCropSession(render);
   render();
 }

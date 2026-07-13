@@ -1,6 +1,7 @@
 import { getActiveLayer, layerNaturalSize, type Doc } from './engine/document';
 import { getHandlePoints, getLayerQuad, hitTestHandle, type HandleId, type Point } from './engine/transform-geometry';
 import type { GuideDescriptor } from './engine/snap-engine';
+import { getCropSession, type CropHandle, type CropRect } from './engine/crop-session';
 
 const HANDLE_SIZE_PX = 8;
 const HANDLE_HIT_RADIUS_PX = 10;
@@ -13,7 +14,7 @@ function safeScale(overlayScale: number): number {
 }
 
 function transformableLayer(doc: Doc) {
-  if (!showTransformControls) return undefined;
+  if (!showTransformControls || getCropSession()) return undefined;
   const layer = getActiveLayer(doc);
   if (!layer || !layer.visible) return undefined;
   const natural = layerNaturalSize(layer);
@@ -94,6 +95,83 @@ function drawGuides(ctx: CanvasRenderingContext2D, scale: number): void {
   ctx.restore();
 }
 
+function cropHandlePoints(rect: CropRect): Record<Exclude<CropHandle, 'move'>, Point> {
+  const midX = rect.x + rect.width / 2;
+  const midY = rect.y + rect.height / 2;
+  const right = rect.x + rect.width;
+  const bottom = rect.y + rect.height;
+  return {
+    nw: { x: rect.x, y: rect.y },
+    n: { x: midX, y: rect.y },
+    ne: { x: right, y: rect.y },
+    e: { x: right, y: midY },
+    se: { x: right, y: bottom },
+    s: { x: midX, y: bottom },
+    sw: { x: rect.x, y: bottom },
+    w: { x: rect.x, y: midY }
+  };
+}
+
+export function hitTestCropOverlay(point: Point, overlayScale: number): CropHandle | null {
+  const session = getCropSession();
+  if (!session) return null;
+  const scale = safeScale(overlayScale);
+  const radius = HANDLE_HIT_RADIUS_PX / scale;
+  const rect = session.rect;
+  const handles = cropHandlePoints(rect);
+  let best: { id: CropHandle; distance: number } | null = null;
+  for (const [id, handle] of Object.entries(handles) as [Exclude<CropHandle, 'move'>, Point][]) {
+    const distance = Math.hypot(point.x - handle.x, point.y - handle.y);
+    if (distance <= radius && (!best || distance < best.distance)) best = { id, distance };
+  }
+  if (best) return best.id;
+  const inside = point.x >= rect.x && point.x <= rect.x + rect.width &&
+    point.y >= rect.y && point.y <= rect.y + rect.height;
+  return inside ? 'move' : null;
+}
+
+function drawCropOverlay(ctx: CanvasRenderingContext2D, doc: Doc, scale: number): void {
+  const session = getCropSession();
+  if (!session) return;
+  const rect = session.rect;
+  const lineWidth = 1 / scale;
+  const handleSize = HANDLE_SIZE_PX / scale;
+  const halfHandle = handleSize / 2;
+
+  ctx.save();
+  // Excluded-area shading (document minus crop window, even-odd fill).
+  ctx.fillStyle = 'rgba(8, 10, 14, 0.55)';
+  ctx.beginPath();
+  ctx.rect(0, 0, doc.width, doc.height);
+  ctx.rect(rect.x, rect.y, rect.width, rect.height);
+  ctx.fill('evenodd');
+
+  // Rule-of-thirds grid inside the crop window.
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  for (let step = 1; step <= 2; step++) {
+    const gx = rect.x + (rect.width * step) / 3;
+    const gy = rect.y + (rect.height * step) / 3;
+    ctx.moveTo(gx, rect.y);
+    ctx.lineTo(gx, rect.y + rect.height);
+    ctx.moveTo(rect.x, gy);
+    ctx.lineTo(rect.x + rect.width, gy);
+  }
+  ctx.stroke();
+
+  // Crop border and handles at constant screen size.
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+  ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+  ctx.strokeStyle = 'rgba(20, 24, 32, 0.95)';
+  for (const handle of Object.values(cropHandlePoints(rect))) {
+    ctx.fillRect(handle.x - halfHandle, handle.y - halfHandle, handleSize, handleSize);
+    ctx.strokeRect(handle.x - halfHandle, handle.y - halfHandle, handleSize, handleSize);
+  }
+  ctx.restore();
+}
+
 export function hitTestCanvasOverlay(
   doc: Doc,
   point: Point,
@@ -118,6 +196,7 @@ export function drawCanvasOverlay(
 ): void {
   const scale = safeScale(overlayScale);
   drawGuides(ctx, scale);
+  drawCropOverlay(ctx, doc, scale);
   const target = transformableLayer(doc);
   if (!target) return;
   const quad = getLayerQuad(target.layer, target.natural);
