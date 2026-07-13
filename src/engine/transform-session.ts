@@ -1,6 +1,7 @@
 import { cmdTransformLayer } from './commands';
 import { layerNaturalSize, type LayerTransform } from './document';
 import {
+  getLayerQuad,
   normalizeDegrees,
   resizeFromHandle,
   rotationFromPointer,
@@ -9,8 +10,10 @@ import {
   type ResizeHandleId,
   type Size
 } from './transform-geometry';
+import { buildSnapCandidates, snapTranslation, type SnapAnchor, type SnapCandidate } from './snap-engine';
 import * as history from './history';
 import { notify, state } from '../state';
+import { clearActiveGuides, setActiveGuides } from '../canvas-overlay';
 
 export type TransformMode = 'direct' | 'explicit';
 
@@ -22,6 +25,16 @@ export interface TransformGesture {
   linked: boolean;
 }
 
+interface InternalTransformGesture extends TransformGesture {
+  snap: { candidates: SnapCandidate[]; overlayScale: number; screenPx: number } | null;
+}
+
+export interface TransformSnapOptions {
+  enabled: boolean;
+  overlayScale: number;
+  screenPx?: number;
+}
+
 export interface TransformSession {
   layerId: string;
   mode: TransformMode;
@@ -30,11 +43,15 @@ export interface TransformSession {
   gesture: TransformGesture | null;
 }
 
+interface InternalTransformSession extends Omit<TransformSession, 'gesture'> {
+  gesture: InternalTransformGesture | null;
+}
+
 type DeepReadonly<T> = T extends (...args: never[]) => unknown ? T :
   T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> } : T;
 
 const listeners = new Set<() => void>();
-let activeSession: TransformSession | null = null;
+let activeSession: InternalTransformSession | null = null;
 
 function copyTransform(transform: LayerTransform): LayerTransform {
   return {
@@ -64,7 +81,9 @@ function emit(): void {
 }
 
 function clearSession(): void {
+  clearActiveGuides();
   activeSession = null;
+  notify('composite');
   emit();
 }
 
@@ -80,6 +99,7 @@ export function beginTransform(layerId: string, mode: TransformMode): boolean {
   const layer = state.doc.layers.find((candidate) => candidate.id === layerId);
   if (!layer || activeSession) return false;
   const snapshot = copyTransform(layer);
+  clearActiveGuides();
   activeSession = {
     layerId,
     mode,
@@ -91,7 +111,12 @@ export function beginTransform(layerId: string, mode: TransformMode): boolean {
   return true;
 }
 
-export function beginHandleGesture(handle: HandleId | 'move', point: Point, linked: boolean): boolean {
+export function beginHandleGesture(
+  handle: HandleId | 'move',
+  point: Point,
+  linked: boolean,
+  snapOptions?: TransformSnapOptions
+): boolean {
   const layer = findLayer();
   if (!activeSession || !layer || activeSession.gesture) return false;
   activeSession.gesture = {
@@ -99,10 +124,30 @@ export function beginHandleGesture(handle: HandleId | 'move', point: Point, link
     startPointer: { x: point.x, y: point.y },
     startTransform: copyTransform(layer),
     naturalSize: layerNaturalSize(layer),
-    linked
+    linked,
+    snap: snapOptions?.enabled ? {
+      candidates: buildSnapCandidates(state.doc, layer.id),
+      overlayScale: snapOptions.overlayScale,
+      screenPx: snapOptions.screenPx ?? 6
+    } : null
   };
   emit();
   return true;
+}
+
+function transformBounds(transform: LayerTransform, natural: Size): { x: number; y: number; w: number; h: number } {
+  const { corners } = getLayerQuad(transform, natural);
+  const xs = corners.map((corner) => corner.x);
+  const ys = corners.map((corner) => corner.y);
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
+}
+
+function resizeAnchors(handle: ResizeHandleId): { x: readonly SnapAnchor[]; y: readonly SnapAnchor[] } {
+  const x: readonly SnapAnchor[] = handle.includes('e') ? ['end'] : handle.includes('w') ? ['start'] : [];
+  const y: readonly SnapAnchor[] = handle.includes('s') ? ['end'] : handle.includes('n') ? ['start'] : [];
+  return { x, y };
 }
 
 export function previewTransform(
@@ -146,7 +191,40 @@ export function previewTransform(
     });
   }
 
-  void modifiers.bypassSnap;
+  if (gesture.snap && gesture.handle !== 'rotate') {
+    const bounds = transformBounds(next, gesture.naturalSize);
+    const center = { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h / 2 };
+    const result = snapTranslation({
+      x: center.x,
+      y: center.y,
+      width: bounds.w,
+      height: bounds.h,
+      candidates: gesture.snap.candidates,
+      overlayScale: gesture.snap.overlayScale,
+      screenPx: gesture.snap.screenPx,
+      bypass: modifiers.bypassSnap,
+      ...(gesture.handle === 'move' ? {} : { anchors: resizeAnchors(gesture.handle as ResizeHandleId) })
+    });
+    setActiveGuides(result.guides);
+    if (!modifiers.bypassSnap) {
+      const correction = { x: result.x - center.x, y: result.y - center.y };
+      if (gesture.handle === 'move') {
+        next = { ...next, x: next.x + correction.x, y: next.y + correction.y };
+      } else {
+        next = resizeFromHandle({
+          start: gesture.startTransform,
+          natural: gesture.naturalSize,
+          handle: gesture.handle as ResizeHandleId,
+          startPointer: gesture.startPointer,
+          pointer: { x: point.x + correction.x, y: point.y + correction.y },
+          linked: gesture.linked || modifiers.shift,
+          minSize: 1
+        });
+      }
+    }
+  } else {
+    clearActiveGuides();
+  }
   Object.assign(layer, next);
   activeSession.current = copyTransform(next);
   notify('layerProps', 'composite');
@@ -155,16 +233,19 @@ export function previewTransform(
 
 export function finishGesture(): void {
   if (!activeSession?.gesture) return;
+  clearActiveGuides();
   activeSession.gesture = null;
   if (activeSession.mode === 'direct') {
     applyTransform();
   } else {
+    notify('composite');
     emit();
   }
 }
 
 export function interruptGesture(): void {
   if (!activeSession?.gesture) return;
+  clearActiveGuides();
   const interrupted = activeSession.gesture.startTransform;
   const mode = activeSession.mode;
   if (!restore(interrupted)) { clearSession(); return; }
@@ -190,6 +271,8 @@ export function updateTransform(patch: Partial<LayerTransform>): boolean {
 }
 
 export function applyTransform(): boolean {
+  clearActiveGuides();
+  notify('composite');
   if (!activeSession) return false;
   const layer = findLayer();
   if (!layer) { clearSession(); return false; }
@@ -204,6 +287,8 @@ export function applyTransform(): boolean {
 }
 
 export function cancelTransform(): boolean {
+  clearActiveGuides();
+  notify('composite');
   if (!activeSession) return false;
   const start = activeSession.start;
   const restored = restore(start);
@@ -226,6 +311,10 @@ export function getTransformSession(): DeepReadonly<TransformSession> | null {
       linked: activeSession.gesture.linked
     } : null
   };
+}
+
+export function hasActiveTransformGesture(): boolean {
+  return Boolean(activeSession?.gesture);
 }
 
 export function subscribeTransformSession(listener: () => void): () => void {

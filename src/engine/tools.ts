@@ -1,4 +1,5 @@
-import { state } from '../state';
+import { notify, state } from '../state';
+import { clearActiveGuides } from '../canvas-overlay';
 import { type Layer, layerNaturalSize } from './document';
 import { hitTestLayer } from './transform-geometry';
 
@@ -67,6 +68,8 @@ export function getActiveTool(): Tool { return active!; }
 export function setActiveTool(id: string): void {
   const t = tools.get(id);
   if (!t || t === active) return;
+  clearActiveGuides();
+  notify('composite');
   active = t;
   changeListeners.forEach((fn) => { try { fn(t); } catch (e) { console.error(e); } });
 }

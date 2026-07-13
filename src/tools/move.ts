@@ -1,7 +1,7 @@
 import { type Tool, type DocPoint, layerAt } from '../engine/tools';
 import { getActiveLayer, state, notify } from '../state';
 import { icons } from '../dom';
-import { getShowTransformControls, hitTestCanvasOverlay, setShowTransformControls } from '../canvas-overlay';
+import { clearActiveGuides, getShowTransformControls, hitTestCanvasOverlay, setShowTransformControls } from '../canvas-overlay';
 import { getOverlayScale } from '../canvas';
 import {
   applyTransform,
@@ -10,6 +10,7 @@ import {
   cancelTransform,
   finishGesture,
   getTransformSession,
+  hasActiveTransformGesture,
   interruptGesture,
   previewTransform,
   updateTransform
@@ -23,6 +24,13 @@ const LINKED_HANDLES = new Set<HandleId>(['nw', 'ne', 'se', 'sw']);
 let autoSelect = true;
 let proportionsLinked = true;
 let snapEnabled = true;
+
+export function getSnapEnabled(): boolean { return snapEnabled; }
+export function setSnapEnabled(value: boolean): void {
+  snapEnabled = value;
+  if (!value) clearActiveGuides();
+  notify('composite');
+}
 
 export type TransformField = 'x' | 'y' | 'width' | 'height' | 'rotation';
 
@@ -89,7 +97,10 @@ export const moveTool: Tool = {
     const handle = active ? hitTestCanvasOverlay(state.doc, p, getOverlayScale()) : null;
     if (active && handle) {
       if (preparePointerTransform(active.id)) {
-        beginHandleGesture(handle, p, proportionsLinked && LINKED_HANDLES.has(handle));
+        beginHandleGesture(handle, p, proportionsLinked && LINKED_HANDLES.has(handle), {
+          enabled: snapEnabled,
+          overlayScale: getOverlayScale()
+        });
       }
       return;
     }
@@ -107,10 +118,13 @@ export const moveTool: Tool = {
       state.doc.activeLayerId = hit.id;
       notify('selection', 'composite');
     }
-    if (preparePointerTransform(hit.id)) beginHandleGesture('move', p, false);
+    if (preparePointerTransform(hit.id)) beginHandleGesture('move', p, false, {
+      enabled: snapEnabled,
+      overlayScale: getOverlayScale()
+    });
   },
   onMove(p: DocPoint, e: PointerEvent) {
-    if (!getTransformSession()?.gesture) return;
+    if (!hasActiveTransformGesture()) return;
     previewTransform(p, {
       shift: e.shiftKey,
       bypassSnap: e.ctrlKey || e.metaKey
@@ -131,7 +145,7 @@ export const moveTool: Tool = {
     { key: 'height', label: 'H', kind: 'number', group: 'geometry', min: 1, max: 16384, step: 1, get: () => getTransformFieldValue('height'), set: (value) => { setTransformFieldValue('height', value); }, disabled: hasLayer },
     { key: 'link', label: 'Link proportions', kind: 'toggle', group: 'geometry', icon: () => proportionsLinked ? icons.link : icons.unlink, get: getTransformProportionsLinked, set: setTransformProportionsLinked, disabled: hasLayer },
     { key: 'rotation', label: 'Rotation', kind: 'number', group: 'geometry', icon: icons.rotate, min: -360, max: 360, step: 0.1, get: () => getTransformFieldValue('rotation'), set: (value) => { setTransformFieldValue('rotation', value); }, disabled: hasLayer },
-    { key: 'snap', label: 'Snap', kind: 'toggle', group: 'assist', icon: icons.snap, get: () => snapEnabled, set: (value) => { snapEnabled = value; } },
+    { key: 'snap', label: 'Snap', kind: 'toggle', group: 'assist', icon: icons.snap, get: getSnapEnabled, set: setSnapEnabled },
     { key: 'apply', label: 'Apply', kind: 'action', group: 'session', icon: icons.apply, essential: true, disabled: hasExplicitSession, run: () => { applyTransform(); } },
     { key: 'cancel', label: 'Cancel', kind: 'action', group: 'session', icon: icons.cancel, essential: true, disabled: hasExplicitSession, run: () => { cancelTransform(); } }
   ]

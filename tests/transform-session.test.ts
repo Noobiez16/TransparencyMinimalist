@@ -276,7 +276,7 @@ describe('Move tool transform delegation', () => {
 
   test('an explicit session accepts interior dragging without opening a direct session', () => {
     const layer = addImageLayer();
-    const event = { shiftKey: false, ctrlKey: false, metaKey: false } as PointerEvent;
+    const event = { shiftKey: false, ctrlKey: true, metaKey: false } as PointerEvent;
     sessions.beginTransform(layer.id, 'explicit');
 
     moveTool.onDown({ x: 400, y: 300 }, event);

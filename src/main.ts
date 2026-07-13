@@ -102,7 +102,7 @@ const syncContextStatus = () => {
   } else if (session?.gesture) {
     status.textContent = 'Transforming · Shift constrains';
   } else {
-    status.textContent = `${getActiveTool().label} · Shift constrains transforms · Snap UI only`;
+    status.textContent = `${getActiveTool().label} · Shift constrains · Ctrl/Cmd bypasses Snap`;
   }
 };
 onToolChange(syncContextStatus);

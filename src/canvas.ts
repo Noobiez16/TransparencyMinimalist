@@ -144,7 +144,9 @@ export function initCanvas(): void {
   };
   screenCanvas.addEventListener('pointercancel', cancelPointer);
   screenCanvas.addEventListener('lostpointercapture', cancelPointer);
-  onToolChange((tool) => { screenCanvas.style.cursor = tool.cursor; });
+  onToolChange((tool) => {
+    screenCanvas.style.cursor = tool.cursor;
+  });
   screenCanvas.style.cursor = getActiveTool().cursor;
 
   // --- Zoom & pan ---
