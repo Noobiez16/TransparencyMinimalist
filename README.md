@@ -86,6 +86,7 @@ docs/                       Architecture, design, examples, and security guides
 - [Design system](docs/design.md)
 - [Composition examples](docs/examples.md)
 - [Security review](docs/security-audit.md)
+- [Changelog](docs/changelog.md)
 
 ## Roadmap
 

@@ -12,7 +12,8 @@ const publicFiles = [
   'docs/architecture.md',
   'docs/design.md',
   'docs/examples.md',
-  'docs/security-audit.md'
+  'docs/security-audit.md',
+  'docs/changelog.md'
 ];
 
 function readPublicDoc(path) {

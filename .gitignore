@@ -115,3 +115,11 @@ dist-ssr/
 # Superpowers task logs, brainstorm sessions, and scripts
 .superpowers/
 .worktrees/
+
+# Graphify & Obsidian (Local owner tools only)
+.owner/
+.graphifyignore
+graphify-out/
+docs/graphify-guide.md
+docs/obsidian-guide.md
+
