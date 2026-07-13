@@ -123,3 +123,8 @@ graphify-out/
 docs/graphify-guide.md
 docs/obsidian-guide.md
 
+# Agent instruction files (owner-only; they reference private local tooling)
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+
