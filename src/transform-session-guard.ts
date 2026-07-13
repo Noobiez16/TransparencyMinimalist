@@ -1,5 +1,11 @@
 import { $, icons } from './dom';
-import { applyTransform, cancelTransform, getTransformSession } from './engine/transform-session';
+import {
+  applyTransform,
+  cancelTransform,
+  getTransformSession,
+  hasActiveTransformGesture,
+  interruptGesture
+} from './engine/transform-session';
 
 type DeferredAction = () => void | Promise<void>;
 
@@ -76,6 +82,10 @@ export function guardTransformSession(action: DeferredAction): boolean {
   if (pendingAction) return false;
   const session = getTransformSession();
   if (!session || session.mode !== 'explicit') {
+    // A direct-mode session only exists while a pointer gesture is live.
+    // End it (restoring the pre-drag transform) before the action runs so a
+    // tool switch can never leave two editing sessions active at once.
+    if (session && hasActiveTransformGesture()) interruptGesture();
     void action();
     return true;
   }

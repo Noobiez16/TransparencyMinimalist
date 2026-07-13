@@ -132,7 +132,7 @@ Interactive edits run inside session modules so previews stay live while history
 
 `composite()` in `src/engine/compositor.ts` clears the target context, paints the configured background, and draws visible layers from bottom to top. It applies opacity, mapped blend mode, effect filters, center translation, and scale before drawing either an image bitmap or centered multiline text.
 
-The interactive canvas in `src/canvas.ts` calls `composite()` with `overlay: true`, adding the active-layer selection outline at a one-screen-pixel weight. `renderToCanvas()` creates a document-sized offscreen canvas and calls the same `composite()` without overlay options. PNG export in `src/export.ts` therefore matches the document rendering but omits the selection overlay. The resulting PNG blob is downloaded through a temporary object URL that is revoked after use.
+The interactive canvas in `src/canvas.ts` calls `composite()` with `overlay: true`, adding the editing overlays at constant screen weight: the active-layer transform outline and handles, smart alignment and measurement guides, and the crop shading with its rule-of-thirds grid. `renderToCanvas()` creates a document-sized offscreen canvas and calls the same `composite()` without overlay options. PNG export in `src/export.ts` therefore matches the document rendering but omits the selection overlay. The resulting PNG blob is downloaded through a temporary object URL that is revoked after use.
 
 ## Persistence and Autosave
 

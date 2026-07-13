@@ -374,3 +374,42 @@ describe('captured pointer routing', () => {
     expect(calls).toEqual(['move:down', 'move:move', 'move:up', 'move:down', 'move:cancel']);
   });
 });
+
+describe('session concurrency guards (final review fixes)', () => {
+  test('tool activation during a direct drag interrupts the gesture before proceeding', () => {
+    const layer = addImageLayer();
+    const before = transformOf(layer);
+
+    sessions.beginTransform(layer.id, 'direct');
+    sessions.beginHandleGesture('move', { x: layer.x, y: layer.y }, false);
+    sessions.previewTransform({ x: layer.x + 60, y: layer.y }, { shift: false, bypassSnap: true });
+    expect(layer.x).toBe(before.x + 60);
+
+    let ran = false;
+    const proceeded = sessionGuard.guardTransformSession(() => { ran = true; });
+
+    expect(proceeded).toBe(true);
+    expect(ran).toBe(true);
+    expect(sessions.hasActiveTransformGesture()).toBe(false);
+    expect(sessions.getTransformSession()).toBeNull();
+    expect(transformOf(layer)).toEqual(before);
+    expect(history.canUndo()).toBe(false);
+  });
+
+  test('explicit sessions without a live gesture still defer through the modal path', () => {
+    const layer = addImageLayer();
+    sessions.beginTransform(layer.id, 'explicit');
+
+    let ran = false;
+    let threw = false;
+    try {
+      sessionGuard.guardTransformSession(() => { ran = true; });
+    } catch {
+      threw = true; // modal path touches DOM ids that the unit stub does not provide
+    }
+
+    expect(ran).toBe(false);
+    expect(threw).toBe(true);
+    sessions.cancelTransform();
+  });
+});

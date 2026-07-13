@@ -21,22 +21,33 @@ import { applyCrop, beginCrop, cancelCrop, getCropSession, subscribeCropSession 
 import { toast } from './toast';
 import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, isTransformSessionGuardOpen } from './transform-session-guard';
 
+/**
+ * History navigation must stay quiet while any editing session is live:
+ * a mid-gesture undo would desync cached snap candidates and can silently
+ * abandon the user's in-progress edit.
+ */
+function historySessionBlocked(): boolean {
+  return Boolean(getTransformSession()) || Boolean(getCropSession()) || isTransformSessionGuardOpen();
+}
+
 function initHistoryUI(): void {
   const undoBtn = $<HTMLButtonElement>('btn-undo');
   const redoBtn = $<HTMLButtonElement>('btn-redo');
   undoBtn.innerHTML = icons.undo;
   redoBtn.innerHTML = icons.redo;
   const refresh = () => {
-    undoBtn.disabled = !history.canUndo();
-    redoBtn.disabled = !history.canRedo();
+    undoBtn.disabled = !history.canUndo() || historySessionBlocked();
+    redoBtn.disabled = !history.canRedo() || historySessionBlocked();
   };
-  undoBtn.addEventListener('click', () => history.undo());
-  redoBtn.addEventListener('click', () => history.redo());
+  undoBtn.addEventListener('click', () => { if (!historySessionBlocked()) history.undo(); });
+  redoBtn.addEventListener('click', () => { if (!historySessionBlocked()) history.redo(); });
   history.onChange(refresh);
+  subscribeTransformSession(refresh);
+  subscribeCropSession(refresh);
   refresh();
   document.addEventListener('keydown', (e) => {
     const t = document.activeElement;
-    if (isInteractiveTarget(t)) return;
+    if (isInteractiveTarget(t) || historySessionBlocked()) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? history.redo() : history.undo(); }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); history.redo(); }
   });

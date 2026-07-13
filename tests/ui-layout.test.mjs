@@ -182,6 +182,16 @@ test('compact options wrap while transform decisions stay visible', () => {
   assert.match(css, /\.transform-session-actions/);
 });
 
+test('history navigation is blocked while any editing session is live', () => {
+  assert.match(main, /historySessionBlocked/);
+  assert.match(main, /isInteractiveTarget\(t\)\s*\|\|\s*historySessionBlocked\(\)/);
+  assert.match(main, /getTransformSession\(\)\)\s*\|\|\s*Boolean\(getCropSession\(\)/);
+  assert.match(main, /subscribeTransformSession\(refresh\)/);
+  assert.match(main, /subscribeCropSession\(refresh\)/);
+  const guardSource = readFileSync(resolve(root, 'src/transform-session-guard.ts'), 'utf8');
+  assert.match(guardSource, /hasActiveTransformGesture\(\)\)\s*interruptGesture\(\)/);
+});
+
 test('Crop tool ships with shortcut C, session lifecycle, and Enter/Escape decisions', () => {
   const crop = readFileSync(resolve(root, 'src/tools/crop.ts'), 'utf8');
   assert.match(crop, /id:\s*['"]crop['"]/);
