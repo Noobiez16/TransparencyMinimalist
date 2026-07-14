@@ -31,39 +31,39 @@ transform-session guard is PASS.
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-020 | Move `auto-select` toggle | Options (Move) | src/tools/move.ts | Off: clicking a non-active layer does NOT select it | Click other layer; selection unchanged | |
-| C-021 | Move `show-controls` toggle | Options (Move) | src/tools/move.ts | Hides/shows transform handles overlay | Overlay handles visible/gone | |
-| C-022 | Move `x`/`y` numbers | Options (Move) | src/tools/move.ts | Sets layer x/y (doc pixels, layer center); one coalesced history entry per field; disabled with no layer | Canvas pixel + properties field match | |
-| C-023 | Move `width`/`height` numbers | Options (Move) | src/tools/move.ts | Sets transformed size via scaleX/scaleY; linked proportions follow | Both dimensions when linked | |
-| C-024 | Move `link` toggle | Options (Move) | src/tools/move.ts | Toggles proportional link (shared with properties `#prop-transform-link`); icon swaps link/unlink | W change with link on/off | |
-| C-025 | Move `rotation` number | Options (Move) | src/tools/move.ts | Sets rotation (normalized degrees) | Canvas + properties rotation field | |
-| C-026 | Move `snap` toggle | Options (Move) | src/tools/move.ts | Disables/enables snapping; guides cleared when off | Guides appear near center only when on; Ctrl bypasses | |
-| C-027 | Move `apply` action | Options (Move) | src/tools/move.ts | `applyTransform()`; disabled unless explicit session | One history entry; session ends | |
-| C-028 | Move `cancel` action | Options (Move) | src/tools/move.ts | `cancelTransform()`; layer state restored exactly | Pixel + fields match pre-session | |
-| C-029 | Hand (no options) | Options (Hand) | src/options-bar.ts | Shows "Hand — no options" empty label | Label text | |
-| C-030 | Zoom `zoom` display | Options (Zoom) | src/tools/zoom.ts | Read-only percent mirroring canvas zoom | Matches `#zoom-readout` | |
-| C-031 | Crop `crop-ratio` select | Options (Crop) | src/tools/crop.ts | Constrains crop rect to preset (free/original/1:1/4:5/16:9/9:16/custom); disabled without session | Rect aspect after selection | |
-| C-032 | Crop `crop-ratio-n`/`crop-ratio-d` numbers | Options (Crop) | src/tools/crop.ts | Custom ratio parts; disabled unless ratio=custom | Rect follows n:d | |
-| C-033 | Crop `crop-width`/`crop-height` numbers | Options (Crop) | src/tools/crop.ts | `previewCrop` resizes rect | Overlay rect dimensions | |
-| C-034 | Crop `crop-reset` action | Options (Crop) | src/tools/crop.ts | `resetCrop()` restores full-document rect | Rect = doc bounds | |
-| C-035 | Crop `crop-apply` action | Options (Crop) | src/tools/crop.ts | `applyCrop()` commits non-destructive crop; one history entry; undo restores exactly | Canvas size/content + history | |
-| C-036 | Crop `crop-cancel` action | Options (Crop) | src/tools/crop.ts | `cancelCrop()` discards rect | State identical to pre-crop | |
+| C-020 | Move `auto-select` toggle | Options (Move) | src/tools/move.ts | Off: clicking a non-active layer does NOT select it | Click other layer; selection unchanged | PASS |
+| C-021 | Move `show-controls` toggle | Options (Move) | src/tools/move.ts | Hides/shows transform handles overlay | Overlay handles visible/gone | FAIL(F-008) — flag flips but nothing repaints until an unrelated composite |
+| C-022 | Move `x`/`y` numbers | Options (Move) | src/tools/move.ts | Sets layer x/y (doc pixels, layer center); one coalesced history entry per field; disabled with no layer | Canvas pixel + properties field match | PASS |
+| C-023 | Move `width`/`height` numbers | Options (Move) | src/tools/move.ts | Sets transformed size via scaleX/scaleY; linked proportions follow | Both dimensions when linked | PASS |
+| C-024 | Move `link` toggle | Options (Move) | src/tools/move.ts | Toggles proportional link (shared with properties `#prop-transform-link`); icon swaps link/unlink | W change with link on/off | PASS |
+| C-025 | Move `rotation` number | Options (Move) | src/tools/move.ts | Sets rotation (normalized degrees) | Canvas + properties rotation field | PASS |
+| C-026 | Move `snap` toggle | Options (Move) | src/tools/move.ts | Disables/enables snapping; guides cleared when off | Guides appear near center only when on; Ctrl bypasses | PASS (snap lands exactly on 512; Ctrl-drag lands raw) |
+| C-027 | Move `apply` action | Options (Move) | src/tools/move.ts | `applyTransform()`; disabled unless explicit session | One history entry; session ends | PASS |
+| C-028 | Move `cancel` action | Options (Move) | src/tools/move.ts | `cancelTransform()`; layer state restored exactly | Pixel + fields match pre-session | PASS |
+| C-029 | Hand (no options) | Options (Hand) | src/options-bar.ts | Shows "Hand — no options" empty label | Label text | PASS |
+| C-030 | Zoom `zoom` display | Options (Zoom) | src/tools/zoom.ts | Read-only percent mirroring canvas zoom | Matches `#zoom-readout` | FAIL(F-007) — stale; shows 100% while readout shows 125% |
+| C-031 | Crop `crop-ratio` select | Options (Crop) | src/tools/crop.ts | Constrains crop rect to preset (free/original/1:1/4:5/16:9/9:16/custom); disabled without session | Rect aspect after selection | PASS |
+| C-032 | Crop `crop-ratio-n`/`crop-ratio-d` numbers | Options (Crop) | src/tools/crop.ts | Custom ratio parts; disabled unless ratio=custom | Rect follows n:d | PASS (3:2 → aspect 1.5; disabled until custom) |
+| C-033 | Crop `crop-width`/`crop-height` numbers | Options (Crop) | src/tools/crop.ts | `previewCrop` resizes rect | Overlay rect dimensions | PASS |
+| C-034 | Crop `crop-reset` action | Options (Crop) | src/tools/crop.ts | `resetCrop()` restores full-document rect | Rect = doc bounds | PASS |
+| C-035 | Crop `crop-apply` action | Options (Crop) | src/tools/crop.ts | `applyCrop()` commits non-destructive crop; one history entry; undo restores exactly | Canvas size/content + history | PASS (see F-009 for post-apply tool state) |
+| C-036 | Crop `crop-cancel` action | Options (Crop) | src/tools/crop.ts | `cancelCrop()` discards rect | State identical to pre-crop | PASS |
 
 ## Rail
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-040 | Tool buttons ×4 (`data-tool` move/hand/zoom/crop) | Rail | src/rail.ts | Guarded `setActiveTool`; active styling; options bar re-renders; `#status-context` updates; cursor changes; parity with shortcuts V/H/Z/C | All five observations per tool | |
-| C-041 | `#rail-add-image` | Rail | src/rail.ts | Delegates to `#btn-add-image` | New empty image layer, active | |
-| C-042 | `#rail-add-text` | Rail | src/rail.ts | Delegates to `#btn-add-text` | New text layer, active | |
-| C-043 | `#rail-layers` | Rail | src/rail.ts | Toggles `.hide-left` on `.dashboard-wrapper`; button active styling | Dock visibility + class | |
-| C-044 | `#rail-props` | Rail | src/rail.ts | Toggles `.hide-right` | Same | |
+| C-040 | Tool buttons ×4 (`data-tool` move/hand/zoom/crop) | Rail | src/rail.ts | Guarded `setActiveTool`; active styling; options bar re-renders; `#status-context` updates; cursor changes; parity with shortcuts V/H/Z/C | All five observations per tool | PASS |
+| C-041 | `#rail-add-image` | Rail | src/rail.ts | Delegates to `#btn-add-image` | New empty image layer, active | PASS |
+| C-042 | `#rail-add-text` | Rail | src/rail.ts | Delegates to `#btn-add-text` | New text layer, active | PASS |
+| C-043 | `#rail-layers` | Rail | src/rail.ts | Toggles `.hide-left` on `.dashboard-wrapper`; button active styling | Dock visibility + class | PASS |
+| C-044 | `#rail-props` | Rail | src/rail.ts | Toggles `.hide-right` | Same | PASS |
 
 ## Canvas workspace
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-050 | `#doc-canvas` pointer (per tool) | Canvas | src/canvas.ts | Routes to active tool: Move drags/handles, Hand pans, Zoom clicks (Alt = out), Crop rect gestures; pointercancel/lostpointercapture interrupt cleanly | Per-tool behavior rows below | |
+| C-050 | `#doc-canvas` pointer (per tool) | Canvas | src/canvas.ts | Routes to active tool: Move drags/handles, Hand pans, Zoom clicks (Alt = out), Crop rect gestures; pointercancel/lostpointercapture interrupt cleanly | Per-tool behavior rows below | PASS (drag/pan/zoom-click/crop gestures + pointercancel restore) |
 | C-051 | `#zoom-in` | Canvas zoom pill | src/canvas.ts | `zoomAt(1 + 0.1/zoom)`; readout updates | Readout + canvas scale | PASS |
 | C-052 | `#zoom-out` | Canvas zoom pill | src/canvas.ts | `zoomAt(1 - 0.1/zoom)` | Same; also drift check: N in + N out returns exactly 100% (deferred minor) | FAIL(F-006) — zoom works; pan-reset at 100% is FP-nondeterministic |
 | C-053 | `#zoom-readout` | Canvas zoom pill | src/canvas.ts | Click = `resetView()` (100%, centered) | Readout 100% + pan reset | PASS |
@@ -107,19 +107,19 @@ transform-session guard is PASS.
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-100 | `#transform-session-apply` | Guard dialog | src/transform-session-guard.ts | Applies pending session, closes guard, runs deferred action, restores focus | History entry + guard hidden + deferred action ran | |
-| C-101 | `#transform-session-cancel` | Guard dialog | src/transform-session-guard.ts | Cancels session, closes guard, runs deferred action | State restored + guard hidden | |
-| C-102 | Guard modality | Guard dialog | src/transform-session-guard.ts | Background inert while open; Tab trapped inside dialog | Background click/keys dead; focus cycles | |
+| C-100 | `#transform-session-apply` | Guard dialog | src/transform-session-guard.ts | Applies pending session, closes guard, runs deferred action, restores focus | History entry + guard hidden + deferred action ran | PASS |
+| C-101 | `#transform-session-cancel` | Guard dialog | src/transform-session-guard.ts | Cancels session, closes guard, runs deferred action | State restored + guard hidden | PASS |
+| C-102 | Guard modality | Guard dialog | src/transform-session-guard.ts | Background inert while open; Tab trapped inside dialog | Background click/keys dead; focus cycles | PASS (inert on, Tab trap cycles both edges, focus restored) |
 
 ## Keyboard shortcuts (parity rows)
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-110 | V / H / Z / C | Keyboard | src/main.ts | Guarded tool switch; ignored while typing in inputs | Same effects as C-040 | |
-| C-111 | Space (hold) | Keyboard | src/main.ts | Temporary Hand; release restores prior tool | Tool + cursor during/after | |
-| C-112 | Ctrl/Cmd+T | Keyboard | src/main.ts | Explicit Free Transform on active layer; no layer → toast "Select a layer before starting Free Transform." | Session + handles + status text | |
-| C-113 | Enter / Escape (explicit transform) | Keyboard | src/main.ts | Apply / cancel the explicit session | History entry / exact restore | |
-| C-114 | Enter / Escape (crop session) | Keyboard | src/main.ts | Apply / cancel crop, tool returns to Move | Canvas + active tool | |
+| C-110 | V / H / Z / C | Keyboard | src/main.ts | Guarded tool switch; ignored while typing in inputs | Same effects as C-040 | FAIL(F-010) — works from body focus; dead while any button/link keeps focus |
+| C-111 | Space (hold) | Keyboard | src/main.ts | Temporary Hand; release restores prior tool | Tool + cursor during/after | PASS |
+| C-112 | Ctrl/Cmd+T | Keyboard | src/main.ts | Explicit Free Transform on active layer; no layer → toast "Select a layer before starting Free Transform." | Session + handles + status text | PASS (no-layer toast branch checked in Task 7) |
+| C-113 | Enter / Escape (explicit transform) | Keyboard | src/main.ts | Apply / cancel the explicit session | History entry / exact restore | PASS |
+| C-114 | Enter / Escape (crop session) | Keyboard | src/main.ts | Apply / cancel crop, tool returns to Move | Canvas + active tool | PASS |
 | C-115 | Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y | Keyboard | src/main.ts | Undo / redo / redo; blocked during sessions and while typing | Pixel + history pointer | |
 | C-116 | Ctrl+V (image paste) | Keyboard | src/layers-panel.ts | Pasted image becomes a layer; ignored while typing in inputs | Layer card + canvas | PASS |
 | C-117 | Enter / Escape in number inputs | Keyboard | src/options-bar.ts, src/properties-panel.ts | Enter commits + blurs; Escape reverts to state value + blurs | Field value + no history entry on Escape | |
@@ -128,9 +128,9 @@ transform-session guard is PASS.
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-120 | `#status-context` | Statusbar | src/main.ts | Mirrors tool/session state (Move/Crop/Free Transform variants) | Text per state | |
+| C-120 | `#status-context` | Statusbar | src/main.ts | Mirrors tool/session state (Move/Crop/Free Transform variants) | Text per state | PASS (see F-011: inapplicable hints on Hand/Zoom) |
 | C-121 | `#status-doc-size` | Statusbar | src/topbar.ts | Mirrors doc dimensions | Text after resize | PASS |
-| C-122 | `#options-empty` | Options bar | src/options-bar.ts | Placeholder replaced by per-tool render | Never visible with options present | |
+| C-122 | `#options-empty` | Options bar | src/options-bar.ts | Placeholder replaced by per-tool render | Never visible with options present | PASS |
 | C-123 | Toast + `.toast-action` | Overlay | src/toast.ts | Message shows, action runs `onAction` and dismisses, auto-dismiss ~3s | Element lifecycle + action effect | |
 
 ## Sweep states
