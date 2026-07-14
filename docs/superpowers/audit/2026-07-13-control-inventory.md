@@ -8,24 +8,24 @@ transform-session guard is PASS.
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-001 | `#btn-open` | Appbar | src/topbar.ts | Guarded; clicks hidden `#project-input` to open a project file dialog | Guard fires during session; input click otherwise (no OS dialog completion) | |
-| C-002 | `#btn-save` | Appbar | src/topbar.ts | `saveProject()` downloads the `.mledit.json` envelope | Download evidence | |
+| C-001 | `#btn-open` | Appbar | src/topbar.ts | Guarded; clicks hidden `#project-input` to open a project file dialog | Guard fires during session; input click otherwise (no OS dialog completion) | PASS |
+| C-002 | `#btn-save` | Appbar | src/topbar.ts | `saveProject()` downloads the `.mledit.json` envelope | Download evidence | PASS |
 | C-003 | `#project-input` | Appbar (hidden) | src/topbar.ts | On change, `openProjectFile(file)` replaces the document | Programmatic file injection round-trip | |
-| C-004 | `#btn-undo` | Appbar | src/main.ts | `history.undo()`; disabled when no undo or session live | `#history-list` pointer + canvas pixel revert; disabled during session | |
-| C-005 | `#btn-redo` | Appbar | src/main.ts | `history.redo()`; disabled when no redo or session live | Pointer + pixel reapply | |
-| C-006 | `#btn-export` | Appbar | src/export.ts | Guarded; PNG download via `renderToCanvas`; empty doc → toast "Add at least one layer to export." | Download evidence; toast on empty doc | |
+| C-004 | `#btn-undo` | Appbar | src/main.ts | `history.undo()`; disabled when no undo or session live | `#history-list` pointer + canvas pixel revert; disabled during session | PASS |
+| C-005 | `#btn-redo` | Appbar | src/main.ts | `history.redo()`; disabled when no redo or session live | Pointer + pixel reapply | PASS |
+| C-006 | `#btn-export` | Appbar | src/export.ts | Guarded; PNG download via `renderToCanvas`; empty doc → toast "Add at least one layer to export." | Download evidence; toast on empty doc | PASS (PNG = doc size; empty-doc toast in Task 6) |
 
 ## Options bar — workspace settings (static)
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-010 | `.btn-theme` ×4 (`data-bg` transparent/white/black/custom) | Options bar | src/canvas.ts | `cmdPatchDoc` bgType; viewport background changes (checkerboard/white/black/custom); one history entry "Background"; active styling follows | Viewport class/style + history entry | |
-| C-011 | `#bg-color-picker` | Options bar | src/canvas.ts | Visible only for custom; input patches `bgColor` (coalesced `doc:bgColor`); viewport backgroundColor updates | Style + single history entry while dragging | |
-| C-012 | `#size-chip` | Options bar | src/topbar.ts | Toggles `#size-menu`; outside click closes; text mirrors doc size | Menu hidden state + chip text | |
-| C-013 | `#size-menu` presets ×4 (`data-ratio`) | Options bar | src/topbar.ts | `cmdPatchDoc` width/height per preset; menu closes; chip, `#status-doc-size`, `#canvas-width`, `#canvas-height` all sync (deferred minor: preset→custom-inputs sync) | All four readouts after preset click | |
-| C-014 | `#canvas-width` | Options bar | src/topbar.ts | Holds pending custom width; synced from state on canvasConfig | Value after preset + after apply | |
-| C-015 | `#canvas-height` | Options bar | src/topbar.ts | Holds pending custom height; synced from state | Same | |
-| C-016 | `#size-custom-apply` | Options bar | src/topbar.ts | Clamps 64–4096, `cmdPatchDoc` "Canvas size"; menu closes | Canvas resize + history entry + clamping at 5000→4096 | |
+| C-010 | `.btn-theme` ×4 (`data-bg` transparent/white/black/custom) | Options bar | src/canvas.ts | `cmdPatchDoc` bgType; viewport background changes (checkerboard/white/black/custom); one history entry "Background"; active styling follows | Viewport class/style + history entry | PASS |
+| C-011 | `#bg-color-picker` | Options bar | src/canvas.ts | Visible only for custom; input patches `bgColor` (coalesced `doc:bgColor`); viewport backgroundColor updates | Style + single history entry while dragging | FAIL(F-005) — input works but picker is never visible |
+| C-012 | `#size-chip` | Options bar | src/topbar.ts | Toggles `#size-menu`; outside click closes; text mirrors doc size | Menu hidden state + chip text | PASS |
+| C-013 | `#size-menu` presets ×4 (`data-ratio`) | Options bar | src/topbar.ts | `cmdPatchDoc` width/height per preset; menu closes; chip, `#status-doc-size`, `#canvas-width`, `#canvas-height` all sync (deferred minor: preset→custom-inputs sync) | All four readouts after preset click | PASS — deferred minor cleared, presets sync W/H inputs |
+| C-014 | `#canvas-width` | Options bar | src/topbar.ts | Holds pending custom width; synced from state on canvasConfig | Value after preset + after apply | PASS |
+| C-015 | `#canvas-height` | Options bar | src/topbar.ts | Holds pending custom height; synced from state | Same | PASS |
+| C-016 | `#size-custom-apply` | Options bar | src/topbar.ts | Clamps 64–4096, `cmdPatchDoc` "Canvas size"; menu closes | Canvas resize + history entry + clamping at 5000→4096 | PASS |
 
 ## Options host — per-tool controls (dynamic, `#options-host` / `[data-option-key]`)
 
@@ -64,10 +64,10 @@ transform-session guard is PASS.
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
 | C-050 | `#doc-canvas` pointer (per tool) | Canvas | src/canvas.ts | Routes to active tool: Move drags/handles, Hand pans, Zoom clicks (Alt = out), Crop rect gestures; pointercancel/lostpointercapture interrupt cleanly | Per-tool behavior rows below | |
-| C-051 | `#zoom-in` | Canvas zoom pill | src/canvas.ts | `zoomAt(1 + 0.1/zoom)`; readout updates | Readout + canvas scale | |
-| C-052 | `#zoom-out` | Canvas zoom pill | src/canvas.ts | `zoomAt(1 - 0.1/zoom)` | Same; also drift check: N in + N out returns exactly 100% (deferred minor) | |
-| C-053 | `#zoom-readout` | Canvas zoom pill | src/canvas.ts | Click = `resetView()` (100%, centered) | Readout 100% + pan reset | |
-| C-054 | Ctrl+wheel on canvas | Canvas | src/canvas.ts | Zooms at cursor | Readout changes | |
+| C-051 | `#zoom-in` | Canvas zoom pill | src/canvas.ts | `zoomAt(1 + 0.1/zoom)`; readout updates | Readout + canvas scale | PASS |
+| C-052 | `#zoom-out` | Canvas zoom pill | src/canvas.ts | `zoomAt(1 - 0.1/zoom)` | Same; also drift check: N in + N out returns exactly 100% (deferred minor) | FAIL(F-006) — zoom works; pan-reset at 100% is FP-nondeterministic |
+| C-053 | `#zoom-readout` | Canvas zoom pill | src/canvas.ts | Click = `resetView()` (100%, centered) | Readout 100% + pan reset | PASS |
+| C-054 | Ctrl+wheel on canvas | Canvas | src/canvas.ts | Zooms at cursor | Readout changes | PASS |
 
 ## Properties dock
 
@@ -94,8 +94,8 @@ transform-session guard is PASS.
 | C-080 | Dock tabs (`data-tab` layers/history) | Dock | src/history-panel.ts | Switches `#tab-layers`/`#tab-history` visibility; aria-selected + active styling | Hidden attributes + styling | |
 | C-081 | `#btn-add-image` | Layers | src/layers-panel.ts | Guarded; adds empty image layer at top, becomes active, canvas flash | Layer card + selection | |
 | C-082 | `#btn-add-text` | Layers | src/layers-panel.ts | Guarded; adds text layer, active | Card + canvas text | |
-| C-083 | `#upload-zone` (click/drop/paste) | Layers | src/layers-panel.ts | Click → file input; drop image decodes into layer (or fills empty active image layer as "Place image"); drop .json opens project; Ctrl+V pastes image; non-image → toast | Layer added + canvas fixture visible | |
-| C-084 | `#file-input` | Layers (hidden) | src/layers-panel.ts | change → decode each image file; input cleared | Same | |
+| C-083 | `#upload-zone` (click/drop/paste) | Layers | src/layers-panel.ts | Click → file input; drop image decodes into layer (or fills empty active image layer as "Place image"); drop .json opens project; Ctrl+V pastes image; non-image → toast | Layer added + canvas fixture visible | PASS (click/drop/non-image-toast all verified) |
+| C-084 | `#file-input` | Layers (hidden) | src/layers-panel.ts | change → decode each image file; input cleared | Same | PASS |
 | C-085 | Layer card click | Layers (dynamic) | src/layers-panel.ts | Guarded select; properties panel follows | Active card + panel | |
 | C-086 | Layer card visibility toggle | Layers (dynamic) | src/layers-panel.ts | Guarded Hide/Show patch; card dims; canvas updates | Pixel + opacity style | |
 | C-087 | Layer card delete | Layers (dynamic) | src/layers-panel.ts | Guarded; 150ms leave animation then delete command; undo restores | Card removed + pixel + undo | |
@@ -121,7 +121,7 @@ transform-session guard is PASS.
 | C-113 | Enter / Escape (explicit transform) | Keyboard | src/main.ts | Apply / cancel the explicit session | History entry / exact restore | |
 | C-114 | Enter / Escape (crop session) | Keyboard | src/main.ts | Apply / cancel crop, tool returns to Move | Canvas + active tool | |
 | C-115 | Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y | Keyboard | src/main.ts | Undo / redo / redo; blocked during sessions and while typing | Pixel + history pointer | |
-| C-116 | Ctrl+V (image paste) | Keyboard | src/layers-panel.ts | Pasted image becomes a layer; ignored while typing in inputs | Layer card + canvas | |
+| C-116 | Ctrl+V (image paste) | Keyboard | src/layers-panel.ts | Pasted image becomes a layer; ignored while typing in inputs | Layer card + canvas | PASS |
 | C-117 | Enter / Escape in number inputs | Keyboard | src/options-bar.ts, src/properties-panel.ts | Enter commits + blurs; Escape reverts to state value + blurs | Field value + no history entry on Escape | |
 
 ## Display-only elements (no interaction contract, checked for truthfulness)
@@ -129,7 +129,7 @@ transform-session guard is PASS.
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
 | C-120 | `#status-context` | Statusbar | src/main.ts | Mirrors tool/session state (Move/Crop/Free Transform variants) | Text per state | |
-| C-121 | `#status-doc-size` | Statusbar | src/topbar.ts | Mirrors doc dimensions | Text after resize | |
+| C-121 | `#status-doc-size` | Statusbar | src/topbar.ts | Mirrors doc dimensions | Text after resize | PASS |
 | C-122 | `#options-empty` | Options bar | src/options-bar.ts | Placeholder replaced by per-tool render | Never visible with options present | |
 | C-123 | Toast + `.toast-action` | Overlay | src/toast.ts | Message shows, action runs `onAction` and dismisses, auto-dismiss ~3s | Element lifecycle + action effect | |
 
