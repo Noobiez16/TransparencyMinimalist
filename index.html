@@ -8,6 +8,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
+  <script>
+    // Audit-only (?audit-raf): hidden renderers never fire rAF, which suspends the
+    // DirtyFlag render batching. The fallback preserves the same async-batch semantics.
+    if (new URLSearchParams(location.search).has('audit-raf')) {
+      window.requestAnimationFrame = (cb) => setTimeout(() => cb(performance.now()), 16);
+      window.cancelAnimationFrame = (id) => clearTimeout(id);
+    }
+  </script>
 </head>
 <body>
   <header class="appbar glass-surface">
