@@ -245,6 +245,10 @@ test('options row wraps at all widths and pinned actions never overlay siblings'
   assert.doesNotMatch(css, /right:\s*70px/);
 });
 
+test('zoom snaps to exactly 100% within an epsilon so pan reset is deterministic', () => {
+  assert.match(canvas, /Math\.abs\(zoom\s*-\s*1\)\s*<\s*1e-6/);
+});
+
 test('custom background color picker toggles the hidden attribute, not inline display', () => {
   assert.match(canvas, /colorPicker\.hidden\s*=\s*bg\s*!==\s*['"]custom['"]/);
   assert.doesNotMatch(canvas, /colorPicker\.style\.display/);

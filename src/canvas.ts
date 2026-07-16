@@ -26,7 +26,9 @@ function setZoom(next: number, cx = 0, cy = 0): void {
   panX -= cx * (factor - 1);
   panY -= cy * (factor - 1);
   zoom = clamped;
-  if (zoom === 1) { panX = 0; panY = 0; }
+  // Button steps accumulate float error (1 ± ε reads as 100%): snap within an
+  // epsilon so returning to 100% always recenters.
+  if (Math.abs(zoom - 1) < 1e-6) { zoom = 1; panX = 0; panY = 0; }
   applyZoom();
 }
 
