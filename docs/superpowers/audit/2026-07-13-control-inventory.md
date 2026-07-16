@@ -73,19 +73,19 @@ transform-session guard is PASS.
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-060 | `#prop-layer-name` chip | Properties | src/properties-panel.ts | Inline rename → history "Rename layer"; layers list follows | Layer card name | |
-| C-061 | `#prop-opacity` range | Properties | src/properties-panel.ts | Coalesced opacity patch; `#opacity-value` readout; canvas compositing changes | Pixel + readout | |
-| C-062 | `#opacity-value` chip | Properties | src/properties-panel.ts | Click → number input; Enter/blur commits, Escape reverts; dblclick range resets to default | Value + canvas | |
-| C-063 | Blend seg (`#blend-seg` normal / `#blend-alt` / `#blend-more`) | Properties | src/properties-panel.ts | Blend patch + active styling; `#blend-alt` adapts to last non-normal pick; More opens `#blend-menu` | Pixel per mode + seg state | |
-| C-064 | `#blend-menu` options ×5 | Properties | src/properties-panel.ts | Sets blend, closes menu, updates `#blend-alt` label | Same | |
-| C-065 | `#prop-transform-x` `#prop-transform-y` `#prop-transform-width` `#prop-transform-height` `#prop-transform-rotation` | Properties | src/properties-panel.ts | Commit on change/Enter (clamped); Escape reverts; one history entry per commit; live session routes into session update instead | Canvas + options-bar fields match | |
-| C-066 | `#prop-transform-link` | Properties | src/properties-panel.ts | Shared link state with Move tool option; icon + aria-pressed | W edit follows/ignores H | |
-| C-067 | Effect rows ×4 (blur/brightness/contrast/saturation): switch + range + chip | Properties | src/properties-panel.ts | Switch toggles effect (blur first-ON seeds 4 when value 0 — deferred-minor check); range coalesces value patches; canvas re-renders; brightness/contrast/saturation hidden for text layers | Pixel + aria-checked + chip | |
-| C-068 | `#prop-invert` switch | Properties | src/properties-panel.ts | Toggles invert effect | Pixel inversion + aria-checked | |
-| C-069 | `#prop-text-content` | Properties (text) | src/properties-panel.ts | Coalesced text patch; canvas text re-renders | Canvas text | |
-| C-070 | `#prop-font-family` | Properties (text) | src/properties-panel.ts | Font family patch | Canvas rendering | |
-| C-071 | `#prop-font-size` + `#font-size-value` chip | Properties (text) | src/properties-panel.ts | Coalesced size patch (doc pixels); chip editable; dblclick reset | Canvas + readout | |
-| C-072 | `#prop-text-color` | Properties (text) | src/properties-panel.ts | Coalesced color patch | Canvas pixel | |
+| C-060 | `#prop-layer-name` chip | Properties | src/properties-panel.ts | Inline rename → history "Rename layer"; layers list follows | Layer card name | PASS |
+| C-061 | `#prop-opacity` range | Properties | src/properties-panel.ts | Coalesced opacity patch; `#opacity-value` readout; canvas compositing changes | Pixel + readout | PASS |
+| C-062 | `#opacity-value` chip | Properties | src/properties-panel.ts | Click → number input; Enter/blur commits, Escape reverts; dblclick range resets to default | Value + canvas | PASS |
+| C-063 | Blend seg (`#blend-seg` normal / `#blend-alt` / `#blend-more`) | Properties | src/properties-panel.ts | Blend patch + active styling; `#blend-alt` adapts to last non-normal pick; More opens `#blend-menu` | Pixel per mode + seg state | PASS |
+| C-064 | `#blend-menu` options ×5 | Properties | src/properties-panel.ts | Sets blend, closes menu, updates `#blend-alt` label | Same | PASS |
+| C-065 | `#prop-transform-x` `#prop-transform-y` `#prop-transform-width` `#prop-transform-height` `#prop-transform-rotation` | Properties | src/properties-panel.ts | Commit on change/Enter (clamped); Escape reverts; one history entry per commit; live session routes into session update instead | Canvas + options-bar fields match | FAIL(F-012) — commits/clamp/coalesce PASS; Escape leaves stale draft text in the field |
+| C-066 | `#prop-transform-link` | Properties | src/properties-panel.ts | Shared link state with Move tool option; icon + aria-pressed | W edit follows/ignores H | PASS |
+| C-067 | Effect rows ×4 (blur/brightness/contrast/saturation): switch + range + chip | Properties | src/properties-panel.ts | Switch toggles effect (blur first-ON seeds 4 when value 0 — deferred-minor check); range coalesces value patches; canvas re-renders; brightness/contrast/saturation hidden for text layers | Pixel + aria-checked + chip | PASS — blur first-ON seeds 4 (deferred minor cleared); value kept across off/on |
+| C-068 | `#prop-invert` switch | Properties | src/properties-panel.ts | Toggles invert effect | Pixel inversion + aria-checked | PASS |
+| C-069 | `#prop-text-content` | Properties (text) | src/properties-panel.ts | Coalesced text patch; canvas text re-renders | Canvas text | PASS |
+| C-070 | `#prop-font-family` | Properties (text) | src/properties-panel.ts | Font family patch | Canvas rendering | PASS |
+| C-071 | `#prop-font-size` + `#font-size-value` chip | Properties (text) | src/properties-panel.ts | Coalesced size patch (doc pixels); chip editable; dblclick reset | Canvas + readout | PASS |
+| C-072 | `#prop-text-color` | Properties (text) | src/properties-panel.ts | Coalesced color patch | Canvas pixel | PASS (all 289 glyph pixels flip to #ff0000 and back) |
 
 ## Layers-history dock
 
@@ -96,11 +96,11 @@ transform-session guard is PASS.
 | C-082 | `#btn-add-text` | Layers | src/layers-panel.ts | Guarded; adds text layer, active | Card + canvas text | |
 | C-083 | `#upload-zone` (click/drop/paste) | Layers | src/layers-panel.ts | Click → file input; drop image decodes into layer (or fills empty active image layer as "Place image"); drop .json opens project; Ctrl+V pastes image; non-image → toast | Layer added + canvas fixture visible | PASS (click/drop/non-image-toast all verified) |
 | C-084 | `#file-input` | Layers (hidden) | src/layers-panel.ts | change → decode each image file; input cleared | Same | PASS |
-| C-085 | Layer card click | Layers (dynamic) | src/layers-panel.ts | Guarded select; properties panel follows | Active card + panel | |
-| C-086 | Layer card visibility toggle | Layers (dynamic) | src/layers-panel.ts | Guarded Hide/Show patch; card dims; canvas updates | Pixel + opacity style | |
-| C-087 | Layer card delete | Layers (dynamic) | src/layers-panel.ts | Guarded; 150ms leave animation then delete command; undo restores | Card removed + pixel + undo | |
-| C-088 | Layer card dblclick rename | Layers (dynamic) | src/layers-panel.ts | Guarded inline edit → "Rename layer" | Name label + properties chip | |
-| C-089 | Layer card drag reorder | Layers (dynamic) | src/layers-panel.ts | Guarded reorder command; z-order changes; `draggedId` cleared on drop/dragend (deferred-minor: drag-then-delete) | Pixel where layers overlap + no console error | |
+| C-085 | Layer card click | Layers (dynamic) | src/layers-panel.ts | Guarded select; properties panel follows | Active card + panel | PASS |
+| C-086 | Layer card visibility toggle | Layers (dynamic) | src/layers-panel.ts | Guarded Hide/Show patch; card dims; canvas updates | Pixel + opacity style | PASS |
+| C-087 | Layer card delete | Layers (dynamic) | src/layers-panel.ts | Guarded; 150ms leave animation then delete command; undo restores | Card removed + pixel + undo | PASS |
+| C-088 | Layer card dblclick rename | Layers (dynamic) | src/layers-panel.ts | Guarded inline edit → "Rename layer" | Name label + properties chip | PASS |
+| C-089 | Layer card drag reorder | Layers (dynamic) | src/layers-panel.ts | Guarded reorder command; z-order changes; `draggedId` cleared on drop/dragend (deferred-minor: drag-then-delete) | Pixel where layers overlap + no console error | PASS — reorder + undo verified; drag→delete→drag clean, zero console errors (deferred minor cleared) |
 | C-090 | `#history-list` rows | History (dynamic) | src/history-panel.ts | Click jumps history to entry i; newest first; current/undone styling; blocked while session live | Canvas state + row classes | |
 
 ## Transform-session guard
