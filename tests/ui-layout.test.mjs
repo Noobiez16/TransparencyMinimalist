@@ -224,4 +224,9 @@ test('Crop contextual controls expose ratio presets, dimensions, and decisions',
   assert.match(crop, /essential:\s*true/);
 });
 
+test('custom background color picker toggles the hidden attribute, not inline display', () => {
+  assert.match(canvas, /colorPicker\.hidden\s*=\s*bg\s*!==\s*['"]custom['"]/);
+  assert.doesNotMatch(canvas, /colorPicker\.style\.display/);
+});
+
 export { html, css, topbar, main, dom, canvas };

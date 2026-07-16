@@ -90,18 +90,16 @@ function syncBackgroundUI(): void {
 
   viewport.className = 'canvas-viewport';
   viewport.style.backgroundColor = '';
+  // [hidden] carries !important in style.css — toggle the attribute, never inline display.
+  colorPicker.hidden = bg !== 'custom';
 
   if (bg === 'transparent') {
     viewport.classList.add('checkerboard-bg');
-    colorPicker.style.display = 'none';
   } else if (bg === 'white') {
     viewport.style.backgroundColor = '#ffffff';
-    colorPicker.style.display = 'none';
   } else if (bg === 'black') {
     viewport.style.backgroundColor = '#000000';
-    colorPicker.style.display = 'none';
   } else if (bg === 'custom') {
-    colorPicker.style.display = 'inline-block';
     viewport.style.backgroundColor = state.doc.bgColor;
   }
   if (colorPicker.value !== state.doc.bgColor) colorPicker.value = state.doc.bgColor;
