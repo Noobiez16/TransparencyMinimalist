@@ -10,7 +10,7 @@ transform-session guard is PASS.
 |----|---------|---------|--------|---------------------|-----------|--------|
 | C-001 | `#btn-open` | Appbar | src/topbar.ts | Guarded; clicks hidden `#project-input` to open a project file dialog | Guard fires during session; input click otherwise (no OS dialog completion) | PASS |
 | C-002 | `#btn-save` | Appbar | src/topbar.ts | `saveProject()` downloads the `.mledit.json` envelope | Download evidence | PASS |
-| C-003 | `#project-input` | Appbar (hidden) | src/topbar.ts | On change, `openProjectFile(file)` replaces the document | Programmatic file injection round-trip | |
+| C-003 | `#project-input` | Appbar (hidden) | src/topbar.ts | On change, `openProjectFile(file)` replaces the document | Programmatic file injection round-trip | PASS (round-trip + dirty confirm + invalid/newer-version toasts) |
 | C-004 | `#btn-undo` | Appbar | src/main.ts | `history.undo()`; disabled when no undo or session live | `#history-list` pointer + canvas pixel revert; disabled during session | PASS |
 | C-005 | `#btn-redo` | Appbar | src/main.ts | `history.redo()`; disabled when no redo or session live | Pointer + pixel reapply | PASS |
 | C-006 | `#btn-export` | Appbar | src/export.ts | Guarded; PNG download via `renderToCanvas`; empty doc → toast "Add at least one layer to export." | Download evidence; toast on empty doc | PASS (PNG = doc size; empty-doc toast in Task 6) |
@@ -91,9 +91,9 @@ transform-session guard is PASS.
 
 | ID | Control | Surface | Source | Expected end effect | Verify by | Result |
 |----|---------|---------|--------|---------------------|-----------|--------|
-| C-080 | Dock tabs (`data-tab` layers/history) | Dock | src/history-panel.ts | Switches `#tab-layers`/`#tab-history` visibility; aria-selected + active styling | Hidden attributes + styling | |
-| C-081 | `#btn-add-image` | Layers | src/layers-panel.ts | Guarded; adds empty image layer at top, becomes active, canvas flash | Layer card + selection | |
-| C-082 | `#btn-add-text` | Layers | src/layers-panel.ts | Guarded; adds text layer, active | Card + canvas text | |
+| C-080 | Dock tabs (`data-tab` layers/history) | Dock | src/history-panel.ts | Switches `#tab-layers`/`#tab-history` visibility; aria-selected + active styling | Hidden attributes + styling | PASS |
+| C-081 | `#btn-add-image` | Layers | src/layers-panel.ts | Guarded; adds empty image layer at top, becomes active, canvas flash | Layer card + selection | PASS |
+| C-082 | `#btn-add-text` | Layers | src/layers-panel.ts | Guarded; adds text layer, active | Card + canvas text | PASS (guard deferral verified in Task 5) |
 | C-083 | `#upload-zone` (click/drop/paste) | Layers | src/layers-panel.ts | Click → file input; drop image decodes into layer (or fills empty active image layer as "Place image"); drop .json opens project; Ctrl+V pastes image; non-image → toast | Layer added + canvas fixture visible | PASS (click/drop/non-image-toast all verified) |
 | C-084 | `#file-input` | Layers (hidden) | src/layers-panel.ts | change → decode each image file; input cleared | Same | PASS |
 | C-085 | Layer card click | Layers (dynamic) | src/layers-panel.ts | Guarded select; properties panel follows | Active card + panel | PASS |
@@ -101,7 +101,7 @@ transform-session guard is PASS.
 | C-087 | Layer card delete | Layers (dynamic) | src/layers-panel.ts | Guarded; 150ms leave animation then delete command; undo restores | Card removed + pixel + undo | PASS |
 | C-088 | Layer card dblclick rename | Layers (dynamic) | src/layers-panel.ts | Guarded inline edit → "Rename layer" | Name label + properties chip | PASS |
 | C-089 | Layer card drag reorder | Layers (dynamic) | src/layers-panel.ts | Guarded reorder command; z-order changes; `draggedId` cleared on drop/dragend (deferred-minor: drag-then-delete) | Pixel where layers overlap + no console error | PASS — reorder + undo verified; drag→delete→drag clean, zero console errors (deferred minor cleared) |
-| C-090 | `#history-list` rows | History (dynamic) | src/history-panel.ts | Click jumps history to entry i; newest first; current/undone styling; blocked while session live | Canvas state + row classes | |
+| C-090 | `#history-list` rows | History (dynamic) | src/history-panel.ts | Click jumps history to entry i; newest first; current/undone styling; blocked while session live | Canvas state + row classes | FAIL(F-013) — jump/styling PASS; rows are NOT blocked during a live session |
 
 ## Transform-session guard
 
@@ -120,9 +120,9 @@ transform-session guard is PASS.
 | C-112 | Ctrl/Cmd+T | Keyboard | src/main.ts | Explicit Free Transform on active layer; no layer → toast "Select a layer before starting Free Transform." | Session + handles + status text | PASS (no-layer toast branch checked in Task 7) |
 | C-113 | Enter / Escape (explicit transform) | Keyboard | src/main.ts | Apply / cancel the explicit session | History entry / exact restore | PASS |
 | C-114 | Enter / Escape (crop session) | Keyboard | src/main.ts | Apply / cancel crop, tool returns to Move | Canvas + active tool | PASS |
-| C-115 | Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y | Keyboard | src/main.ts | Undo / redo / redo; blocked during sessions and while typing | Pixel + history pointer | |
+| C-115 | Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y | Keyboard | src/main.ts | Undo / redo / redo; blocked during sessions and while typing | Pixel + history pointer | PASS |
 | C-116 | Ctrl+V (image paste) | Keyboard | src/layers-panel.ts | Pasted image becomes a layer; ignored while typing in inputs | Layer card + canvas | PASS |
-| C-117 | Enter / Escape in number inputs | Keyboard | src/options-bar.ts, src/properties-panel.ts | Enter commits + blurs; Escape reverts to state value + blurs | Field value + no history entry on Escape | |
+| C-117 | Enter / Escape in number inputs | Keyboard | src/options-bar.ts, src/properties-panel.ts | Enter commits + blurs; Escape reverts to state value + blurs | Field value + no history entry on Escape | PASS in options bar; properties-panel Escape display bug → F-012 |
 
 ## Display-only elements (no interaction contract, checked for truthfulness)
 
@@ -131,7 +131,7 @@ transform-session guard is PASS.
 | C-120 | `#status-context` | Statusbar | src/main.ts | Mirrors tool/session state (Move/Crop/Free Transform variants) | Text per state | PASS (see F-011: inapplicable hints on Hand/Zoom) |
 | C-121 | `#status-doc-size` | Statusbar | src/topbar.ts | Mirrors doc dimensions | Text after resize | PASS |
 | C-122 | `#options-empty` | Options bar | src/options-bar.ts | Placeholder replaced by per-tool render | Never visible with options present | PASS |
-| C-123 | Toast + `.toast-action` | Overlay | src/toast.ts | Message shows, action runs `onAction` and dismisses, auto-dismiss ~3s | Element lifecycle + action effect | |
+| C-123 | Toast + `.toast-action` | Overlay | src/toast.ts | Message shows, action runs `onAction` and dismisses, auto-dismiss ~3s | Element lifecycle + action effect | PASS (save toast auto-dismiss ~3s; restore-offer action restores doc and dismisses) |
 
 ## Sweep states
 
