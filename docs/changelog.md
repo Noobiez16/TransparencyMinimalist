@@ -2,6 +2,12 @@
 
 Notable changes to the Transparency editor. Each release was delivered through a written specification and implementation plan; plan documents are removed from the repository once their release ships, so entries reference plans by name only.
 
+## 3.1.0 - 2026-07-16
+
+### Fixed
+
+- **UI functionality and layout audit fixes**: the options row now wraps at every width so no control is covered or pushed out of reach (previously the pinned Apply/Cancel overlay could swallow clicks on the rotation input mid-session); the custom background color picker appears in Custom mode; transform-control visibility toggles repaint immediately; keyboard shortcuts stay active after clicking toolbar buttons; Escape discards the visible draft in properties fields; history entries are inert while a transform or crop session is live; returning to 100 percent zoom reliably recenters the view; the options-bar zoom readout tracks live zoom; crop Apply and Cancel buttons return to the Move tool; and the status line shows tool-appropriate hints. (Plan: 2026-07-16-ui-audit-fixes.)
+
 ## 3.0.0 - 2026-07-13
 
 ### Added
