@@ -2,6 +2,7 @@ import { getActiveLayer, layerNaturalSize, type Doc } from './engine/document';
 import { getHandlePoints, getLayerQuad, hitTestHandle, type HandleId, type Point } from './engine/transform-geometry';
 import type { GuideDescriptor } from './engine/snap-engine';
 import { getCropSession, type CropHandle, type CropRect } from './engine/crop-session';
+import { notify } from './state';
 
 const HANDLE_SIZE_PX = 8;
 const HANDLE_HIT_RADIUS_PX = 10;
@@ -28,6 +29,7 @@ export function getShowTransformControls(): boolean {
 
 export function setShowTransformControls(show: boolean): void {
   showTransformControls = show;
+  notify('composite');
 }
 
 export function getActiveGuides(): GuideDescriptor[] {
