@@ -134,7 +134,11 @@ const syncContextStatus = () => {
   } else if (session?.gesture) {
     status.textContent = 'Transforming · Shift constrains';
   } else {
-    status.textContent = `${getActiveTool().label} · Shift constrains · Ctrl/Cmd bypasses Snap`;
+    const tool = getActiveTool();
+    if (tool.id === 'hand') status.textContent = 'Hand · Drag to pan the view';
+    else if (tool.id === 'zoom') status.textContent = 'Zoom · Click to zoom in · Alt-click zooms out';
+    else if (tool.id === 'crop') status.textContent = 'Crop · Click the canvas to start a crop';
+    else status.textContent = `${tool.label} · Shift constrains · Ctrl/Cmd bypasses Snap`;
   }
 };
 onToolChange(syncContextStatus);

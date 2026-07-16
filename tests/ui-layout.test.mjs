@@ -258,6 +258,11 @@ test('zoom publishes a view flag and the options bar re-renders on it', () => {
   assert.match(optionsBar, /dirty\.has\('view'\)/);
 });
 
+test('status line shows tool-appropriate hints', () => {
+  assert.match(main, /Hand · Drag to pan/);
+  assert.match(main, /Zoom · Click to zoom in/);
+});
+
 test('custom background color picker toggles the hidden attribute, not inline display', () => {
   assert.match(canvas, /colorPicker\.hidden\s*=\s*bg\s*!==\s*['"]custom['"]/);
   assert.doesNotMatch(canvas, /colorPicker\.style\.display/);
