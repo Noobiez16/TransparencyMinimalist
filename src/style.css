@@ -263,7 +263,8 @@ input[type="color"] {
   flex: 1 1 auto;
   min-width: 0;
   gap: 6px;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  overflow: visible;
 }
 
 .workspace-settings,
@@ -343,16 +344,9 @@ input[type="color"] {
 }
 
 .opt-essential {
-  position: sticky;
-  right: 0;
-  z-index: 2;
   padding: 2px;
   border-radius: 6px;
   background: var(--glass-strong);
-}
-
-.opt-essential[data-option-key="apply"] {
-  right: 70px;
 }
 
 .opt-value,
@@ -1373,16 +1367,6 @@ input[type="range"]:active::-webkit-slider-thumb {
   .workspace-settings,
   .canvas-controls {
     flex-wrap: wrap;
-  }
-
-  .options-host {
-    overflow: visible;
-  }
-
-  .opt-essential {
-    position: relative;
-    right: auto;
-    background: transparent;
   }
 
   .dashboard-wrapper {

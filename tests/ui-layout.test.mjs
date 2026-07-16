@@ -239,6 +239,12 @@ test('escape in properties transform fields blurs before syncing so the draft is
   assert.match(propertiesPanel, /Escape['"]\)\s*\{\s*event\.preventDefault\(\);[\s\S]{0,300}?input\.blur\(\);\s*const layer = getActiveLayer\(\);\s*if \(layer\) syncTransformFields\(layer\);/);
 });
 
+test('options row wraps at all widths and pinned actions never overlay siblings', () => {
+  assert.match(css, /\.options-host\s*\{[^}]*flex-wrap:\s*wrap/);
+  assert.doesNotMatch(css, /\.opt-essential\s*\{[^}]*position:\s*sticky/);
+  assert.doesNotMatch(css, /right:\s*70px/);
+});
+
 test('custom background color picker toggles the hidden attribute, not inline display', () => {
   assert.match(canvas, /colorPicker\.hidden\s*=\s*bg\s*!==\s*['"]custom['"]/);
   assert.doesNotMatch(canvas, /colorPicker\.style\.display/);
