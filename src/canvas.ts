@@ -18,6 +18,7 @@ const pointerRouter = createToolPointerRouter(getActiveTool);
 function applyZoom(): void {
   zoomWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
   $('zoom-readout').textContent = `${Math.round(zoom * 100)}%`;
+  notify('view');
 }
 
 function setZoom(next: number, cx = 0, cy = 0): void {

@@ -249,6 +249,13 @@ test('zoom snaps to exactly 100% within an epsilon so pan reset is deterministic
   assert.match(canvas, /Math\.abs\(zoom\s*-\s*1\)\s*<\s*1e-6/);
 });
 
+test('zoom publishes a view flag and the options bar re-renders on it', () => {
+  const stateSrc = readFileSync(resolve(root, 'src/state.ts'), 'utf8');
+  assert.match(stateSrc, /'view'/);
+  assert.match(canvas, /notify\('view'\)/);
+  assert.match(optionsBar, /dirty\.has\('view'\)/);
+});
+
 test('custom background color picker toggles the hidden attribute, not inline display', () => {
   assert.match(canvas, /colorPicker\.hidden\s*=\s*bg\s*!==\s*['"]custom['"]/);
   assert.doesNotMatch(canvas, /colorPicker\.style\.display/);

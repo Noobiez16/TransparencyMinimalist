@@ -10,7 +10,7 @@ export const PROP_DEFAULTS: Record<string, number> = {
 };
 // x/y defaults are dynamic (doc center) — panels use function-style resets.
 
-export type DirtyFlag = 'structure' | 'selection' | 'layerProps' | 'canvasConfig' | 'composite';
+export type DirtyFlag = 'structure' | 'selection' | 'layerProps' | 'canvasConfig' | 'composite' | 'view';
 type Listener = (dirty: Set<DirtyFlag>) => void;
 
 const listeners: Listener[] = [];

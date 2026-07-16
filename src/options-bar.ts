@@ -125,7 +125,7 @@ export function initOptionsBar(): void {
   };
   onToolChange(render);
   subscribe((dirty) => {
-    if (dirty.has('selection') || dirty.has('layerProps') || dirty.has('structure')) render();
+    if (dirty.has('selection') || dirty.has('layerProps') || dirty.has('structure') || dirty.has('view')) render();
   });
   subscribeTransformSession(render);
   subscribeCropSession(render);
