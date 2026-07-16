@@ -19,7 +19,7 @@ import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
 import { applyCrop, beginCrop, cancelCrop, getCropSession, subscribeCropSession } from './engine/crop-session';
 import { toast } from './toast';
-import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, isTransformSessionGuardOpen } from './transform-session-guard';
+import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, isTransformSessionGuardOpen, isTypingTarget } from './transform-session-guard';
 
 /**
  * History navigation must stay quiet while any editing session is live:
@@ -47,7 +47,7 @@ function initHistoryUI(): void {
   refresh();
   document.addEventListener('keydown', (e) => {
     const t = document.activeElement;
-    if (isInteractiveTarget(t) || historySessionBlocked()) return;
+    if (isTypingTarget(t) || historySessionBlocked()) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? history.redo() : history.undo(); }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); history.redo(); }
   });
@@ -72,7 +72,7 @@ let toolBeforeSpace: string | null = null;
 
 document.addEventListener('keydown', (e) => {
   const t = document.activeElement;
-  if (isInteractiveTarget(t) || isTransformSessionGuardOpen()) return;
+  if (isTypingTarget(t) || isTransformSessionGuardOpen()) return;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
     e.preventDefault();
     const activeLayer = state.doc.layers.find((layer) => layer.id === state.doc.activeLayerId);
@@ -82,17 +82,21 @@ document.addEventListener('keydown', (e) => {
     beginTransform(activeLayer.id, 'explicit');
     return;
   }
-  const transformSession = getTransformSession();
-  if (transformSession?.mode === 'explicit' && e.key === 'Enter') { e.preventDefault(); applyTransform(); return; }
-  if (transformSession?.mode === 'explicit' && e.key === 'Escape') { e.preventDefault(); cancelTransform(); return; }
-  if (getCropSession() && e.key === 'Enter') { e.preventDefault(); applyCrop(); setActiveTool('move'); return; }
-  if (getCropSession() && e.key === 'Escape') { e.preventDefault(); cancelCrop(); setActiveTool('move'); return; }
-  if (e.code === 'Space') e.preventDefault();
-  if (e.code === 'Space' && !e.repeat && !spaceHeld) {
-    spaceHeld = true;
-    toolBeforeSpace = getActiveTool().id;
-    setActiveTool('hand');
-    return;
+  // Enter, Escape, and Space keep their native semantics on focused buttons/links.
+  const buttonLikeFocused = isInteractiveTarget(t);
+  if (!buttonLikeFocused) {
+    const transformSession = getTransformSession();
+    if (transformSession?.mode === 'explicit' && e.key === 'Enter') { e.preventDefault(); applyTransform(); return; }
+    if (transformSession?.mode === 'explicit' && e.key === 'Escape') { e.preventDefault(); cancelTransform(); return; }
+    if (getCropSession() && e.key === 'Enter') { e.preventDefault(); applyCrop(); setActiveTool('move'); return; }
+    if (getCropSession() && e.key === 'Escape') { e.preventDefault(); cancelCrop(); setActiveTool('move'); return; }
+    if (e.code === 'Space') e.preventDefault();
+    if (e.code === 'Space' && !e.repeat && !spaceHeld) {
+      spaceHeld = true;
+      toolBeforeSpace = getActiveTool().id;
+      setActiveTool('hand');
+      return;
+    }
   }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const tool = allTools().find((x) => x.shortcut === e.key.toLowerCase());

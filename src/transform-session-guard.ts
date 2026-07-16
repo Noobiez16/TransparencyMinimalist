@@ -21,6 +21,12 @@ export function isInteractiveTarget(target: Element | null): boolean {
   return (target as HTMLElement).isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(target.tagName);
 }
 
+/** True only for elements the user types into — single-letter shortcuts stay active on buttons/links. */
+export function isTypingTarget(target: Element | null): boolean {
+  if (!target) return false;
+  return (target as HTMLElement).isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+}
+
 export function getGuardKeyboardResolution(key: string, target: Element | null): 'apply' | 'cancel' | null {
   if (key === 'Escape') return 'cancel';
   if (key === 'Enter' && !isInteractiveTarget(target)) return 'apply';

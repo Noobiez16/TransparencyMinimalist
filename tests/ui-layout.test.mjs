@@ -184,7 +184,7 @@ test('compact options wrap while transform decisions stay visible', () => {
 
 test('history navigation is blocked while any editing session is live', () => {
   assert.match(main, /historySessionBlocked/);
-  assert.match(main, /isInteractiveTarget\(t\)\s*\|\|\s*historySessionBlocked\(\)/);
+  assert.match(main, /isTypingTarget\(t\)\s*\|\|\s*historySessionBlocked\(\)/);
   assert.match(main, /getTransformSession\(\)\)\s*\|\|\s*Boolean\(getCropSession\(\)/);
   assert.match(main, /subscribeTransformSession\(refresh\)/);
   assert.match(main, /subscribeCropSession\(refresh\)/);
@@ -222,6 +222,14 @@ test('Crop contextual controls expose ratio presets, dimensions, and decisions',
     assert.match(crop, new RegExp(`['"]${key}['"]`), `missing option ${key}`);
   }
   assert.match(crop, /essential:\s*true/);
+});
+
+test('keyboard shortcuts are suppressed only while typing, not on focused buttons', () => {
+  const guardSrc = readFileSync(resolve(root, 'src/transform-session-guard.ts'), 'utf8');
+  assert.match(guardSrc, /export function isTypingTarget/);
+  assert.doesNotMatch(guardSrc, /isTypingTarget[\s\S]{0,200}?'BUTTON'/);
+  assert.match(main, /isTypingTarget\(t\)\s*\|\|\s*isTransformSessionGuardOpen\(\)/);
+  assert.match(main, /buttonLikeFocused/);
 });
 
 test('custom background color picker toggles the hidden attribute, not inline display', () => {
