@@ -225,6 +225,8 @@ test('Crop contextual controls expose ratio presets, dimensions, and decisions',
     assert.match(crop, new RegExp(`['"]${key}['"]`), `missing option ${key}`);
   }
   assert.match(crop, /essential:\s*true/);
+  assert.match(crop, /applyCrop\(\);\s*setActiveTool\(['"]move['"]\)/);
+  assert.match(crop, /cancelCrop\(\);\s*setActiveTool\(['"]move['"]\)/);
 });
 
 test('keyboard shortcuts are suppressed only while typing, not on focused buttons', () => {

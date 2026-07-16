@@ -1,4 +1,4 @@
-import { type Tool, type DocPoint } from '../engine/tools';
+import { setActiveTool, type Tool, type DocPoint } from '../engine/tools';
 import { icons } from '../dom';
 import { getOverlayScale } from '../canvas';
 import { hitTestCropOverlay } from '../canvas-overlay';
@@ -116,12 +116,12 @@ export const cropTool: Tool = {
     {
       key: 'crop-apply', label: 'Apply', kind: 'action', group: 'session', icon: icons.apply, essential: true,
       disabled: noSession,
-      run: () => { applyCrop(); }
+      run: () => { applyCrop(); setActiveTool('move'); }
     },
     {
       key: 'crop-cancel', label: 'Cancel', kind: 'action', group: 'session', icon: icons.cancel, essential: true,
       disabled: noSession,
-      run: () => { cancelCrop(); }
+      run: () => { cancelCrop(); setActiveTool('move'); }
     }
   ]
 };
