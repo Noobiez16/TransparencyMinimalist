@@ -232,6 +232,10 @@ test('keyboard shortcuts are suppressed only while typing, not on focused button
   assert.match(main, /buttonLikeFocused/);
 });
 
+test('escape in properties transform fields blurs before syncing so the draft is discarded', () => {
+  assert.match(propertiesPanel, /Escape['"]\)\s*\{\s*event\.preventDefault\(\);[\s\S]{0,300}?input\.blur\(\);\s*const layer = getActiveLayer\(\);\s*if \(layer\) syncTransformFields\(layer\);/);
+});
+
 test('custom background color picker toggles the hidden attribute, not inline display', () => {
   assert.match(canvas, /colorPicker\.hidden\s*=\s*bg\s*!==\s*['"]custom['"]/);
   assert.doesNotMatch(canvas, /colorPicker\.style\.display/);

@@ -291,7 +291,14 @@ export function initPropertiesPanel(): void {
     input.addEventListener('change', commit);
     input.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') { event.preventDefault(); commit(); input.blur(); }
-      if (event.key === 'Escape') { event.preventDefault(); const layer = getActiveLayer(); if (layer) syncTransformFields(layer); input.blur(); }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        // Blur FIRST: syncTransformFields skips the focused element to protect
+        // live typing, so syncing before blur left the abandoned draft visible.
+        input.blur();
+        const layer = getActiveLayer();
+        if (layer) syncTransformFields(layer);
+      }
     });
   }
   transformLink.addEventListener('click', () => {
