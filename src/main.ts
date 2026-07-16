@@ -20,6 +20,7 @@ import { applyTransform, beginTransform, cancelTransform, getTransformSession, s
 import { applyCrop, beginCrop, cancelCrop, getCropSession, subscribeCropSession } from './engine/crop-session';
 import { toast } from './toast';
 import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, isTransformSessionGuardOpen, isTypingTarget } from './transform-session-guard';
+import { isEditingSessionLive } from './engine/session-status';
 
 /**
  * History navigation must stay quiet while any editing session is live:
@@ -27,7 +28,7 @@ import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, 
  * abandon the user's in-progress edit.
  */
 function historySessionBlocked(): boolean {
-  return Boolean(getTransformSession()) || Boolean(getCropSession()) || isTransformSessionGuardOpen();
+  return isEditingSessionLive();
 }
 
 function initHistoryUI(): void {

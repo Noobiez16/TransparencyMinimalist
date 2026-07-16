@@ -185,7 +185,10 @@ test('compact options wrap while transform decisions stay visible', () => {
 test('history navigation is blocked while any editing session is live', () => {
   assert.match(main, /historySessionBlocked/);
   assert.match(main, /isTypingTarget\(t\)\s*\|\|\s*historySessionBlocked\(\)/);
-  assert.match(main, /getTransformSession\(\)\)\s*\|\|\s*Boolean\(getCropSession\(\)/);
+  const sessionStatus = readFileSync(resolve(root, 'src/engine/session-status.ts'), 'utf8');
+  assert.match(sessionStatus, /getTransformSession\(\)\)\s*\|\|\s*Boolean\(getCropSession\(\)/);
+  const historyPanel = readFileSync(resolve(root, 'src/history-panel.ts'), 'utf8');
+  assert.match(historyPanel, /isEditingSessionLive\(\)/);
   assert.match(main, /subscribeTransformSession\(refresh\)/);
   assert.match(main, /subscribeCropSession\(refresh\)/);
   const guardSource = readFileSync(resolve(root, 'src/transform-session-guard.ts'), 'utf8');

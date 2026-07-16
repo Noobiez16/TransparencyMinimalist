@@ -1,5 +1,6 @@
 import * as history from './engine/history';
 import { $ } from './dom';
+import { isEditingSessionLive } from './engine/session-status';
 
 export function initHistoryPanel(): void {
   const list = $('history-list');
@@ -26,7 +27,10 @@ export function initHistoryPanel(): void {
       const row = document.createElement('button');
       row.className = 'history-row' + (i === cur ? ' current' : '') + (i > cur ? ' undone' : '');
       row.textContent = entry.label;
-      row.addEventListener('click', () => history.jump(i));
+      row.addEventListener('click', () => {
+        if (isEditingSessionLive()) return;
+        history.jump(i);
+      });
       list.prepend(row);            // newest first
     });
     if (!history.entries().length) {
