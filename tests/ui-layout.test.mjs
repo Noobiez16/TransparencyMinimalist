@@ -247,6 +247,12 @@ test('options row wraps at all widths and pinned actions never overlay siblings'
   assert.doesNotMatch(css, /right:\s*70px/);
 });
 
+test('the options bar row grows with wrapped content instead of overflowing the workspace', () => {
+  assert.match(css, /grid-template-rows:\s*minmax\(44px,\s*auto\)\s*minmax\(44px,\s*auto\)\s*minmax\(0,\s*1fr\)\s*24px/);
+  assert.match(css, /\.workspace-settings\s*\{[^}]*flex:\s*0 0 auto/);
+  assert.match(css, /\.size-chip\s*\{[^}]*white-space:\s*nowrap/);
+});
+
 test('zoom snaps to exactly 100% within an epsilon so pan reset is deterministic', () => {
   assert.match(canvas, /Math\.abs\(zoom\s*-\s*1\)\s*<\s*1e-6/);
 });

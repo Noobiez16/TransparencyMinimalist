@@ -32,7 +32,7 @@
   };
 
   const SURFACES = [
-    '.appbar', '.rail', '.canvas-workspace', '.properties-dock',
+    '.appbar', '.options-bar', '.rail', '.canvas-workspace', '.properties-dock',
     '.layers-history-dock', '.statusbar', '#transform-session-guard'
   ];
   const surfaces = SURFACES

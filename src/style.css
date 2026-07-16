@@ -35,7 +35,9 @@ body {
   height: 100vh;
   overflow: hidden;
   display: grid;
-  grid-template-rows: 44px 44px minmax(0, 1fr) 24px;
+  /* Header rows grow with wrapped content (the options row can become two lines)
+     so the bar pushes the workspace down instead of painting over it. */
+  grid-template-rows: minmax(44px, auto) minmax(44px, auto) minmax(0, 1fr) 24px;
   gap: 7px;
   padding: 7px;
   color: var(--txt);
@@ -272,6 +274,10 @@ input[type="color"] {
   gap: 10px;
 }
 
+.workspace-settings {
+  flex: 0 0 auto;
+}
+
 .control-label,
 .opt-label,
 .options-empty {
@@ -399,6 +405,7 @@ input[type="color"] {
 
 .size-chip {
   min-height: 26px;
+  white-space: nowrap;
   padding: 5px 9px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 6px;
