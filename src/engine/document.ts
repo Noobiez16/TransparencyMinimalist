@@ -93,6 +93,27 @@ export function createTextLayer(doc: Doc, name?: string): TextLayer {
   return { ...baseLayer(doc, name ?? `Text Layer ${layerCounter + 1}`), kind: 'text', text: 'Edit me', fontFamily: 'Inter', fontSize: 64, color: '#000000' };
 }
 
+export function cloneLayer(doc: Doc, layer: Layer): Layer {
+  const base = baseLayer(doc, `${layer.name} copy`);
+  const common = {
+    ...layer,
+    id: base.id,
+    name: base.name,
+    effects: { ...layer.effects }
+  };
+  if (layer.kind === 'image') {
+    let bitmap: HTMLCanvasElement | null = null;
+    if (layer.bitmap) {
+      bitmap = document.createElement('canvas');
+      bitmap.width = layer.bitmap.width;
+      bitmap.height = layer.bitmap.height;
+      bitmap.getContext('2d')!.drawImage(layer.bitmap, 0, 0);
+    }
+    return { ...common, kind: 'image', bitmap, bitmapRev: 0 } as ImageLayer;
+  }
+  return { ...common, kind: 'text' } as TextLayer;
+}
+
 export function getActiveLayer(doc: Doc): Layer | undefined {
   return doc.layers.find((l) => l.id === doc.activeLayerId);
 }

@@ -1,5 +1,6 @@
 import { state, notify } from './state';
-import { createTextLayer, createImageLayer } from './engine/document';
+import { createTextLayer, createImageLayer, cloneLayer } from './engine/document';
+import { cmdAddLayer } from './engine/commands';
 import { initCanvas } from './canvas';
 import { initLayersPanel } from './layers-panel';
 import { initPropertiesPanel } from './properties-panel';
@@ -79,6 +80,16 @@ registerCommand({
   })
 });
 registerCommand({ id: 'layer.group', label: 'Group Layers', shortcut: 'Ctrl+G', phase: 'E' });
+registerCommand({
+  id: 'layer.duplicate', label: 'Duplicate Layer', shortcut: 'Ctrl+J', bindKey: true,
+  enabled: () => Boolean(state.doc.activeLayerId),
+  run: () => guardTransformSession(() => {
+    const layer = state.doc.layers.find((l) => l.id === state.doc.activeLayerId);
+    if (!layer) return;
+    const index = state.doc.layers.indexOf(layer);
+    history.push(cmdAddLayer(cloneLayer(state.doc, layer), index, 'Duplicate layer'));
+  })
+});
 registerCommand({ id: 'view.zoomIn', label: 'Zoom In', shortcut: 'Ctrl+=', bindKey: true, run: () => zoomAt(1.25) });
 registerCommand({ id: 'view.zoomOut', label: 'Zoom Out', shortcut: 'Ctrl+-', bindKey: true, run: () => zoomAt(0.8) });
 registerCommand({ id: 'view.fit', label: 'Fit on Screen', shortcut: 'Ctrl+0', bindKey: true, run: () => resetView() });
