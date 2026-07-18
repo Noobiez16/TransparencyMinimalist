@@ -1446,14 +1446,13 @@ input[type="range"]:active::-webkit-slider-thumb {
 
 .chip-pair {
   position: relative;
-  width: 30px;
-  height: 30px;
+  /* Color inputs keep a ~30x24 UA minimum; stagger vertically so both centers stay clickable. */
+  width: 34px;
+  height: 44px;
 }
 
 .chip {
   position: absolute;
-  width: 20px;
-  height: 20px;
   padding: 0;
   border: 1px solid var(--glass-line);
   border-radius: 4px;

@@ -116,7 +116,7 @@ Pushing after an undo truncates the redo tail. The history cursor identifies the
 
 ## Tool System and Pointer Routing
 
-`src/engine/tools.ts` defines `Tool`, `ToolOption`, registration, active-tool selection, and layer hit testing. Startup in `src/main.ts` registers the Move, Hand, Zoom, and Crop tools before the rail and canvas are initialized. The tool rail is generated from `allTools()`, and the contextual options bar renders the active tool's option descriptors. Keyboard shortcuts select registered tools; holding Space temporarily activates Hand and restores the previous tool on release.
+`src/engine/tools.ts` defines `Tool`, `ToolOption`, registration, active-tool selection, and layer hit testing. Startup in `src/main.ts` registers the Move, Hand, Zoom, and Crop tools before the toolbar and canvas are initialized. The grouped toolbar renders live tools and grayed future slots from declarative group data, and the contextual options bar renders the active tool's option descriptors. Keyboard shortcuts select registered tools; holding Space temporarily activates Hand and restores the previous tool on release.
 
 `src/canvas.ts` owns pointer capture and routes pointer down, move, up, and cancel events to the active tool. Every routed event first passes through `screenToDoc()`, which maps the canvas bounding rectangle into the document width and height. Tool implementations therefore receive stable document pixels regardless of CSS fitting, zoom, pan, or device pixel ratio.
 

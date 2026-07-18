@@ -79,7 +79,7 @@ test('design guide documents the implemented spatial-glass system', () => {
   assertProfessionalMarkdown('docs/design.md', design);
   for (const fact of [
     '--app-bg', '--glass', '--glass-strong', '--glass-line',
-    'application bar', 'contextual options bar', 'tool rail',
+    'application menu bar', 'contextual options bar', 'toolbar',
     'canvas workspace', 'Layers / History', '1024px and above',
     '1023px and below', 'backdrop-filter', 'prefers-reduced-motion'
   ]) assert.match(design, new RegExp(fact.replaceAll('.', '\\.')));

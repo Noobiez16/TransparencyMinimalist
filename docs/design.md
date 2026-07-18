@@ -11,7 +11,7 @@ The system follows four practical principles:
 - **Protect the artwork.** Dark, low-chroma surroundings and compact controls keep attention on the composition.
 - **Make depth legible.** Environmental gradients establish the room; glass fills, hairline highlights, and shadows separate working surfaces.
 - **Keep controls quiet until active.** Muted labels and transparent controls gain lightness, fill, or a precise inset marker on hover and selection.
-- **Preserve spatial relationships.** The application bar, contextual options bar, tool rail, canvas workspace, inspector docks, and status bar keep stable roles as the layout adapts.
+- **Preserve spatial relationships.** The application menu bar, contextual options bar, toolbar, canvas workspace, inspector docks, and status bar keep stable roles as the layout adapts.
 
 Inter with system sans-serif fallback is used at a compact 12px base and 1.4 line height. Labels and supporting metadata commonly use 9-11px sizes; important titles use weight rather than a large type jump.
 
@@ -40,16 +40,16 @@ The body layers two low-opacity radial gradients over `--app-bg`. A `.glass-surf
 
 ## Desktop Workspace
 
-Desktop layout applies at 1024px and above. The page uses four horizontal bands: a 44px application bar, a 44px contextual options bar, the flexible editor shell, and a 24px status bar, separated by 7px gaps.
+Desktop layout applies at 1024px and above. The page uses four horizontal bands: the application menu bar and contextual options bar (44px minimum, growing when their content wraps), the flexible editor shell, and a 24px status bar, separated by 7px gaps.
 
-Within the editor shell, the default grid is a 44px tool rail, a flexible canvas workspace, and a 300px right inspector dock:
+Within the editor shell, the default grid is a 44px toolbar (80px in double-column mode), a flexible canvas workspace, and a 300px right inspector dock composed of three tabbed stacks (Color / Swatches, Properties, Layers / History):
 
-- The **application bar** contains product identity, open/save and undo/redo actions, plus PNG export.
+- The **application menu bar** contains the product identity mark and eleven Photoshop-style menu headings; file lifecycle, undo/redo, and PNG export live inside the File and Edit menus, and future-phase commands render grayed.
 - The **contextual options bar** exposes the active tool's options, document background controls, and preset or custom canvas sizing.
-- The **tool rail** holds registered Move, Hand, and Zoom tools, quick layer creation, and inspector visibility controls.
+- The **toolbar** holds grouped tool slots with nested-tool flyouts, a single/double column toggle, and the foreground/background color chips; unimplemented groups render grayed with their roadmap phase.
 - The **document tab and canvas workspace** frame the active composition, checkerboard or configured background, and the floating zoom control.
 - **Properties** occupies the upper inspector region and adapts to the selected image or text layer.
-- **Layers / History** shares the lower inspector region, with tabs for layer management and command navigation.
+- **Layers / History** shares the third dock stack, with framework tabs for layer management and command navigation plus grayed Channels and Paths slots; each stack collapses to its tab strip.
 - The **status bar** reports the workspace mode, core tool set, and current document dimensions.
 
 The inspector dock has two stacked glass panels. Rail toggles can hide either panel; hiding both removes the dock and gives the canvas the remaining width. This is a spatial editor arrangement, not a generic equal-column page layout.
@@ -86,7 +86,7 @@ Hover may reinforce an affordance but must not be the only indication of selecti
 
 Desktop applies at 1024px and above. The rail, centered canvas, and stacked inspector dock remain side by side, with the canvas receiving flexible width.
 
-Compact stacking applies at 1023px and below. The page becomes vertically scrollable; the dashboard becomes a column; the tool rail becomes a horizontal row; the canvas comes next with a minimum height of 58vh; and Properties plus Layers / History stack below it. The application bar wraps its actions, options can wrap, and the status bar drops its center label. Existing rail visibility states still hide their corresponding inspector panels.
+Compact stacking applies at 1023px and below. The page becomes vertically scrollable; the dashboard becomes a column; the toolbar becomes a horizontal row; the canvas comes next with a minimum height of 58vh; and the dock stacks follow below it. The application menu bar wraps its headings, options can wrap, and the status bar drops its center label. Existing visibility states still hide their corresponding inspector panels.
 
 Narrow refinements apply at 640px and below. Outer gap and padding shrink to 4px, the application actions occupy their own centered row, secondary product and control labels disappear, canvas/background controls take the full width, theme toggles may scroll horizontally, the document tab fills the available width, and the canvas minimum height rises to 66vh.
 
@@ -105,7 +105,7 @@ The `@media (prefers-reduced-motion: reduce)` rule effectively removes animation
 - Reuse the current tokens before adding a new color, translucent role, easing curve, or shadow.
 - Keep artwork chrome dark and neutral; use `--selection` for active and keyboard states rather than introducing a saturated accent.
 - Apply glass to major workspace and floating surfaces, then use quieter nested cards so blur and borders do not accumulate.
-- Preserve the application bar, contextual options bar, tool rail, canvas workspace, inspector, and status-bar hierarchy at every breakpoint.
+- Preserve the application menu bar, contextual options bar, toolbar, canvas workspace, inspector, and status-bar hierarchy at every breakpoint.
 - Match existing compact control sizes and radii, but retain clear focus, checked, disabled, hover, and selected states.
 - Test new UI at 1024px and above, 1023px and below, and 640px and below, including long labels and both inspector visibility toggles.
 - Verify keyboard navigation, accessible names, switch/tab ARIA state, no-blur fallback, and reduced motion before submitting a UI change.

@@ -18,12 +18,16 @@ Transparency is a browser-based layer image editor with a Photoshop-style spatia
 
 | Region | Purpose |
 |---|---|
-| Application bar | Open, save, undo, redo, and export |
+| Application menu bar | Eleven Photoshop-style menus (File, Edit, Image, Layer, Type, Select, Filter, View, Plugins, Window, Help); commands from future phases render grayed |
 | Contextual options bar | Active-tool options, background, and document size |
-| Tool rail | Move, Hand, Zoom, Crop, layer creation, and panel visibility |
-| Canvas workspace | Interactive document rendering, selection outline, pan, and zoom |
+| Toolbar | Grouped tool slots with nested-tool flyouts (right-click), a single/double column toggle, and foreground/background color chips |
+| Canvas workspace | Interactive document rendering, a document tab with live zoom, pasteboard shades, selection outline, pan, and zoom |
 | Properties | Selected-layer transforms, opacity, blending, effects, and text settings |
-| Layers / History | Layer stack management and reversible command navigation |
+| Layers / History | Layer stack management and reversible command navigation, tabbed with grayed Channels and Paths slots |
+| Color / Swatches | Foreground color sliders with hex entry, plus a persistent swatch library |
+| Status bar | Typeable zoom field, per-tool hints, and a cycling diagnostics metric |
+
+`Window > Workspace: Reset Essentials` restores the default layout at any time.
 
 ## Editing Workflow
 
@@ -67,6 +71,16 @@ npm run build
 | Temporary Hand tool | Hold `Space` |
 | Undo | `Ctrl+Z` / `Cmd+Z` |
 | Redo | `Ctrl+Shift+Z`, `Ctrl+Y`, or platform equivalent |
+| Open project | `Ctrl+O` |
+| Save project | `Ctrl+S` |
+| Duplicate layer | `Ctrl+J` |
+| Fit on screen | `Ctrl+0` |
+| Default colors (black/white) | `D` |
+| Swap foreground/background colors | `X` |
+| Hide all panels and toolbars | `Tab` |
+| Hide only the right docks | `Shift+Tab` |
+| Focus the Color panel | `F6` |
+| Focus the Layers panel | `F7` |
 
 ## Project Structure
 
