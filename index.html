@@ -59,14 +59,12 @@
 
   <div class="editor-shell">
     <div class="dashboard-wrapper">
-      <nav class="rail glass-surface" aria-label="Toolbar">
-        <div class="rail-tools" id="rail-tools"></div>
+      <nav class="rail toolbar glass-surface" aria-label="Toolbar">
+        <button class="rail-btn" id="toolbar-columns" title="Toggle single/double column" aria-label="Toggle toolbar columns">⋮⋮</button>
         <div class="rail-divider"></div>
-        <button class="rail-btn" id="rail-add-image" title="Add image layer" aria-label="Add image layer"></button>
-        <button class="rail-btn" id="rail-add-text" title="Add text layer" aria-label="Add text layer"></button>
+        <div class="rail-tools" id="rail-tools"></div>
         <div class="rail-spacer"></div>
-        <button class="rail-btn active" id="rail-layers" title="Toggle layers panel" aria-label="Toggle layers panel"></button>
-        <button class="rail-btn active" id="rail-props" title="Toggle properties panel" aria-label="Toggle properties panel"></button>
+        <div id="color-chips"></div>
       </nav>
 
       <main class="canvas-workspace center-panel">

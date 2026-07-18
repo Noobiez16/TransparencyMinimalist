@@ -17,7 +17,7 @@ const propertiesPanel = readFileSync(resolve(root, 'src/properties-panel.ts'), '
 const tools = readFileSync(resolve(root, 'src/engine/tools.ts'), 'utf8');
 const guardPath = resolve(root, 'src/transform-session-guard.ts');
 const guard = existsSync(guardPath) ? readFileSync(guardPath, 'utf8') : '';
-const rail = readFileSync(resolve(root, 'src/rail.ts'), 'utf8');
+const rail = readFileSync(resolve(root, 'src/shell/toolbar.ts'), 'utf8');
 const layersPanel = readFileSync(resolve(root, 'src/layers-panel.ts'), 'utf8');
 const persistence = readFileSync(resolve(root, 'src/engine/persistence.ts'), 'utf8');
 const exportSource = readFileSync(resolve(root, 'src/export.ts'), 'utf8');
@@ -41,6 +41,18 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   ]) {
     assert.equal(hasClass(html, className), true, `missing .${className}`);
   }
+});
+
+test('the toolbar renders the manual tool groups with grayed future slots', () => {
+  const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
+  for (const stub of ['Rectangular Marquee', 'Lasso', 'Eyedropper', 'Brush', 'Pen', 'Horizontal Type', 'Rotate View']) {
+    assert.match(groups, new RegExp(stub), `missing stub ${stub}`);
+  }
+  for (const live of ['move', 'crop', 'hand', 'zoom']) {
+    assert.match(groups, new RegExp(`tool:\\s*['"]${live}['"]`), `missing live tool ${live}`);
+  }
+  assert.match(rail, /guardTransformSession/);
+  assert.match(rail, /contextmenu/);
 });
 
 test('menu commands cover working actions and phase-labeled stubs', () => {
@@ -89,8 +101,7 @@ test('all DOM ids remain unique', () => {
 test('feature-owned ids remain available after the layout move', () => {
   for (const id of [
     'options-host', 'size-chip', 'canvas-width', 'canvas-height',
-    'rail-tools', 'rail-add-image', 'rail-add-text',
-    'rail-layers', 'rail-props', 'btn-add-image', 'btn-add-text',
+    'rail-tools', 'toolbar-columns', 'btn-add-image', 'btn-add-text',
     'upload-zone', 'file-input', 'layers-list-container',
     'panel-layers', 'panel-history',
     'canvas-container', 'canvas-viewport', 'doc-canvas',
