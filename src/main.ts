@@ -9,6 +9,9 @@ import { exportComposition } from './export';
 import { saveProject } from './engine/persistence';
 import { registerCommand } from './shell/commands';
 import { initMenuBar } from './shell/menu-bar';
+import { zoomAt, resetView } from './canvas';
+import { getSnapEnabled, setSnapEnabled } from './tools/move';
+import { cmdDeleteLayer } from './engine/commands';
 import { initRail } from './rail';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
@@ -60,6 +63,40 @@ registerCommand({ id: 'file.export', label: 'Export PNG…', legacyId: 'btn-expo
 registerCommand({ id: 'edit.undo', label: 'Undo', shortcut: 'Ctrl+Z', legacyId: 'btn-undo', enabled: () => history.canUndo() && !historySessionBlocked(), run: () => history.undo() });
 registerCommand({ id: 'edit.redo', label: 'Redo', shortcut: 'Ctrl+Shift+Z', legacyId: 'btn-redo', enabled: () => history.canRedo() && !historySessionBlocked(), run: () => history.redo() });
 registerCommand({ id: 'edit.freeTransform', label: 'Free Transform', shortcut: 'Ctrl+T', enabled: () => Boolean(state.doc.activeLayerId), run: () => startFreeTransform() });
+// Deferred a tick: the menu-item click still has to bubble past the size menu's
+// own close-on-outside-click handler before we reveal it.
+registerCommand({ id: 'image.canvasSize', label: 'Canvas Size…', run: () => { setTimeout(() => { $('size-menu').hidden = false; }, 0); } });
+registerCommand({ id: 'image.imageSize', label: 'Image Size…', phase: 'F' });
+registerCommand({ id: 'image.mode', label: 'Mode', phase: 'E' });
+registerCommand({ id: 'layer.newImage', label: 'New Image Layer', run: () => $('btn-add-image').click() });
+registerCommand({ id: 'layer.newText', label: 'New Text Layer', run: () => $('btn-add-text').click() });
+registerCommand({
+  id: 'layer.delete', label: 'Delete Layer',
+  enabled: () => Boolean(state.doc.activeLayerId),
+  run: () => guardTransformSession(() => {
+    const id = state.doc.activeLayerId;
+    if (id) history.push(cmdDeleteLayer(id, 'Delete layer'));
+  })
+});
+registerCommand({ id: 'layer.group', label: 'Group Layers', shortcut: 'Ctrl+G', phase: 'E' });
+registerCommand({ id: 'view.zoomIn', label: 'Zoom In', shortcut: 'Ctrl+=', bindKey: true, run: () => zoomAt(1.25) });
+registerCommand({ id: 'view.zoomOut', label: 'Zoom Out', shortcut: 'Ctrl+-', bindKey: true, run: () => zoomAt(0.8) });
+registerCommand({ id: 'view.fit', label: 'Fit on Screen', shortcut: 'Ctrl+0', bindKey: true, run: () => resetView() });
+registerCommand({ id: 'view.snap', label: 'Snap To', checked: () => getSnapEnabled(), run: () => setSnapEnabled(!getSnapEnabled()) });
+registerCommand({ id: 'type.rasterize', label: 'Rasterize Type', phase: 'D' });
+registerCommand({ id: 'type.convertShape', label: 'Convert to Shape', phase: 'D' });
+registerCommand({ id: 'select.all', label: 'Select All', shortcut: 'Ctrl+A', phase: 'C' });
+registerCommand({ id: 'select.deselect', label: 'Deselect', shortcut: 'Ctrl+D', phase: 'C' });
+registerCommand({ id: 'select.inverse', label: 'Inverse', shortcut: 'Shift+Ctrl+I', phase: 'C' });
+registerCommand({ id: 'select.subject', label: 'Select Subject', phase: 'C' });
+registerCommand({ id: 'filter.gallery', label: 'Filter Gallery…', phase: 'E' });
+registerCommand({ id: 'filter.gaussianBlur', label: 'Gaussian Blur…', phase: 'E' });
+registerCommand({ id: 'filter.liquify', label: 'Liquify…', shortcut: 'Shift+Ctrl+X', phase: 'E' });
+registerCommand({ id: 'plugins.marketplace', label: 'Plugin Marketplace', phase: 'F' });
+registerCommand({
+  id: 'help.about', label: 'About / System Info',
+  run: () => toast(`Transparency — ${state.doc.width}×${state.doc.height}, ${state.doc.layers.length} layers, v2 document`, { duration: 6000 })
+});
 
 registerTool(moveTool);
 registerTool(handTool);

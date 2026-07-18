@@ -43,6 +43,21 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('menu commands cover working actions and phase-labeled stubs', () => {
+  for (const id of [
+    "'image.canvasSize'", "'layer.newImage'", "'layer.newText'",
+    "'layer.delete'", "'view.zoomIn'", "'view.zoomOut'",
+    "'view.fit'", "'view.snap'", "'help.about'",
+    "'select.all'", "'filter.gaussianBlur'", "'type.rasterize'", "'image.imageSize'"
+  ]) {
+    assert.match(main, new RegExp(id.replaceAll('.', '\\.')), `missing registration ${id}`);
+  }
+  assert.match(main, /phase:\s*'C'/);
+  assert.match(main, /phase:\s*'D'/);
+  assert.match(main, /phase:\s*'E'/);
+  assert.match(main, /phase:\s*'F'/);
+});
+
 test('the menu bar exposes all eleven Photoshop headings', () => {
   const menu = readFileSync(resolve(root, 'src/shell/menu-bar.ts'), 'utf8');
   for (const title of ['File', 'Edit', 'Image', 'Layer', 'Type', 'Select', 'Filter', 'View', 'Plugins', 'Window', 'Help']) {
