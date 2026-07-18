@@ -5,11 +5,14 @@ import { initLayersPanel } from './layers-panel';
 import { initPropertiesPanel } from './properties-panel';
 import { initHistoryPanel } from './history-panel';
 import { initTopbar } from './topbar';
-import { initExport } from './export';
+import { exportComposition } from './export';
+import { saveProject } from './engine/persistence';
+import { registerCommand } from './shell/commands';
+import { initMenuBar } from './shell/menu-bar';
 import { initRail } from './rail';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
-import { $, icons } from './dom';
+import { $ } from './dom';
 import { registerTool, setActiveTool, getActiveTool, allTools, onToolChange } from './engine/tools';
 import { moveTool } from './tools/move';
 import { handTool } from './tools/hand';
@@ -33,20 +36,6 @@ function historySessionBlocked(): boolean {
 }
 
 function initHistoryUI(): void {
-  const undoBtn = $<HTMLButtonElement>('btn-undo');
-  const redoBtn = $<HTMLButtonElement>('btn-redo');
-  undoBtn.innerHTML = icons.undo;
-  redoBtn.innerHTML = icons.redo;
-  const refresh = () => {
-    undoBtn.disabled = !history.canUndo() || historySessionBlocked();
-    redoBtn.disabled = !history.canRedo() || historySessionBlocked();
-  };
-  undoBtn.addEventListener('click', () => { if (!historySessionBlocked()) history.undo(); });
-  redoBtn.addEventListener('click', () => { if (!historySessionBlocked()) history.redo(); });
-  history.onChange(refresh);
-  subscribeTransformSession(refresh);
-  subscribeCropSession(refresh);
-  refresh();
   document.addEventListener('keydown', (e) => {
     const t = document.activeElement;
     if (isTypingTarget(t) || historySessionBlocked()) return;
@@ -54,6 +43,23 @@ function initHistoryUI(): void {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); history.redo(); }
   });
 }
+
+function startFreeTransform(): void {
+  const activeLayer = state.doc.layers.find((layer) => layer.id === state.doc.activeLayerId);
+  if (!activeLayer) { toast('Select a layer before starting Free Transform.'); return; }
+  if (getTransformSession()) return;
+  setActiveTool('move');
+  beginTransform(activeLayer.id, 'explicit');
+}
+
+registerCommand({ id: 'file.new', label: 'New Document…', shortcut: 'Ctrl+N', phase: 'F' });
+registerCommand({ id: 'file.open', label: 'Open…', shortcut: 'Ctrl+O', bindKey: true, legacyId: 'btn-open', run: () => guardTransformSession(() => ($('project-input') as unknown as HTMLInputElement).click()) });
+registerCommand({ id: 'file.place', label: 'Place Embedded…', run: () => guardTransformSession(() => ($('file-input') as unknown as HTMLInputElement).click()) });
+registerCommand({ id: 'file.save', label: 'Save Project', shortcut: 'Ctrl+S', bindKey: true, legacyId: 'btn-save', run: () => { void saveProject(); } });
+registerCommand({ id: 'file.export', label: 'Export PNG…', legacyId: 'btn-export', run: () => exportComposition() });
+registerCommand({ id: 'edit.undo', label: 'Undo', shortcut: 'Ctrl+Z', legacyId: 'btn-undo', enabled: () => history.canUndo() && !historySessionBlocked(), run: () => history.undo() });
+registerCommand({ id: 'edit.redo', label: 'Redo', shortcut: 'Ctrl+Shift+Z', legacyId: 'btn-redo', enabled: () => history.canRedo() && !historySessionBlocked(), run: () => history.redo() });
+registerCommand({ id: 'edit.freeTransform', label: 'Free Transform', shortcut: 'Ctrl+T', enabled: () => Boolean(state.doc.activeLayerId), run: () => startFreeTransform() });
 
 registerTool(moveTool);
 registerTool(handTool);
@@ -77,11 +83,7 @@ document.addEventListener('keydown', (e) => {
   if (isTypingTarget(t) || isTransformSessionGuardOpen()) return;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
     e.preventDefault();
-    const activeLayer = state.doc.layers.find((layer) => layer.id === state.doc.activeLayerId);
-    if (!activeLayer) { toast('Select a layer before starting Free Transform.'); return; }
-    if (getTransformSession()) return;
-    setActiveTool('move');
-    beginTransform(activeLayer.id, 'explicit');
+    startFreeTransform();
     return;
   }
   // Enter, Escape, and Space keep their native semantics on focused buttons/links.
@@ -112,13 +114,13 @@ document.addEventListener('keyup', (e) => {
   }
 });
 
+initMenuBar();
 initTransformSessionGuard();
 initCanvas();
 initLayersPanel();
 initPropertiesPanel();
 initHistoryPanel();
 initTopbar();
-initExport();
 initRail();
 initOptionsBar();
 initHistoryUI();

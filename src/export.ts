@@ -1,7 +1,6 @@
 import { state } from './state';
 import { renderToCanvas } from './engine/compositor';
 import { toast } from './toast';
-import { $ } from './dom';
 import { guardTransformSession } from './transform-session-guard';
 
 export function exportComposition(): void {
@@ -23,4 +22,3 @@ function exportCompositionNow(): void {
   }, 'image/png');
 }
 
-export function initExport(): void { $('btn-export').addEventListener('click', exportComposition); }

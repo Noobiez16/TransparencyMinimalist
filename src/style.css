@@ -1306,6 +1306,83 @@ input[type="range"]:active::-webkit-slider-thumb {
   font-weight: 600;
 }
 
+/* Application menu bar */
+.menu-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+}
+
+.menus {
+  display: flex;
+  align-items: center;
+}
+
+.menu-heading {
+  position: relative;
+}
+
+.menu-title {
+  padding: 6px 9px;
+  background: transparent;
+  border: 0;
+  color: var(--txt);
+  font-size: 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.menu-heading.open .menu-title,
+.menu-title:hover {
+  background: var(--glass-soft);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  padding: 4px;
+  border-radius: 7px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 5px 9px;
+  background: transparent;
+  border: 0;
+  color: var(--txt);
+  font-size: 12px;
+  text-align: left;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.menu-item:not(:disabled):hover {
+  background: var(--glass-soft);
+}
+
+.menu-item:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.menu-shortcut {
+  color: var(--mut);
+}
+
+.menu-separator {
+  height: 1px;
+  margin: 3px 6px;
+  background: var(--glass-line);
+}
+
 .transform-session-guard {
   position: fixed;
   inset: 95px 7px 31px;

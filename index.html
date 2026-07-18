@@ -18,28 +18,11 @@
   </script>
 </head>
 <body>
-  <header class="appbar glass-surface">
-    <div class="app-identity">
-      <span class="app-mark" aria-hidden="true">T</span>
-      <div>
-        <div class="topbar-title">Transparency</div>
-        <div class="app-subtitle">Layer image editor</div>
-      </div>
-    </div>
-    <div class="app-actions" aria-label="Project actions">
-      <div class="file-cluster">
-        <button class="btn-icon" id="btn-open" title="Open project" aria-label="Open project"></button>
-        <button class="btn-icon" id="btn-save" title="Save project" aria-label="Save project"></button>
-      </div>
-      <input type="file" id="project-input" accept=".json,application/json" hidden>
-      <span class="action-divider" aria-hidden="true"></span>
-      <div class="undo-cluster">
-        <button class="btn-icon" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo"></button>
-        <button class="btn-icon" id="btn-redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"></button>
-      </div>
-    </div>
-    <button class="btn btn-primary btn-export" id="btn-export">Export</button>
+  <header class="appbar menu-bar glass-surface">
+    <span class="app-mark" aria-hidden="true">T</span>
+    <nav class="menus" id="menu-root" aria-label="Application menu"></nav>
   </header>
+  <input type="file" id="project-input" accept=".json,application/json" hidden>
 
   <div class="options-bar glass-surface">
     <div class="options-host" id="options-host">

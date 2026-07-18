@@ -43,6 +43,15 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('the menu bar exposes all eleven Photoshop headings', () => {
+  const menu = readFileSync(resolve(root, 'src/shell/menu-bar.ts'), 'utf8');
+  for (const title of ['File', 'Edit', 'Image', 'Layer', 'Type', 'Select', 'Filter', 'View', 'Plugins', 'Window', 'Help']) {
+    assert.match(menu, new RegExp(`title:\\s*['"]${title}['"]`), `missing ${title} menu`);
+  }
+  assert.match(html, /id=["']menu-root["']/);
+  assert.match(menu, /isTypingTarget/);
+});
+
 test('the right dock is three tabbed stacks with grayed future tabs', () => {
   assert.equal((html.match(/class=["'][^"']*\bdock-stack\b[^"']*["']/g) ?? []).length, 3);
   for (const id of ['panel-layers', 'panel-history']) {
@@ -64,7 +73,6 @@ test('all DOM ids remain unique', () => {
 
 test('feature-owned ids remain available after the layout move', () => {
   for (const id of [
-    'btn-open', 'btn-save', 'btn-undo', 'btn-redo', 'btn-export',
     'options-host', 'size-chip', 'canvas-width', 'canvas-height',
     'rail-tools', 'rail-add-image', 'rail-add-text',
     'rail-layers', 'rail-props', 'btn-add-image', 'btn-add-text',
@@ -75,6 +83,10 @@ test('feature-owned ids remain available after the layout move', () => {
     'tab-properties', 'properties-editor-container', 'history-list'
   ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`), `missing #${id}`);
+  }
+  const menuSrc = readFileSync(resolve(root, 'src/shell/menu-bar.ts'), 'utf8');
+  for (const legacy of ['btn-open', 'btn-save', 'btn-undo', 'btn-redo', 'btn-export']) {
+    assert.match(menuSrc + main, new RegExp(`['"]${legacy}['"]`), `legacy id ${legacy} must be produced by the menu bar`);
   }
 });
 
@@ -194,8 +206,6 @@ test('history navigation is blocked while any editing session is live', () => {
   assert.match(sessionStatus, /getTransformSession\(\)\)\s*\|\|\s*Boolean\(getCropSession\(\)/);
   const historyPanel = readFileSync(resolve(root, 'src/history-panel.ts'), 'utf8');
   assert.match(historyPanel, /isEditingSessionLive\(\)/);
-  assert.match(main, /subscribeTransformSession\(refresh\)/);
-  assert.match(main, /subscribeCropSession\(refresh\)/);
   const guardSource = readFileSync(resolve(root, 'src/transform-session-guard.ts'), 'utf8');
   assert.match(guardSource, /hasActiveTransformGesture\(\)\)\s*interruptGesture\(\)/);
 });
