@@ -4,22 +4,6 @@ import { isEditingSessionLive } from './engine/session-status';
 
 export function initHistoryPanel(): void {
   const list = $('history-list');
-  const tabs = $('layers-history-tabs');
-  const layersPanel = $('tab-layers');
-  const historyPanel = $('tab-history');
-
-  tabs.querySelectorAll<HTMLButtonElement>('button[data-tab]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const tab = btn.dataset.tab;
-      tabs.querySelectorAll<HTMLButtonElement>('button[data-tab]').forEach((candidate) => {
-        const selected = candidate === btn;
-        candidate.classList.toggle('active', selected);
-        candidate.setAttribute('aria-selected', String(selected));
-      });
-      layersPanel.hidden = tab !== 'layers';
-      historyPanel.hidden = tab !== 'history';
-    });
-  });
   const render = () => {
     list.innerHTML = '';
     const cur = history.cursor();

@@ -21,6 +21,7 @@ import { applyCrop, beginCrop, cancelCrop, getCropSession, subscribeCropSession 
 import { toast } from './toast';
 import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, isTransformSessionGuardOpen, isTypingTarget } from './transform-session-guard';
 import { isEditingSessionLive } from './engine/session-status';
+import { initDock } from './shell/dock';
 
 /**
  * History navigation must stay quiet while any editing session is live:
@@ -121,6 +122,7 @@ initExport();
 initRail();
 initOptionsBar();
 initHistoryUI();
+initDock();
 
 const syncContextStatus = () => {
   const session = getTransformSession();

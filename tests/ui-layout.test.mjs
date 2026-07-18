@@ -36,20 +36,24 @@ test('workspace exposes the approved Photoshop-style regions', () => {
     'editor-shell',
     'canvas-workspace',
     'right-dock',
-    'properties-dock',
-    'layers-history-dock',
+    'dock-stack',
     'statusbar'
   ]) {
     assert.equal(hasClass(html, className), true, `missing .${className}`);
   }
 });
 
-test('layers and history share the lower right dock', () => {
-  assert.match(html, /id=["']layers-history-tabs["']/);
-  assert.match(html, /id=["']tab-layers["']/);
-  assert.match(html, /id=["']tab-history["']/);
-  assert.match(html, /data-tab=["']layers["']/);
-  assert.match(html, /data-tab=["']history["']/);
+test('the right dock is three tabbed stacks with grayed future tabs', () => {
+  assert.equal((html.match(/class=["'][^"']*\bdock-stack\b[^"']*["']/g) ?? []).length, 3);
+  for (const id of ['panel-layers', 'panel-history']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`), `missing #${id}`);
+  }
+  const dock = readFileSync(resolve(root, 'src/shell/dock.ts'), 'utf8');
+  for (const stub of ['Adjustments', 'Channels', 'Paths']) {
+    assert.match(dock, new RegExp(`['"]${stub}['"]`), `dock must declare the ${stub} stub tab`);
+  }
+  assert.match(dock, /isTypingTarget/);
+  assert.match(dock, /F6|F7/);
 });
 
 test('all DOM ids remain unique', () => {
@@ -65,6 +69,7 @@ test('feature-owned ids remain available after the layout move', () => {
     'rail-tools', 'rail-add-image', 'rail-add-text',
     'rail-layers', 'rail-props', 'btn-add-image', 'btn-add-text',
     'upload-zone', 'file-input', 'layers-list-container',
+    'panel-layers', 'panel-history',
     'canvas-container', 'canvas-viewport', 'doc-canvas',
     'zoom-out', 'zoom-readout', 'zoom-in', 'bg-color-picker',
     'tab-properties', 'properties-editor-container', 'history-list'
