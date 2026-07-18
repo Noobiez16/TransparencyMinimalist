@@ -1567,6 +1567,16 @@ input[type="range"]:active::-webkit-slider-thumb {
   margin-left: 8px;
 }
 
+.pasteboard-menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 140px;
+  padding: 4px;
+  border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+}
+
 /* The wrapper's fixed 44px toolbar column must widen for two columns of tools. */
 .dashboard-wrapper:has(.toolbar.double) {
   grid-template-columns: 80px minmax(0, 1fr) 300px;
