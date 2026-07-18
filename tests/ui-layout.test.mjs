@@ -43,6 +43,15 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('workspace toggles and reset follow the manual', () => {
+  const ws = readFileSync(resolve(root, 'src/shell/workspace.ts'), 'utf8');
+  assert.match(ws, /isTypingTarget/);
+  assert.match(ws, /Shift/);
+  assert.match(ws, /workspace\.reset/);
+  assert.match(css, /\.ws-hide-all/);
+  assert.match(css, /\.ws-hide-right/);
+});
+
 test('stack one hosts working Color and Swatches panels', () => {
   const color = readFileSync(resolve(root, 'src/panels/color-panel.ts'), 'utf8');
   const swatches = readFileSync(resolve(root, 'src/panels/swatches-panel.ts'), 'utf8');

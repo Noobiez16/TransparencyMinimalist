@@ -17,6 +17,7 @@ import { initToolbar } from './shell/toolbar';
 import { initColorChips, wireColorApplication } from './shell/color-chips';
 import { initDocumentTab, initStatusBar } from './shell/status-bar';
 import { initPasteboard } from './shell/pasteboard';
+import { initWorkspace } from './shell/workspace';
 import { registerDockPanel } from './shell/dock';
 import { initColorPanel } from './panels/color-panel';
 import { initSwatchesPanel } from './panels/swatches-panel';
@@ -191,6 +192,7 @@ registerDockPanel({ id: 'color', title: 'Color', stack: 1, order: 1, fkey: 'F6' 
 registerDockPanel({ id: 'swatches', title: 'Swatches', stack: 1, order: 2 });
 initColorPanel();
 initSwatchesPanel();
+initWorkspace();
 
 const syncContextStatus = () => {
   const session = getTransformSession();

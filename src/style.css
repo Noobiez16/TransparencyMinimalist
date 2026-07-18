@@ -1577,6 +1577,14 @@ input[type="range"]:active::-webkit-slider-thumb {
   flex-direction: column;
 }
 
+/* Workspace panel toggling (Tab / Shift+Tab) */
+body.ws-hide-all .toolbar,
+body.ws-hide-all .options-bar,
+body.ws-hide-all .right-dock,
+body.ws-hide-right .right-dock {
+  display: none;
+}
+
 /* The wrapper's fixed 44px toolbar column must widen for two columns of tools. */
 .dashboard-wrapper:has(.toolbar.double) {
   grid-template-columns: 80px minmax(0, 1fr) 300px;
