@@ -43,6 +43,15 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('stack one hosts working Color and Swatches panels', () => {
+  const color = readFileSync(resolve(root, 'src/panels/color-panel.ts'), 'utf8');
+  const swatches = readFileSync(resolve(root, 'src/panels/swatches-panel.ts'), 'utf8');
+  assert.match(color, /setForeground/);
+  assert.match(swatches, /transparency\.swatches/);
+  assert.match(main, /registerDockPanel\(\{ id: 'color'/);
+  assert.match(main, /F6/);
+});
+
 test('color chips are wired with D/X commands and text/background application', () => {
   const chipsSrc = readFileSync(resolve(root, 'src/shell/color-chips.ts'), 'utf8');
   assert.match(chipsSrc, /cmdPatchLayer[\s\S]{0,120}?:color/);

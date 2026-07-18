@@ -1479,6 +1479,63 @@ input[type="range"]:active::-webkit-slider-thumb {
   font-size: 11px;
 }
 
+/* Color & Swatches panels */
+#panel-color,
+#panel-swatches {
+  padding: 10px;
+}
+
+.color-preview {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.color-preview-fg,
+.color-preview-bg {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid var(--glass-line);
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--mut);
+  margin-bottom: 6px;
+}
+
+.color-row input[type="range"] {
+  flex: 1 1 auto;
+}
+
+.color-value {
+  width: 26px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.color-hex {
+  width: 80px;
+}
+
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.swatch {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  border: 1px solid var(--glass-line);
+  cursor: pointer;
+}
+
 /* The wrapper's fixed 44px toolbar column must widen for two columns of tools. */
 .dashboard-wrapper:has(.toolbar.double) {
   grid-template-columns: 80px minmax(0, 1fr) 300px;

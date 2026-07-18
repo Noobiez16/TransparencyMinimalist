@@ -15,6 +15,9 @@ import { getSnapEnabled, setSnapEnabled } from './tools/move';
 import { cmdDeleteLayer } from './engine/commands';
 import { initToolbar } from './shell/toolbar';
 import { initColorChips, wireColorApplication } from './shell/color-chips';
+import { registerDockPanel } from './shell/dock';
+import { initColorPanel } from './panels/color-panel';
+import { initSwatchesPanel } from './panels/swatches-panel';
 import { resetColors, swapColors } from './engine/color-state';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
@@ -179,6 +182,10 @@ initColorChips();
 initOptionsBar();
 initHistoryUI();
 initDock();
+registerDockPanel({ id: 'color', title: 'Color', stack: 1, order: 1, fkey: 'F6' });
+registerDockPanel({ id: 'swatches', title: 'Swatches', stack: 1, order: 2 });
+initColorPanel();
+initSwatchesPanel();
 
 const syncContextStatus = () => {
   const session = getTransformSession();
