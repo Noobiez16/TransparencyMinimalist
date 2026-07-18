@@ -1,5 +1,5 @@
 import { $ } from '../dom';
-import { getCommand, isCommandEnabled, runCommand, type CommandDef } from './commands';
+import { allCommands, getCommand, isCommandEnabled, runCommand, type CommandDef } from './commands';
 import { isTypingTarget, isTransformSessionGuardOpen } from '../transform-session-guard';
 
 export const MENUS: Array<{ title: string; items: Array<string | '—'> }> = [
@@ -78,17 +78,14 @@ export function initMenuBar(): void {
     if (e.key === 'Escape' && openMenu) { closeMenus(); return; }
     if (isTypingTarget(document.activeElement) || isTransformSessionGuardOpen()) return;
     const combo = `${e.ctrlKey || e.metaKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.key.length === 1 ? e.key.toUpperCase() : e.key}`;
-    for (const menu of MENUS) {
-      for (const item of menu.items) {
-        if (item === '—') continue;
-        const def = getCommand(item);
-        if (!def?.bindKey || def.shortcut !== combo) continue;
-        if (!isCommandEnabled(item)) return;
-        e.preventDefault();
-        if (def.run) runCommand(item);
-        else if (def.legacyId) document.getElementById(def.legacyId)?.click();
-        return;
-      }
+    // Every registered bindKey command participates, whether or not a menu lists it (D/X live only on the toolbar chips).
+    for (const def of allCommands()) {
+      if (!def.bindKey || def.shortcut !== combo) continue;
+      if (!isCommandEnabled(def.id)) return;
+      e.preventDefault();
+      if (def.run) runCommand(def.id);
+      else if (def.legacyId) document.getElementById(def.legacyId)?.click();
+      return;
     }
   });
 }

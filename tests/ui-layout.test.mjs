@@ -43,6 +43,15 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('color chips are wired with D/X commands and text/background application', () => {
+  const chipsSrc = readFileSync(resolve(root, 'src/shell/color-chips.ts'), 'utf8');
+  assert.match(chipsSrc, /cmdPatchLayer[\s\S]{0,120}?:color/);
+  assert.match(chipsSrc, /doc:bgColor/);
+  assert.match(main, /['"]D['"]/);
+  assert.match(main, /['"]X['"]/);
+  assert.match(html, /id=["']color-chips["']/);
+});
+
 test('the toolbar renders the manual tool groups with grayed future slots', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
   for (const stub of ['Rectangular Marquee', 'Lasso', 'Eyedropper', 'Brush', 'Pen', 'Horizontal Type', 'Rotate View']) {

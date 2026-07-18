@@ -1436,6 +1436,49 @@ input[type="range"]:active::-webkit-slider-thumb {
   grid-template-columns: 1fr 1fr;
 }
 
+#color-chips {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.chip-pair {
+  position: relative;
+  width: 30px;
+  height: 30px;
+}
+
+.chip {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--glass-line);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chip-fg {
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+.chip-bg {
+  bottom: 0;
+  right: 0;
+}
+
+.chip-mini {
+  background: transparent;
+  border: 0;
+  color: var(--mut);
+  cursor: pointer;
+  font-size: 11px;
+}
+
 /* The wrapper's fixed 44px toolbar column must widen for two columns of tools. */
 .dashboard-wrapper:has(.toolbar.double) {
   grid-template-columns: 80px minmax(0, 1fr) 300px;

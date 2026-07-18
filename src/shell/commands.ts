@@ -29,6 +29,10 @@ export function getCommand(id: string): CommandDef | undefined {
   return commands.get(id);
 }
 
+export function allCommands(): CommandDef[] {
+  return [...commands.values()];
+}
+
 export function isCommandEnabled(id: string): boolean {
   const def = commands.get(id);
   if (!def) return false;

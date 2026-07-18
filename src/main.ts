@@ -14,6 +14,8 @@ import { zoomAt, resetView } from './canvas';
 import { getSnapEnabled, setSnapEnabled } from './tools/move';
 import { cmdDeleteLayer } from './engine/commands';
 import { initToolbar } from './shell/toolbar';
+import { initColorChips, wireColorApplication } from './shell/color-chips';
+import { resetColors, swapColors } from './engine/color-state';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
 import { $ } from './dom';
@@ -104,6 +106,9 @@ registerCommand({ id: 'filter.gallery', label: 'Filter Gallery…', phase: 'E' }
 registerCommand({ id: 'filter.gaussianBlur', label: 'Gaussian Blur…', phase: 'E' });
 registerCommand({ id: 'filter.liquify', label: 'Liquify…', shortcut: 'Shift+Ctrl+X', phase: 'E' });
 registerCommand({ id: 'plugins.marketplace', label: 'Plugin Marketplace', phase: 'F' });
+registerCommand({ id: 'color.reset', label: 'Default Colors', shortcut: 'D', bindKey: true, run: () => resetColors() });
+registerCommand({ id: 'color.swap', label: 'Swap Colors', shortcut: 'X', bindKey: true, run: () => swapColors() });
+wireColorApplication();
 registerCommand({
   id: 'help.about', label: 'About / System Info',
   run: () => toast(`Transparency — ${state.doc.width}×${state.doc.height}, ${state.doc.layers.length} layers, v2 document`, { duration: 6000 })
@@ -170,6 +175,7 @@ initPropertiesPanel();
 initHistoryPanel();
 initTopbar();
 initToolbar();
+initColorChips();
 initOptionsBar();
 initHistoryUI();
 initDock();
