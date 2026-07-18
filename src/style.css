@@ -1536,6 +1536,37 @@ input[type="range"]:active::-webkit-slider-thumb {
   cursor: pointer;
 }
 
+/* Status bar diagnostics */
+.status-zoom-input {
+  width: 52px;
+  background: var(--card, rgba(8, 11, 18, 0.4));
+  border: 1px solid var(--glass-line);
+  border-radius: 4px;
+  color: var(--txt);
+  font-size: 11px;
+  padding: 1px 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-metric-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#status-metric {
+  background: transparent;
+  border: 0;
+  color: var(--mut);
+  cursor: pointer;
+}
+
+.doc-tab-meta {
+  color: var(--mut);
+  font-size: 10px;
+  margin-left: 8px;
+}
+
 /* The wrapper's fixed 44px toolbar column must widen for two columns of tools. */
 .dashboard-wrapper:has(.toolbar.double) {
   grid-template-columns: 80px minmax(0, 1fr) 300px;

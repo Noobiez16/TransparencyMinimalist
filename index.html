@@ -71,7 +71,9 @@
         <div class="document-tabs" aria-label="Open documents">
           <div class="document-tab active">
             <span class="document-dot" aria-hidden="true"></span>
-            <span>Untitled composition</span>
+            <span id="doc-tab-name">Untitled composition</span>
+            <span class="doc-tab-meta" id="doc-tab-zoom">100%</span>
+            <span class="doc-tab-meta">RGB</span>
           </div>
         </div>
         <div class="canvas-container" id="canvas-container">
@@ -237,9 +239,9 @@
   </div>
 
   <footer class="statusbar glass-surface">
-    <span>Professional canvas workspace</span>
+    <span class="status-zoom"><input id="status-zoom-field" class="status-zoom-input" value="100%" aria-label="Zoom percentage"></span>
     <span class="statusbar-center" id="status-context">Move · Drag to transform · Shift constrains</span>
-    <span id="status-doc-size">1024 × 1024</span>
+    <span class="status-metric-wrap"><span id="status-doc-size">1024 × 1024</span><button type="button" id="status-metric" title="Metric: dimensions">▸</button></span>
   </footer>
 
   <script type="module" src="/src/main.ts"></script>

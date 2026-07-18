@@ -136,9 +136,19 @@ test('feature-owned ids remain available after the layout move', () => {
 
 test('document size status and custom inputs stay synchronized with state', () => {
   assert.match(html, /id=["']status-doc-size["']/);
-  assert.match(topbar, /statusSize\.textContent\s*=\s*dimensions/);
   assert.match(topbar, /widthInput\.value\s*=\s*String\(state\.doc\.width\)/);
   assert.match(topbar, /heightInput\.value\s*=\s*String\(state\.doc\.height\)/);
+  const statusSrc = readFileSync(resolve(root, 'src/shell/status-bar.ts'), 'utf8');
+  assert.match(statusSrc, /state\.doc\.width/);
+});
+
+test('the status bar has a typeable zoom field and a metric selector', () => {
+  assert.match(html, /id=["']status-zoom-field["']/);
+  assert.match(html, /id=["']status-metric["']/);
+  assert.match(html, /id=["']doc-tab-zoom["']/);
+  const statusSrc = readFileSync(resolve(root, 'src/shell/status-bar.ts'), 'utf8');
+  assert.match(statusSrc, /parseZoomInput/);
+  assert.match(statusSrc, /formatDocSizes/);
 });
 
 test('balanced spatial glass tokens are defined', () => {

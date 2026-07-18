@@ -43,6 +43,7 @@ export function zoomAt(factor: number, clientX?: number, clientY?: number): void
 }
 export function resetView(): void { zoom = 1; panX = 0; panY = 0; applyZoom(); }
 export function getZoomPercent(): number { return Math.round(zoom * 100); }
+export function setZoomPercent(p: number): void { setZoom(p / 100); }
 export function getOverlayScale(): number {
   const rect = screenCanvas.getBoundingClientRect();
   return rect.width > 0 ? rect.width / state.doc.width : 1;
