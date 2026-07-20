@@ -20,7 +20,7 @@ Transparency is a browser-based layer image editor with a Photoshop-style spatia
 |---|---|
 | Application menu bar | Eleven Photoshop-style menus (File, Edit, Image, Layer, Type, Select, Filter, View, Plugins, Window, Help); commands from future phases render grayed |
 | Contextual options bar | Active-tool options, background, and document size |
-| Toolbar | Grouped tool slots with nested-tool flyouts (right-click), a single/double column toggle, and foreground/background color chips |
+| Toolbar | Grouped tool slots with nested-tool flyouts (right-click), painting tools (Brush, Pencil, Eraser) and the Eyedropper, a single/double column toggle, and foreground/background color chips |
 | Canvas workspace | Interactive document rendering, a document tab with live zoom, pasteboard shades, selection outline, pan, and zoom |
 | Properties | Selected-layer transforms, opacity, blending, effects, and text settings |
 | Layers / History | Layer stack management and reversible command navigation, tabbed with grayed Channels and Paths slots |
@@ -32,6 +32,8 @@ Transparency is a browser-based layer image editor with a Photoshop-style spatia
 ## Editing Workflow
 
 Select a layer with the Move tool and drag its handles to scale or rotate directly, or press `Ctrl+T` for an explicit Free Transform session with editable X, Y, width, height, and rotation fields. Hold `Shift` to constrain a drag, press `Enter` to apply the session, and press `Escape` to cancel it. While a layer moves or resizes, smart alignment guides snap it to the document center, the document edges, and other visible layers; hold `Ctrl/Cmd` to bypass snapping for the current gesture, or turn Snap off in the options bar.
+
+Paint with the Brush (`B`), Pencil, or Eraser (`E`) on any image layer: each stroke edits that layer's pixels and lands in history as a single undoable step. Set Size, Hardness, and Opacity in the options bar, or press `[` and `]` to resize the brush while you work. Painting on an image layer that has no pixels yet allocates a canvas-sized transparent bitmap first, and one undo removes both the stroke and the allocation. The Eyedropper (`I`) samples any visible color into the foreground chip. Text layers cannot be painted until type rasterization arrives.
 
 The Crop tool (`C`) frames a non-destructive document crop: choose a free, original, preset, or custom aspect ratio, drag the handles or the window, and confirm with `Enter` (or the Apply button). Cropping only changes the document bounds and layer positions, never layer pixels, so a single undo restores the previous geometry exactly.
 
@@ -63,6 +65,10 @@ npm run build
 | Hand tool | `H` |
 | Zoom tool | `Z` |
 | Crop tool | `C` |
+| Brush tool | `B` |
+| Eraser tool | `E` |
+| Eyedropper tool | `I` |
+| Decrease / increase brush size | `[` / `]` |
 | Free Transform session | `Ctrl+T` / `Cmd+T` |
 | Apply transform or crop session | `Enter` |
 | Cancel transform or crop session | `Escape` |

@@ -2,6 +2,12 @@
 
 Notable changes to the Transparency editor. Each release was delivered through a written specification and implementation plan; plan documents are removed from the repository once their release ships, so entries reference plans by name only.
 
+## 3.3.0 - 2026-07-18
+
+### Added
+
+- **Painting tools**: Brush (`B`), Pencil, and Eraser (`E`) paint real pixels into image-layer bitmaps through a stroke session with one history command per stroke (dirty-rect undo, uniform stroke opacity, hardness falloff); the Eyedropper (`I`) samples the composited document into the foreground color; `[` and `]` adjust brush size; empty image layers allocate a canvas-sized bitmap on first paint; a brush outline cursor tracks the pointer. (Plan: 2026-07-18-painting-tools.)
+
 ## 3.2.0 - 2026-07-17
 
 ### Added
