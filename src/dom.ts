@@ -33,7 +33,11 @@ export const icons = {
   brush: svg('<path d="M13.5 2.5 7.5 8.5"/><path d="M7.5 8.5C5.5 9 4.5 10.5 4.5 12.5c2 0 3.5-1 4-3z"/>'),
   pencil: svg('<path d="m3 13 .8-2.8L11 3l2 2-7.2 7.2L3 13z"/><line x1="9.5" y1="4.5" x2="11.5" y2="6.5"/>'),
   eraser: svg('<path d="m4 11 6-6 3.5 3.5-6 6H4z"/><line x1="3" y1="14.5" x2="13" y2="14.5"/>'),
-  eyedropper: svg('<path d="M13.5 2.5a1.6 1.6 0 0 1 0 2.3L12 6.3 9.7 4l1.5-1.5a1.6 1.6 0 0 1 2.3 0z"/><path d="M9.7 4 3.5 10.2V12.5h2.3L12 6.3"/>')
+  eyedropper: svg('<path d="M13.5 2.5a1.6 1.6 0 0 1 0 2.3L12 6.3 9.7 4l1.5-1.5a1.6 1.6 0 0 1 2.3 0z"/><path d="M9.7 4 3.5 10.2V12.5h2.3L12 6.3"/>'),
+  marquee: svg('<rect x="2.5" y="3.5" width="11" height="9" stroke-dasharray="2 2"/>'),
+  marqueeEllipse: svg('<ellipse cx="8" cy="8" rx="5.5" ry="4.5" stroke-dasharray="2 2"/>'),
+  lasso: svg('<path d="M8 3c3 0 5 1.6 5 3.6S11 10 8 10 3 8.6 3 6.6 5 3 8 3z"/><path d="M5 9.5c0 2 1 3.5 1 4.5"/>'),
+  lassoPoly: svg('<path d="M3 5.5 8 2.5l5 3-2 6.5H5z" stroke-dasharray="2 2"/>')
 };
 
 export function inlineEdit(el: HTMLElement, current: string, onCommit: (v: string) => void): void {

@@ -43,6 +43,17 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('selection tools are live with boolean modes', () => {
+  const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
+  for (const live of ['marquee-rect', 'marquee-ellipse', 'lasso-free', 'lasso-poly']) {
+    assert.match(groups, new RegExp(`tool:\\s*['"]${live}['"]`), `missing live tool ${live}`);
+  }
+  const shared = readFileSync(resolve(root, 'src/tools/selection-shared.ts'), 'utf8');
+  assert.match(shared, /shiftKey/);
+  assert.match(shared, /altKey/);
+  assert.match(shared, /isEditingSessionLive/);
+});
+
 test('marching ants trace the selection and pause during live sessions', () => {
   const overlay = readFileSync(resolve(root, 'src/canvas-overlay.ts'), 'utf8');
   assert.match(overlay, /traceContours/);
@@ -107,9 +118,9 @@ test('color chips are wired with D/X commands and text/background application', 
 
 test('the toolbar renders the manual tool groups with grayed future slots', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
-  // Phase B promoted Brush/Pencil/Eraser/Eyedropper to live tools; these remain grayed.
+  // Phases B/C promoted painting and selection tools to live; these remain grayed.
   for (const stub of [
-    'Rectangular Marquee', 'Lasso', 'Object Selection', 'Frame Tool',
+    'Object Selection', 'Frame Tool',
     'Spot Healing Brush', 'Clone Stamp', 'Mixer Brush', 'Background Eraser',
     'Pen', 'Rectangle', 'Horizontal Type', 'Rotate View'
   ]) {

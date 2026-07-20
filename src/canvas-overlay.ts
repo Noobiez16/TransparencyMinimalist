@@ -4,6 +4,7 @@ import type { GuideDescriptor } from './engine/snap-engine';
 import { getCropSession, type CropHandle, type CropRect } from './engine/crop-session';
 import { getSelectionAlpha } from './engine/selection';
 import { traceContours } from './engine/selection-contour';
+import type { SelectionShape } from './engine/selection-ops';
 import { notify } from './state';
 
 const HANDLE_SIZE_PX = 8;
@@ -84,6 +85,33 @@ function drawSelectionAnts(ctx: CanvasRenderingContext2D, doc: Doc, scale: numbe
     }
     ctx.stroke();
   }
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+let selectionPreview: SelectionShape | null = null;
+
+/** In-progress marquee/lasso shape, drawn dashed until the gesture commits. */
+export function setSelectionPreview(shape: SelectionShape | null): void { selectionPreview = shape; }
+
+function drawSelectionPreview(ctx: CanvasRenderingContext2D, scale: number): void {
+  if (!selectionPreview) return;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+  ctx.lineWidth = 1 / scale;
+  ctx.setLineDash([4 / scale, 4 / scale]);
+  ctx.beginPath();
+  if (selectionPreview.kind === 'rect') {
+    ctx.rect(selectionPreview.x, selectionPreview.y, selectionPreview.w, selectionPreview.h);
+  } else if (selectionPreview.kind === 'ellipse') {
+    ctx.ellipse(selectionPreview.cx, selectionPreview.cy,
+      Math.abs(selectionPreview.rx), Math.abs(selectionPreview.ry), 0, 0, Math.PI * 2);
+  } else if (selectionPreview.points.length >= 2) {
+    ctx.moveTo(selectionPreview.points[0].x, selectionPreview.points[0].y);
+    for (const point of selectionPreview.points.slice(1)) ctx.lineTo(point.x, point.y);
+    ctx.closePath();
+  }
+  ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();
 }
@@ -268,6 +296,7 @@ export function drawCanvasOverlay(
   drawGuides(ctx, scale);
   drawCropOverlay(ctx, doc, scale);
   drawSelectionAnts(ctx, doc, scale);
+  drawSelectionPreview(ctx, scale);
   drawPaintCursor(ctx, scale); // before the transformable-layer early return
   const target = transformableLayer(doc);
   if (!target) return;

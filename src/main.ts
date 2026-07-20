@@ -34,6 +34,8 @@ import { brushTool } from './tools/brush';
 import { pencilTool } from './tools/pencil';
 import { eraserTool } from './tools/eraser';
 import { eyedropperTool } from './tools/eyedropper';
+import { marqueeEllipseTool, marqueeRectTool } from './tools/marquee';
+import { cancelPolygonLasso, finishPolygonLasso, lassoFreeTool, lassoPolyTool, polygonInProgress } from './tools/lasso';
 import { nudgeActivePaintSize } from './tools/paint-shared';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
@@ -138,6 +140,10 @@ registerTool(brushTool);
 registerTool(pencilTool);
 registerTool(eraserTool);
 registerTool(eyedropperTool);
+registerTool(marqueeRectTool);
+registerTool(marqueeEllipseTool);
+registerTool(lassoFreeTool);
+registerTool(lassoPolyTool);
 
 // The Crop tool owns exactly one session: entering the tool opens it,
 // leaving the tool (or Enter/Escape below) closes it.
@@ -163,6 +169,8 @@ document.addEventListener('keydown', (e) => {
   // Enter, Escape, and Space keep their native semantics on focused buttons/links.
   const buttonLikeFocused = isInteractiveTarget(t);
   if (!buttonLikeFocused) {
+    if (polygonInProgress() && e.key === 'Enter') { e.preventDefault(); finishPolygonLasso(); return; }
+    if (polygonInProgress() && e.key === 'Escape') { e.preventDefault(); cancelPolygonLasso(); return; }
     const transformSession = getTransformSession();
     if (transformSession?.mode === 'explicit' && e.key === 'Enter') { e.preventDefault(); applyTransform(); return; }
     if (transformSession?.mode === 'explicit' && e.key === 'Escape') { e.preventDefault(); cancelTransform(); return; }
@@ -231,6 +239,9 @@ const syncContextStatus = () => {
     else if (tool.id === 'pencil') status.textContent = 'Pencil · Drag to draw · [ ] adjusts size';
     else if (tool.id === 'eraser') status.textContent = 'Eraser · Drag to erase · [ ] adjusts size';
     else if (tool.id === 'eyedropper') status.textContent = 'Eyedropper · Click to sample a color';
+    else if (tool.id === 'marquee-rect' || tool.id === 'marquee-ellipse') status.textContent = 'Marquee · Drag to select · Shift adds · Alt subtracts';
+    else if (tool.id === 'lasso-free') status.textContent = 'Lasso · Drag to select freehand · Shift adds · Alt subtracts';
+    else if (tool.id === 'lasso-poly') status.textContent = 'Polygonal Lasso · Click points · Enter closes · Esc cancels';
     else status.textContent = `${tool.label} · Shift constrains · Ctrl/Cmd bypasses Snap`;
   }
 };

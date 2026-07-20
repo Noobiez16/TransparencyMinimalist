@@ -3,7 +3,7 @@ export interface StubEntry { stub: string; key: string; phase: 'B' | 'C' | 'D' |
 export type GroupEntry = ToolEntry | StubEntry;
 
 export const TOOL_GROUPS: Array<{ id: string; entries: GroupEntry[] }> = [
-  { id: 'move-select', entries: [{ tool: 'move' }, { stub: 'Rectangular Marquee', key: 'M', phase: 'C' }, { stub: 'Lasso', key: 'L', phase: 'C' }, { stub: 'Object Selection', key: 'W', phase: 'C' }] },
+  { id: 'move-select', entries: [{ tool: 'move' }, { tool: 'marquee-rect' }, { tool: 'marquee-ellipse' }, { tool: 'lasso-free' }, { tool: 'lasso-poly' }, { stub: 'Object Selection', key: 'W', phase: 'E' }] },
   { id: 'crop-slice', entries: [{ tool: 'crop' }, { stub: 'Frame Tool', key: 'K', phase: 'F' }] },
   { id: 'measure', entries: [{ tool: 'eyedropper' }] },
   { id: 'retouch', entries: [{ stub: 'Spot Healing Brush', key: 'J', phase: 'B' }, { stub: 'Clone Stamp', key: 'S', phase: 'B' }] },
