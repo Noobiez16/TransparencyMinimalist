@@ -8,7 +8,7 @@ export const MENUS: Array<{ title: string; items: Array<string | '—'> }> = [
   { title: 'Image', items: ['image.canvasSize', 'image.imageSize', 'image.mode'] },
   { title: 'Layer', items: ['layer.newImage', 'layer.newText', '—', 'layer.duplicate', 'layer.delete', 'layer.group'] },
   { title: 'Type', items: ['type.rasterize', 'type.convertShape'] },
-  { title: 'Select', items: ['select.all', 'select.deselect', 'select.inverse', 'select.subject'] },
+  { title: 'Select', items: ['select.all', 'select.deselect', 'select.reselect', 'select.inverse', 'select.subject'] },
   { title: 'Filter', items: ['filter.gallery', 'filter.gaussianBlur', 'filter.liquify'] },
   { title: 'View', items: ['view.zoomIn', 'view.zoomOut', 'view.fit', '—', 'view.snap'] },
   { title: 'Plugins', items: ['plugins.marketplace'] },
@@ -78,9 +78,16 @@ export function initMenuBar(): void {
     if (e.key === 'Escape' && openMenu) { closeMenus(); return; }
     if (isTypingTarget(document.activeElement) || isTransformSessionGuardOpen()) return;
     const combo = `${e.ctrlKey || e.metaKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.key.length === 1 ? e.key.toUpperCase() : e.key}`;
+    // Shortcuts display in Photoshop order ("Shift+Ctrl+D") — canonicalize before matching.
+    const normalizeCombo = (s: string): string => {
+      const parts = s.split('+');
+      const key = parts.pop() ?? '';
+      const mods = new Set(parts);
+      return `${mods.has('Ctrl') ? 'Ctrl+' : ''}${mods.has('Shift') ? 'Shift+' : ''}${key.length === 1 ? key.toUpperCase() : key}`;
+    };
     // Every registered bindKey command participates, whether or not a menu lists it (D/X live only on the toolbar chips).
     for (const def of allCommands()) {
-      if (!def.bindKey || def.shortcut !== combo) continue;
+      if (!def.bindKey || !def.shortcut || normalizeCombo(def.shortcut) !== combo) continue;
       if (!isCommandEnabled(def.id)) return;
       e.preventDefault();
       if (def.run) runCommand(def.id);

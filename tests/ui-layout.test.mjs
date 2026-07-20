@@ -43,6 +43,15 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('the Select menu drives real selection commands', () => {
+  assert.match(main, /id:\s*'select\.all'[\s\S]{0,200}?selectAll\(\)/);
+  assert.match(main, /id:\s*'select\.deselect'[\s\S]{0,200}?deselect\(\)/);
+  assert.match(main, /id:\s*'select\.reselect'/);
+  assert.match(main, /id:\s*'select\.inverse'[\s\S]{0,200}?invertSelection\(\)/);
+  const menu = readFileSync(resolve(root, 'src/shell/menu-bar.ts'), 'utf8');
+  assert.match(menu, /select\.reselect/);
+});
+
 test('selection tools are live with boolean modes', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
   for (const live of ['marquee-rect', 'marquee-ellipse', 'lasso-free', 'lasso-poly']) {
@@ -142,7 +151,7 @@ test('menu commands cover working actions and phase-labeled stubs', () => {
   ]) {
     assert.match(main, new RegExp(id.replaceAll('.', '\\.')), `missing registration ${id}`);
   }
-  assert.match(main, /phase:\s*'C'/);
+  // Phase C shipped its commands, so no 'C'-phase stubs remain; later phases stay labeled.
   assert.match(main, /phase:\s*'D'/);
   assert.match(main, /phase:\s*'E'/);
   assert.match(main, /phase:\s*'F'/);
