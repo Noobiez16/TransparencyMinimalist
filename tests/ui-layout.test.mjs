@@ -43,6 +43,14 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('the eyedropper samples the composited document into the foreground', () => {
+  const eyedropper = readFileSync(resolve(root, 'src/tools/eyedropper.ts'), 'utf8');
+  assert.match(eyedropper, /renderToCanvas/);
+  assert.match(eyedropper, /setForeground/);
+  const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
+  assert.match(groups, /tool:\s*['"]eyedropper['"]/);
+});
+
 test('painting tools are live in the toolbar with size shortcuts', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
   for (const live of ['brush', 'pencil', 'eraser']) {
@@ -91,7 +99,12 @@ test('color chips are wired with D/X commands and text/background application', 
 
 test('the toolbar renders the manual tool groups with grayed future slots', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
-  for (const stub of ['Rectangular Marquee', 'Lasso', 'Eyedropper', 'Brush', 'Pen', 'Horizontal Type', 'Rotate View']) {
+  // Phase B promoted Brush/Pencil/Eraser/Eyedropper to live tools; these remain grayed.
+  for (const stub of [
+    'Rectangular Marquee', 'Lasso', 'Object Selection', 'Frame Tool',
+    'Spot Healing Brush', 'Clone Stamp', 'Mixer Brush', 'Background Eraser',
+    'Pen', 'Rectangle', 'Horizontal Type', 'Rotate View'
+  ]) {
     assert.match(groups, new RegExp(stub), `missing stub ${stub}`);
   }
   for (const live of ['move', 'crop', 'hand', 'zoom']) {

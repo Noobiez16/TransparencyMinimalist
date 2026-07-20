@@ -33,6 +33,7 @@ import { cropTool } from './tools/crop';
 import { brushTool } from './tools/brush';
 import { pencilTool } from './tools/pencil';
 import { eraserTool } from './tools/eraser';
+import { eyedropperTool } from './tools/eyedropper';
 import { nudgeActivePaintSize } from './tools/paint-shared';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
@@ -134,6 +135,7 @@ registerTool(cropTool);
 registerTool(brushTool);
 registerTool(pencilTool);
 registerTool(eraserTool);
+registerTool(eyedropperTool);
 
 // The Crop tool owns exactly one session: entering the tool opens it,
 // leaving the tool (or Enter/Escape below) closes it.
