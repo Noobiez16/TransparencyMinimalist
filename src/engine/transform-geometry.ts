@@ -103,6 +103,34 @@ export function documentToBitmap(transform: LayerTransform, natural: Size, point
   return { x: local.x + size.w / 2, y: local.y + size.h / 2 };
 }
 
+/**
+ * setTransform(a,b,c,d,e,f) tuple mapping DOCUMENT coordinates into BITMAP pixel
+ * coordinates — the inverse of the layer's draw transform. Drawing a document-space
+ * image through it lands each pixel where that document point sits on the bitmap.
+ */
+export function documentToBitmapMatrix(
+  transform: LayerTransform,
+  natural: Size
+): [number, number, number, number, number, number] {
+  const size = safeSize(natural);
+  const sx = finite(transform.scaleX) / 100;
+  const sy = finite(transform.scaleY) / 100;
+  if (Math.abs(sx) <= EPSILON || Math.abs(sy) <= EPSILON) return [1, 0, 0, 1, 0, 0];
+  const angle = (normalizeDegrees(transform.rotation) * Math.PI) / 180;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  // Inverse of: translate(x,y) rotate(r) scale(sx,sy) translate(-w/2,-h/2)
+  const a = cos / sx;
+  const b = -sin / sy;
+  const c = sin / sx;
+  const d = cos / sy;
+  const tx = finite(transform.x);
+  const ty = finite(transform.y);
+  const e = size.w / 2 - (a * tx + c * ty);
+  const f = size.h / 2 - (b * tx + d * ty);
+  return [a, b, c, d, e, f];
+}
+
 export function getLayerQuad(transform: LayerTransform, natural: Size): LayerQuad {
   const size = safeSize(natural);
   const corners: [Point, Point, Point, Point] = [
