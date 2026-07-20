@@ -96,6 +96,13 @@ export function documentToLocal(transform: LayerTransform, point: Point): Point 
   };
 }
 
+/** Document point -> bitmap pixel coordinates (origin at the bitmap's top-left). */
+export function documentToBitmap(transform: LayerTransform, natural: Size, point: Point): Point {
+  const size = safeSize(natural);
+  const local = documentToLocal(transform, point);
+  return { x: local.x + size.w / 2, y: local.y + size.h / 2 };
+}
+
 export function getLayerQuad(transform: LayerTransform, natural: Size): LayerQuad {
   const size = safeSize(natural);
   const corners: [Point, Point, Point, Point] = [
