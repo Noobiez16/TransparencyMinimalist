@@ -2,6 +2,8 @@ import { getActiveLayer, layerNaturalSize, type Doc } from './engine/document';
 import { getHandlePoints, getLayerQuad, hitTestHandle, type HandleId, type Point } from './engine/transform-geometry';
 import type { GuideDescriptor } from './engine/snap-engine';
 import { getCropSession, type CropHandle, type CropRect } from './engine/crop-session';
+import { getSelectionAlpha } from './engine/selection';
+import { traceContours } from './engine/selection-contour';
 import { notify } from './state';
 
 const HANDLE_SIZE_PX = 8;
@@ -42,6 +44,48 @@ export function setActiveGuides(guides: readonly GuideDescriptor[]): void {
 
 export function clearActiveGuides(): void {
   activeGuides = [];
+}
+
+let antsPhase = 0;
+let contourCache: Point[][] = [];
+let contourKey = '';
+
+export function setAntsPhase(phase: number): void { antsPhase = phase; }
+
+/** Cheap change signature: sampled alpha, enough to catch selection edits. */
+function antsSignature(alpha: Uint8Array): number {
+  let sum = 0;
+  const step = Math.max(1, Math.floor(alpha.length / 4096));
+  for (let i = 0; i < alpha.length; i += step) sum = (sum + alpha[i] * (i + 1)) % 2147483647;
+  return sum;
+}
+
+function drawSelectionAnts(ctx: CanvasRenderingContext2D, doc: Doc, scale: number): void {
+  const alpha = getSelectionAlpha();
+  if (!alpha) { contourCache = []; contourKey = ''; return; }
+  const key = `${doc.width}x${doc.height}:${alpha.length}:${antsSignature(alpha)}`;
+  if (key !== contourKey) {
+    contourKey = key;
+    contourCache = traceContours(alpha, doc.width, doc.height);
+  }
+  if (contourCache.length === 0) return;
+  ctx.save();
+  ctx.lineWidth = 1 / scale;
+  for (const pass of [0, 1]) {
+    ctx.strokeStyle = pass === 0 ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)';
+    ctx.setLineDash(pass === 0 ? [] : [4 / scale, 4 / scale]);
+    ctx.lineDashOffset = pass === 0 ? 0 : -antsPhase / scale;
+    ctx.beginPath();
+    for (const loop of contourCache) {
+      if (loop.length < 2) continue;
+      ctx.moveTo(loop[0].x, loop[0].y);
+      for (const point of loop.slice(1)) ctx.lineTo(point.x, point.y);
+      ctx.closePath();
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
 }
 
 let hoverPoint: Point | null = null;
@@ -223,6 +267,7 @@ export function drawCanvasOverlay(
   const scale = safeScale(overlayScale);
   drawGuides(ctx, scale);
   drawCropOverlay(ctx, doc, scale);
+  drawSelectionAnts(ctx, doc, scale);
   drawPaintCursor(ctx, scale); // before the transformable-layer early return
   const target = transformableLayer(doc);
   if (!target) return;

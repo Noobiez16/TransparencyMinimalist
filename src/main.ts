@@ -39,6 +39,8 @@ import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
 import { applyCrop, beginCrop, cancelCrop, getCropSession, subscribeCropSession } from './engine/crop-session';
 import { cancelStroke, getStrokeSession, subscribeStrokeSession } from './engine/stroke-session';
+import { hasSelection, subscribeSelection } from './engine/selection';
+import { setAntsPhase } from './canvas-overlay';
 import { toast } from './toast';
 import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, isTransformSessionGuardOpen, isTypingTarget } from './transform-session-guard';
 import { isEditingSessionLive } from './engine/session-status';
@@ -237,6 +239,30 @@ subscribeTransformSession(syncContextStatus);
 subscribeCropSession(syncContextStatus);
 subscribeStrokeSession(syncContextStatus);
 syncContextStatus();
+
+// --- Marching ants: animate the selection outline, pausing during live sessions ---
+let antsTimer: number | null = null;
+let antsPhaseValue = 0;
+
+function syncAntsAnimation(): void {
+  const shouldRun = hasSelection();
+  if (shouldRun && antsTimer === null) {
+    antsTimer = window.setInterval(() => {
+      // Pause while a stroke, transform, or crop session owns the canvas.
+      if (isEditingSessionLive()) return;
+      antsPhaseValue = (antsPhaseValue + 1) % 8; // advances lineDashOffset in the overlay
+      setAntsPhase(antsPhaseValue);
+      notify('composite');
+    }, 100);
+  } else if (!shouldRun && antsTimer !== null) {
+    clearInterval(antsTimer);
+    antsTimer = null;
+    antsPhaseValue = 0;
+    setAntsPhase(0);
+  }
+}
+
+subscribeSelection(syncAntsAnimation);
 
 const text = createTextLayer(state.doc, 'Text Overlay');
 text.text = 'Minimalist Editor';

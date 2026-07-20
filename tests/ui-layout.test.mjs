@@ -43,6 +43,14 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('marching ants trace the selection and pause during live sessions', () => {
+  const overlay = readFileSync(resolve(root, 'src/canvas-overlay.ts'), 'utf8');
+  assert.match(overlay, /traceContours/);
+  assert.match(overlay, /setLineDash/);
+  assert.match(main, /isEditingSessionLive/);
+  assert.match(main, /lineDashOffset|antsPhase/);
+});
+
 test('the eyedropper samples the composited document into the foreground', () => {
   const eyedropper = readFileSync(resolve(root, 'src/tools/eyedropper.ts'), 'utf8');
   assert.match(eyedropper, /renderToCanvas/);
