@@ -1,5 +1,6 @@
 import { type Doc, type Layer, type BlendMode, getFilterString } from './document';
 import { drawCanvasOverlay } from '../canvas-overlay';
+import { getStrokeSession } from './stroke-session';
 
 const BLEND_TO_OP: Record<BlendMode, GlobalCompositeOperation> = {
   normal: 'source-over', multiply: 'multiply', screen: 'screen',
@@ -15,7 +16,32 @@ function drawLayer(ctx: CanvasRenderingContext2D, layer: Layer): void {
   ctx.rotate((layer.rotation * Math.PI) / 180);
   ctx.scale(layer.scaleX / 100, layer.scaleY / 100);
   if (layer.kind === 'image') {
-    if (layer.bitmap) ctx.drawImage(layer.bitmap, -layer.bitmap.width / 2, -layer.bitmap.height / 2);
+    if (layer.bitmap) {
+      const stroke = getStrokeSession();
+      const live = stroke && stroke.layerId === layer.id ? stroke : null;
+      const halfX = -layer.bitmap.width / 2;
+      const halfY = -layer.bitmap.height / 2;
+      if (live && live.config.tool === 'eraser') {
+        // Truthful erase preview: punch the in-progress stroke out of a scratch copy.
+        const scratch = document.createElement('canvas');
+        scratch.width = layer.bitmap.width;
+        scratch.height = layer.bitmap.height;
+        const sctx = scratch.getContext('2d')!;
+        sctx.drawImage(layer.bitmap, 0, 0);
+        sctx.globalAlpha = live.config.opacity / 100;
+        sctx.globalCompositeOperation = 'destination-out';
+        sctx.drawImage(live.canvas, 0, 0);
+        ctx.drawImage(scratch, halfX, halfY);
+      } else {
+        ctx.drawImage(layer.bitmap, halfX, halfY);
+        if (live) {
+          const outerAlpha = ctx.globalAlpha;
+          ctx.globalAlpha = outerAlpha * (live.config.opacity / 100);
+          ctx.drawImage(live.canvas, halfX, halfY);
+          ctx.globalAlpha = outerAlpha;
+        }
+      }
+    }
   } else {
     ctx.font = `${layer.fontSize}px ${layer.fontFamily}`;
     ctx.fillStyle = layer.color;

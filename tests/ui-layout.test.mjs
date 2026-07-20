@@ -43,6 +43,15 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('stroke sessions preview in the compositor and freeze history', () => {
+  const compositor = readFileSync(resolve(root, 'src/engine/compositor.ts'), 'utf8');
+  assert.match(compositor, /getStrokeSession/);
+  assert.match(compositor, /destination-out/);
+  const sessionStatus = readFileSync(resolve(root, 'src/engine/session-status.ts'), 'utf8');
+  assert.match(sessionStatus, /getStrokeSession/);
+  assert.match(main, /cancelStroke/);
+});
+
 test('workspace toggles and reset follow the manual', () => {
   const ws = readFileSync(resolve(root, 'src/shell/workspace.ts'), 'utf8');
   assert.match(ws, /isTypingTarget/);

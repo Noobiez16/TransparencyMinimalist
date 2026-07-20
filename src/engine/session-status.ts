@@ -1,5 +1,6 @@
 import { getTransformSession } from './transform-session';
 import { getCropSession } from './crop-session';
+import { getStrokeSession } from './stroke-session';
 import { isTransformSessionGuardOpen } from '../transform-session-guard';
 
 /**
@@ -8,5 +9,6 @@ import { isTransformSessionGuardOpen } from '../transform-session-guard';
  * cached snap candidates and silently abandon the user's in-progress edit.
  */
 export function isEditingSessionLive(): boolean {
-  return Boolean(getTransformSession()) || Boolean(getCropSession()) || isTransformSessionGuardOpen();
+  return Boolean(getTransformSession()) || Boolean(getCropSession()) ||
+    Boolean(getStrokeSession()) || isTransformSessionGuardOpen();
 }

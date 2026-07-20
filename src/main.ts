@@ -33,6 +33,7 @@ import { cropTool } from './tools/crop';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
 import { applyCrop, beginCrop, cancelCrop, getCropSession, subscribeCropSession } from './engine/crop-session';
+import { cancelStroke, getStrokeSession, subscribeStrokeSession } from './engine/stroke-session';
 import { toast } from './toast';
 import { guardTransformSession, initTransformSessionGuard, isInteractiveTarget, isTransformSessionGuardOpen, isTypingTarget } from './transform-session-guard';
 import { isEditingSessionLive } from './engine/session-status';
@@ -129,6 +130,7 @@ registerTool(cropTool);
 // leaving the tool (or Enter/Escape below) closes it.
 let lastToolId = getActiveTool().id;
 onToolChange((tool) => {
+  cancelStroke(); // a tool change abandons any in-progress stroke
   if (lastToolId === 'crop' && tool.id !== 'crop') cancelCrop();
   if (tool.id === 'crop' && !getCropSession()) beginCrop();
   lastToolId = tool.id;
@@ -197,7 +199,9 @@ initWorkspace();
 const syncContextStatus = () => {
   const session = getTransformSession();
   const status = $('status-context');
-  if (getCropSession()) {
+  if (getStrokeSession()) {
+    status.textContent = 'Painting · Release to commit the stroke';
+  } else if (getCropSession()) {
     status.textContent = 'Crop · Drag handles or edit ratio · Enter applies · Esc cancels';
   } else if (session?.mode === 'explicit') {
     status.textContent = session.gesture
@@ -210,12 +214,17 @@ const syncContextStatus = () => {
     if (tool.id === 'hand') status.textContent = 'Hand · Drag to pan the view';
     else if (tool.id === 'zoom') status.textContent = 'Zoom · Click to zoom in · Alt-click zooms out';
     else if (tool.id === 'crop') status.textContent = 'Crop · Click the canvas to start a crop';
+    else if (tool.id === 'brush') status.textContent = 'Brush · Drag to paint · [ ] adjusts size';
+    else if (tool.id === 'pencil') status.textContent = 'Pencil · Drag to draw · [ ] adjusts size';
+    else if (tool.id === 'eraser') status.textContent = 'Eraser · Drag to erase · [ ] adjusts size';
+    else if (tool.id === 'eyedropper') status.textContent = 'Eyedropper · Click to sample a color';
     else status.textContent = `${tool.label} · Shift constrains · Ctrl/Cmd bypasses Snap`;
   }
 };
 onToolChange(syncContextStatus);
 subscribeTransformSession(syncContextStatus);
 subscribeCropSession(syncContextStatus);
+subscribeStrokeSession(syncContextStatus);
 syncContextStatus();
 
 const text = createTextLayer(state.doc, 'Text Overlay');
