@@ -4,6 +4,8 @@ import { $ } from './dom';
 import * as history from './engine/history';
 import { cmdPatchDoc } from './engine/commands';
 import { createToolPointerRouter, getActiveTool, onToolChange } from './engine/tools';
+import { setPaintHover } from './canvas-overlay';
+import { getPaintSetting } from './tools/paint-config';
 
 const viewport = $('canvas-viewport');
 const screenCanvas = $('doc-canvas') as unknown as HTMLCanvasElement;
@@ -139,7 +141,18 @@ export function initCanvas(): void {
     screenCanvas.setPointerCapture(e.pointerId);
     pointerRouter.onDown(screenToDoc(e), e);
   });
-  screenCanvas.addEventListener('pointermove', (e) => pointerRouter.onMove(screenToDoc(e), e));
+  screenCanvas.addEventListener('pointermove', (e) => {
+    const tool = getActiveTool();
+    if (tool.id === 'brush' || tool.id === 'pencil' || tool.id === 'eraser') {
+      setPaintHover(screenToDoc(e), getPaintSetting(tool.id, 'size') / 2);
+      notify('composite');
+    }
+    pointerRouter.onMove(screenToDoc(e), e);
+  });
+  screenCanvas.addEventListener('pointerleave', () => {
+    setPaintHover(null, 0);
+    notify('composite');
+  });
   screenCanvas.addEventListener('pointerup', (e) => pointerRouter.onUp(screenToDoc(e), e));
   const cancelPointer = (e: PointerEvent) => {
     pointerRouter.onCancel(screenToDoc(e), e);
@@ -148,6 +161,10 @@ export function initCanvas(): void {
   screenCanvas.addEventListener('lostpointercapture', cancelPointer);
   onToolChange((tool) => {
     screenCanvas.style.cursor = tool.cursor;
+    if (tool.id !== 'brush' && tool.id !== 'pencil' && tool.id !== 'eraser') {
+      setPaintHover(null, 0);
+      notify('composite');
+    }
   });
   screenCanvas.style.cursor = getActiveTool().cursor;
 

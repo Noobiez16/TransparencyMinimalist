@@ -44,6 +44,30 @@ export function clearActiveGuides(): void {
   activeGuides = [];
 }
 
+let hoverPoint: Point | null = null;
+let hoverRadius = 0;
+
+/** Brush outline cursor: `point` in document space, `radiusDoc` in document pixels. */
+export function setPaintHover(point: Point | null, radiusDoc: number): void {
+  hoverPoint = point;
+  hoverRadius = radiusDoc;
+}
+
+function drawPaintCursor(ctx: CanvasRenderingContext2D, scale: number): void {
+  if (!hoverPoint || hoverRadius <= 0) return;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.lineWidth = 1 / scale;
+  ctx.beginPath();
+  ctx.arc(hoverPoint.x, hoverPoint.y, hoverRadius + 1 / scale, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+  ctx.beginPath();
+  ctx.arc(hoverPoint.x, hoverPoint.y, hoverRadius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawGuides(ctx: CanvasRenderingContext2D, scale: number): void {
   if (!activeGuides.length) return;
   const lineWidth = 1 / scale;
@@ -199,6 +223,7 @@ export function drawCanvasOverlay(
   const scale = safeScale(overlayScale);
   drawGuides(ctx, scale);
   drawCropOverlay(ctx, doc, scale);
+  drawPaintCursor(ctx, scale); // before the transformable-layer early return
   const target = transformableLayer(doc);
   if (!target) return;
   const quad = getLayerQuad(target.layer, target.natural);
