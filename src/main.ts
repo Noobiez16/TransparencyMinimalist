@@ -30,6 +30,10 @@ import { moveTool } from './tools/move';
 import { handTool } from './tools/hand';
 import { zoomTool } from './tools/zoom';
 import { cropTool } from './tools/crop';
+import { brushTool } from './tools/brush';
+import { pencilTool } from './tools/pencil';
+import { eraserTool } from './tools/eraser';
+import { nudgeActivePaintSize } from './tools/paint-shared';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
 import { applyCrop, beginCrop, cancelCrop, getCropSession, subscribeCropSession } from './engine/crop-session';
@@ -113,6 +117,8 @@ registerCommand({ id: 'filter.gallery', label: 'Filter Gallery…', phase: 'E' }
 registerCommand({ id: 'filter.gaussianBlur', label: 'Gaussian Blur…', phase: 'E' });
 registerCommand({ id: 'filter.liquify', label: 'Liquify…', shortcut: 'Shift+Ctrl+X', phase: 'E' });
 registerCommand({ id: 'plugins.marketplace', label: 'Plugin Marketplace', phase: 'F' });
+registerCommand({ id: 'paint.sizeDown', label: 'Decrease Brush Size', shortcut: '[', bindKey: true, run: () => nudgeActivePaintSize(-1) });
+registerCommand({ id: 'paint.sizeUp', label: 'Increase Brush Size', shortcut: ']', bindKey: true, run: () => nudgeActivePaintSize(1) });
 registerCommand({ id: 'color.reset', label: 'Default Colors', shortcut: 'D', bindKey: true, run: () => resetColors() });
 registerCommand({ id: 'color.swap', label: 'Swap Colors', shortcut: 'X', bindKey: true, run: () => swapColors() });
 wireColorApplication();
@@ -125,6 +131,9 @@ registerTool(moveTool);
 registerTool(handTool);
 registerTool(zoomTool);
 registerTool(cropTool);
+registerTool(brushTool);
+registerTool(pencilTool);
+registerTool(eraserTool);
 
 // The Crop tool owns exactly one session: entering the tool opens it,
 // leaving the tool (or Enter/Escape below) closes it.

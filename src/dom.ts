@@ -29,7 +29,11 @@ export const icons = {
   apply: svg('<path d="m3 8 3 3 7-7"/>'),
   cancel: svg('<path d="m4 4 8 8M12 4l-8 8"/>'),
   open: svg('<path d="M2 5a1 1 0 0 1 1-1h3l1.5 2H13a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1Z"/>'),
-  save: svg('<path d="M3 2h8l3 3v9a0 0 0 0 1 0 0H3a0 0 0 0 1 0 0V2Z"/><rect x="5" y="9" width="6" height="5"/><rect x="5" y="2" width="5" height="3"/>')
+  save: svg('<path d="M3 2h8l3 3v9a0 0 0 0 1 0 0H3a0 0 0 0 1 0 0V2Z"/><rect x="5" y="9" width="6" height="5"/><rect x="5" y="2" width="5" height="3"/>'),
+  brush: svg('<path d="M13.5 2.5 7.5 8.5"/><path d="M7.5 8.5C5.5 9 4.5 10.5 4.5 12.5c2 0 3.5-1 4-3z"/>'),
+  pencil: svg('<path d="m3 13 .8-2.8L11 3l2 2-7.2 7.2L3 13z"/><line x1="9.5" y1="4.5" x2="11.5" y2="6.5"/>'),
+  eraser: svg('<path d="m4 11 6-6 3.5 3.5-6 6H4z"/><line x1="3" y1="14.5" x2="13" y2="14.5"/>'),
+  eyedropper: svg('<path d="M13.5 2.5a1.6 1.6 0 0 1 0 2.3L12 6.3 9.7 4l1.5-1.5a1.6 1.6 0 0 1 2.3 0z"/><path d="M9.7 4 3.5 10.2V12.5h2.3L12 6.3"/>')
 };
 
 export function inlineEdit(el: HTMLElement, current: string, onCommit: (v: string) => void): void {

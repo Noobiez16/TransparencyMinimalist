@@ -21,7 +21,8 @@ function closeFlyout(): void {
 function entryLabel(entry: GroupEntry): string {
   if ('tool' in entry) {
     const tool = allTools().find((t) => t.id === entry.tool);
-    return tool ? `${tool.label} (${tool.shortcut.toUpperCase()})` : entry.tool;
+    if (!tool) return entry.tool;
+    return tool.shortcut ? `${tool.label} (${tool.shortcut.toUpperCase()})` : tool.label;
   }
   return `${entry.stub} (${entry.key})`;
 }

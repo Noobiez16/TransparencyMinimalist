@@ -43,6 +43,16 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('painting tools are live in the toolbar with size shortcuts', () => {
+  const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
+  for (const live of ['brush', 'pencil', 'eraser']) {
+    assert.match(groups, new RegExp(`tool:\\s*['"]${live}['"]`), `missing live tool ${live}`);
+  }
+  assert.match(main, /paint\.sizeDown/);
+  assert.match(main, /paint\.sizeUp/);
+  assert.match(main, /Brush · Drag to paint/);
+});
+
 test('stroke sessions preview in the compositor and freeze history', () => {
   const compositor = readFileSync(resolve(root, 'src/engine/compositor.ts'), 'utf8');
   assert.match(compositor, /getStrokeSession/);
