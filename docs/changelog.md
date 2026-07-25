@@ -2,6 +2,12 @@
 
 Notable changes to the Transparency editor. Each release was delivered through a written specification and implementation plan; plan documents are removed from the repository once their release ships, so entries reference plans by name only.
 
+## 3.4.0 - 2026-07-19
+
+### Added
+
+- **Selection system**: rectangular and elliptical marquees (`M`), freehand and polygonal lassos (`L`), boolean combination (Shift adds, Alt subtracts, Shift+Alt intersects) with an options-bar mode, animated marching ants, and a live Select menu (Select All, Deselect, Reselect, Inverse). Selections constrain painting to their interior and enable Clear (`Delete`), Fill with Foreground (`Shift+F5`), and Crop to Selection. Selection changes are undoable as compact operation lists rather than full-resolution mask snapshots. (Plan: 2026-07-19-selection-system.)
+
 ## 3.3.0 - 2026-07-18
 
 ### Added
