@@ -6,6 +6,7 @@ import { flashCanvas } from './canvas';
 import * as history from './engine/history';
 import type { Command } from './engine/history';
 import { cmdAddLayer, cmdDeleteLayer, cmdPatchLayer, cmdReorderLayer } from './engine/commands';
+import { shapeCommands, shapeNaturalSize } from './engine/shape-geometry';
 import { openProjectFile } from './engine/persistence';
 import { guardTransformSession } from './transform-session-guard';
 
@@ -124,8 +125,41 @@ function updateCard(card: HTMLElement, layer: Layer): void {
       const s = Math.min(26 / layer.bitmap.width, 26 / layer.bitmap.height);
       tctx.drawImage(layer.bitmap, (26 - layer.bitmap.width * s) / 2, (26 - layer.bitmap.height * s) / 2, layer.bitmap.width * s, layer.bitmap.height * s);
     }
+  } else if (layer.kind === 'shape') {
+    let tc = thumb.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!tc) { tc = document.createElement('canvas'); tc.width = 26; tc.height = 26; thumb.textContent = ''; thumb.appendChild(tc); }
+    const rev = JSON.stringify([layer.shape, layer.fill, layer.stroke, layer.strokeWidth]);
+    if (tc.dataset.rev !== rev) {
+      tc.dataset.rev = rev;
+      const tctx = tc.getContext('2d')!;
+      tctx.clearRect(0, 0, 26, 26);
+      const size = shapeNaturalSize(layer.shape);
+      const box = Math.max(size.w, size.h, layer.strokeWidth, 1);
+      const s = 22 / box;                       // 2px padding on each side
+      tctx.save();
+      tctx.translate(13, 13);
+      tctx.scale(s, s);
+      tctx.beginPath();
+      for (const cmd of shapeCommands(layer.shape)) {
+        switch (cmd.op) {
+          case 'moveTo': tctx.moveTo(cmd.x, cmd.y); break;
+          case 'lineTo': tctx.lineTo(cmd.x, cmd.y); break;
+          case 'arcTo': tctx.arcTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.r); break;
+          case 'ellipse': tctx.ellipse(cmd.cx, cmd.cy, cmd.rx, cmd.ry, 0, 0, Math.PI * 2); break;
+          case 'close': tctx.closePath(); break;
+        }
+      }
+      if (layer.fill) { tctx.fillStyle = layer.fill; tctx.fill(); }
+      if (layer.stroke && layer.strokeWidth > 0) {
+        tctx.strokeStyle = layer.stroke;
+        tctx.lineWidth = layer.strokeWidth;
+        tctx.stroke();
+      }
+      tctx.restore();
+    }
   } else if (!thumb.querySelector('canvas')) {
-    const glyph = layer.kind === 'image' ? 'IMG' : layer.kind === 'shape' ? 'SHP' : 'TXT';
+    // Shapes always render a thumbnail above, so this fallback is image-without-bitmap or text.
+    const glyph = layer.kind === 'image' ? 'IMG' : 'TXT';
     if (thumb.textContent !== glyph) thumb.textContent = glyph;
   }
 }

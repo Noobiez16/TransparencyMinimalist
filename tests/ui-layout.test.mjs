@@ -43,6 +43,12 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('the layers panel renders shape thumbnails', () => {
+  const panel = readFileSync(resolve(root, 'src/layers-panel.ts'), 'utf8');
+  assert.match(panel, /shapeCommands/);
+  assert.match(panel, /kind === 'shape'/);
+});
+
 test('rasterize shape is registered and reachable from the Layer menu', () => {
   assert.match(main, /layer\.rasterizeShape/);
   const menu = readFileSync(resolve(root, 'src/shell/menu-bar.ts'), 'utf8');
