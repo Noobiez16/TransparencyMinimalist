@@ -21,7 +21,8 @@ import { initWorkspace } from './shell/workspace';
 import { registerDockPanel } from './shell/dock';
 import { initColorPanel } from './panels/color-panel';
 import { initSwatchesPanel } from './panels/swatches-panel';
-import { resetColors, swapColors } from './engine/color-state';
+import { getForeground, resetColors, swapColors } from './engine/color-state';
+import { clearSelection, cropToSelection, fillSelection } from './engine/selection-edit';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
 import { $ } from './dom';
@@ -84,7 +85,28 @@ registerCommand({ id: 'edit.redo', label: 'Redo', shortcut: 'Ctrl+Shift+Z', lega
 registerCommand({ id: 'edit.freeTransform', label: 'Free Transform', shortcut: 'Ctrl+T', enabled: () => Boolean(state.doc.activeLayerId), run: () => startFreeTransform() });
 // Deferred a tick: the menu-item click still has to bubble past the size menu's
 // own close-on-outside-click handler before we reveal it.
+registerCommand({
+  id: 'edit.clear', label: 'Clear', shortcut: 'Delete', bindKey: true,
+  enabled: () => hasSelection() && Boolean(state.doc.activeLayerId),
+  run: () => guardTransformSession(() => {
+    if (!clearSelection()) toast('Select an area on an image layer first.');
+  })
+});
+registerCommand({
+  id: 'edit.fill', label: 'Fill with Foreground', shortcut: 'Shift+F5', bindKey: true,
+  enabled: () => hasSelection() && Boolean(state.doc.activeLayerId),
+  run: () => guardTransformSession(() => {
+    if (!fillSelection(getForeground())) toast('Select an area on an image layer first.');
+  })
+});
 registerCommand({ id: 'image.canvasSize', label: 'Canvas Size…', run: () => { setTimeout(() => { $('size-menu').hidden = false; }, 0); } });
+registerCommand({
+  id: 'image.cropToSelection', label: 'Crop to Selection',
+  enabled: () => hasSelection(),
+  run: () => guardTransformSession(() => {
+    if (!cropToSelection()) toast('Make a selection first.');
+  })
+});
 registerCommand({ id: 'image.imageSize', label: 'Image Size…', phase: 'F' });
 registerCommand({ id: 'image.mode', label: 'Mode', phase: 'E' });
 registerCommand({ id: 'layer.newImage', label: 'New Image Layer', run: () => $('btn-add-image').click() });

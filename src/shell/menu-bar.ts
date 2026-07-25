@@ -4,8 +4,8 @@ import { isTypingTarget, isTransformSessionGuardOpen } from '../transform-sessio
 
 export const MENUS: Array<{ title: string; items: Array<string | '—'> }> = [
   { title: 'File', items: ['file.new', 'file.open', 'file.place', '—', 'file.save', 'file.export'] },
-  { title: 'Edit', items: ['edit.undo', 'edit.redo', '—', 'edit.freeTransform'] },
-  { title: 'Image', items: ['image.canvasSize', 'image.imageSize', 'image.mode'] },
+  { title: 'Edit', items: ['edit.undo', 'edit.redo', '—', 'edit.freeTransform', '—', 'edit.clear', 'edit.fill'] },
+  { title: 'Image', items: ['image.canvasSize', 'image.cropToSelection', 'image.imageSize', 'image.mode'] },
   { title: 'Layer', items: ['layer.newImage', 'layer.newText', '—', 'layer.duplicate', 'layer.delete', 'layer.group'] },
   { title: 'Type', items: ['type.rasterize', 'type.convertShape'] },
   { title: 'Select', items: ['select.all', 'select.deselect', 'select.reselect', 'select.inverse', 'select.subject'] },

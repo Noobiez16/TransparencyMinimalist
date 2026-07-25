@@ -43,6 +43,18 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('selection editing commands are registered', () => {
+  const edit = readFileSync(resolve(root, 'src/engine/selection-edit.ts'), 'utf8');
+  assert.match(edit, /destination-out/);
+  assert.match(edit, /documentToBitmapMatrix/);
+  assert.match(main, /edit\.clear/);
+  assert.match(main, /edit\.fill/);
+  assert.match(main, /image\.cropToSelection/);
+  const menu = readFileSync(resolve(root, 'src/shell/menu-bar.ts'), 'utf8');
+  assert.match(menu, /edit\.clear/);
+  assert.match(menu, /image\.cropToSelection/);
+});
+
 test('stroke commits clip to the active selection', () => {
   const stroke = readFileSync(resolve(root, 'src/engine/stroke-session.ts'), 'utf8');
   assert.match(stroke, /getSelectionMask/);
