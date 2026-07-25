@@ -43,6 +43,19 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('shape tools are live in the drawing group', () => {
+  const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
+  for (const live of ['shape-rect', 'shape-ellipse', 'shape-line', 'shape-polygon']) {
+    assert.match(groups, new RegExp(`tool:\\s*['"]${live}['"]`), `missing live tool ${live}`);
+  }
+  assert.match(groups, /stub: 'Pen'/);   // Pen stays grayed for D2
+  const shared = readFileSync(resolve(root, 'src/tools/shape-shared.ts'), 'utf8');
+  assert.match(shared, /constrainDragRect/);
+  assert.match(shared, /isEditingSessionLive/);
+  assert.match(shared, /cmdAddLayer/);
+  assert.match(main, /Rectangle · Drag to draw/);
+});
+
 test('the compositor renders shape layers from their command list', () => {
   const compositor = readFileSync(resolve(root, 'src/engine/compositor.ts'), 'utf8');
   assert.match(compositor, /shapeCommands/);
@@ -154,11 +167,11 @@ test('color chips are wired with D/X commands and text/background application', 
 
 test('the toolbar renders the manual tool groups with grayed future slots', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
-  // Phases B/C promoted painting and selection tools to live; these remain grayed.
+  // Phases B/C/D1 promoted painting, selection, and shape tools to live; these remain grayed.
   for (const stub of [
     'Object Selection', 'Frame Tool',
     'Spot Healing Brush', 'Clone Stamp', 'Mixer Brush', 'Background Eraser',
-    'Pen', 'Rectangle', 'Horizontal Type', 'Rotate View'
+    'Pen', 'Horizontal Type', 'Rotate View'
   ]) {
     assert.match(groups, new RegExp(stub), `missing stub ${stub}`);
   }

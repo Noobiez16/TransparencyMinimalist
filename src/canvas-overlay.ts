@@ -5,6 +5,7 @@ import { getCropSession, type CropHandle, type CropRect } from './engine/crop-se
 import { getSelectionAlpha } from './engine/selection';
 import { traceContours } from './engine/selection-contour';
 import type { SelectionShape } from './engine/selection-ops';
+import type { PathCommand } from './engine/shape-geometry';
 import { notify } from './state';
 
 const HANDLE_SIZE_PX = 8;
@@ -110,6 +111,35 @@ function drawSelectionPreview(ctx: CanvasRenderingContext2D, scale: number): voi
     ctx.moveTo(selectionPreview.points[0].x, selectionPreview.points[0].y);
     for (const point of selectionPreview.points.slice(1)) ctx.lineTo(point.x, point.y);
     ctx.closePath();
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+let shapePreview: { commands: PathCommand[]; cx: number; cy: number } | null = null;
+
+/** In-progress shape, drawn dashed in document space until the drag commits. */
+export function setShapePreview(preview: { commands: PathCommand[]; cx: number; cy: number } | null): void {
+  shapePreview = preview;
+}
+
+function drawShapePreview(ctx: CanvasRenderingContext2D, scale: number): void {
+  if (!shapePreview) return;
+  ctx.save();
+  ctx.translate(shapePreview.cx, shapePreview.cy);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+  ctx.lineWidth = 1 / scale;
+  ctx.setLineDash([4 / scale, 4 / scale]);
+  ctx.beginPath();
+  for (const cmd of shapePreview.commands) {
+    switch (cmd.op) {
+      case 'moveTo': ctx.moveTo(cmd.x, cmd.y); break;
+      case 'lineTo': ctx.lineTo(cmd.x, cmd.y); break;
+      case 'arcTo': ctx.arcTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.r); break;
+      case 'ellipse': ctx.ellipse(cmd.cx, cmd.cy, cmd.rx, cmd.ry, 0, 0, Math.PI * 2); break;
+      case 'close': ctx.closePath(); break;
+    }
   }
   ctx.stroke();
   ctx.setLineDash([]);
@@ -297,6 +327,7 @@ export function drawCanvasOverlay(
   drawCropOverlay(ctx, doc, scale);
   drawSelectionAnts(ctx, doc, scale);
   drawSelectionPreview(ctx, scale);
+  drawShapePreview(ctx, scale);
   drawPaintCursor(ctx, scale); // before the transformable-layer early return
   const target = transformableLayer(doc);
   if (!target) return;

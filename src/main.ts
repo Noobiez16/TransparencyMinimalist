@@ -37,6 +37,7 @@ import { eraserTool } from './tools/eraser';
 import { eyedropperTool } from './tools/eyedropper';
 import { marqueeEllipseTool, marqueeRectTool } from './tools/marquee';
 import { cancelPolygonLasso, finishPolygonLasso, lassoFreeTool, lassoPolyTool, polygonInProgress } from './tools/lasso';
+import { shapeEllipseTool, shapeLineTool, shapePolygonTool, shapeRectTool } from './tools/shape-tools';
 import { nudgeActivePaintSize } from './tools/paint-shared';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
@@ -167,6 +168,10 @@ registerTool(marqueeRectTool);
 registerTool(marqueeEllipseTool);
 registerTool(lassoFreeTool);
 registerTool(lassoPolyTool);
+registerTool(shapeRectTool);
+registerTool(shapeEllipseTool);
+registerTool(shapeLineTool);
+registerTool(shapePolygonTool);
 
 // The Crop tool owns exactly one session: entering the tool opens it,
 // leaving the tool (or Enter/Escape below) closes it.
@@ -265,6 +270,10 @@ const syncContextStatus = () => {
     else if (tool.id === 'marquee-rect' || tool.id === 'marquee-ellipse') status.textContent = 'Marquee · Drag to select · Shift adds · Alt subtracts';
     else if (tool.id === 'lasso-free') status.textContent = 'Lasso · Drag to select freehand · Shift adds · Alt subtracts';
     else if (tool.id === 'lasso-poly') status.textContent = 'Polygonal Lasso · Click points · Enter closes · Esc cancels';
+    else if (tool.id === 'shape-rect') status.textContent = 'Rectangle · Drag to draw · Shift squares · Alt from center';
+    else if (tool.id === 'shape-ellipse') status.textContent = 'Ellipse · Drag to draw · Shift circles · Alt from center';
+    else if (tool.id === 'shape-line') status.textContent = 'Line · Drag to draw · Shift snaps to 15°';
+    else if (tool.id === 'shape-polygon') status.textContent = 'Polygon · Drag to draw · Sides set in the options bar';
     else status.textContent = `${tool.label} · Shift constrains · Ctrl/Cmd bypasses Snap`;
   }
 };

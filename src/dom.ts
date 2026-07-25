@@ -37,7 +37,11 @@ export const icons = {
   marquee: svg('<rect x="2.5" y="3.5" width="11" height="9" stroke-dasharray="2 2"/>'),
   marqueeEllipse: svg('<ellipse cx="8" cy="8" rx="5.5" ry="4.5" stroke-dasharray="2 2"/>'),
   lasso: svg('<path d="M8 3c3 0 5 1.6 5 3.6S11 10 8 10 3 8.6 3 6.6 5 3 8 3z"/><path d="M5 9.5c0 2 1 3.5 1 4.5"/>'),
-  lassoPoly: svg('<path d="M3 5.5 8 2.5l5 3-2 6.5H5z" stroke-dasharray="2 2"/>')
+  lassoPoly: svg('<path d="M3 5.5 8 2.5l5 3-2 6.5H5z" stroke-dasharray="2 2"/>'),
+  shapeRect: svg('<rect x="2.5" y="4.5" width="11" height="7" rx="1.5"/>'),
+  shapeEllipse: svg('<ellipse cx="8" cy="8" rx="5.5" ry="4"/>'),
+  shapeLine: svg('<line x1="3" y1="12.5" x2="13" y2="3.5"/>'),
+  shapePolygon: svg('<path d="M8 2.5 13.5 6.6 11.4 13h-6.8L2.5 6.6z"/>')
 };
 
 export function inlineEdit(el: HTMLElement, current: string, onCommit: (v: string) => void): void {
