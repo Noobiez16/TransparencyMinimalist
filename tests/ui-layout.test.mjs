@@ -43,6 +43,16 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('the properties panel edits shape layers', () => {
+  for (const id of ['prop-shape-fill', 'prop-shape-stroke', 'prop-shape-width', 'prop-shape-radius', 'prop-shape-sides']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`), `missing control ${id}`);
+  }
+  const props = readFileSync(resolve(root, 'src/properties-panel.ts'), 'utf8');
+  assert.match(props, /kind === 'shape'/);
+  assert.match(props, /cmdPatchLayer/);
+  assert.match(props, /sectionShapeProps/);
+});
+
 test('shape tools are live in the drawing group', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
   for (const live of ['shape-rect', 'shape-ellipse', 'shape-line', 'shape-polygon']) {

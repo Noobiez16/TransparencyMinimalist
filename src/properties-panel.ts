@@ -3,6 +3,7 @@ import { layerNaturalSize, type Layer, type Effects, type BlendMode, type LayerB
 import { $, icons, inlineEdit } from './dom';
 import * as history from './engine/history';
 import { cmdPatchLayer, cmdPatchEffects } from './engine/commands';
+import { clampShape, clampStrokeWidth } from './engine/shape-geometry';
 import {
   getTransformProportionsLinked,
   setTransformFieldValue,
@@ -30,6 +31,13 @@ const propTextContent = $('prop-text-content') as HTMLTextAreaElement;
 const propFontFamily = $('prop-font-family') as HTMLSelectElement;
 const propFontSize = $('prop-font-size') as HTMLInputElement;
 const propTextColor = $('prop-text-color') as HTMLInputElement;
+
+const sectionShapeProps = $('section-shape-properties');
+const propShapeFill = $('prop-shape-fill') as HTMLInputElement;
+const propShapeStroke = $('prop-shape-stroke') as HTMLInputElement;
+const propShapeWidth = $('prop-shape-width') as HTMLInputElement;
+const propShapeRadius = $('prop-shape-radius') as HTMLInputElement;
+const propShapeSides = $('prop-shape-sides') as HTMLInputElement;
 
 const opacityValueEl = $('opacity-value');
 const fontSizeValueEl = $('font-size-value');
@@ -204,23 +212,37 @@ function syncPanel(): void {
   EFFECTS.forEach((fx) => syncEffectRow(fx.key, layer));
   $('prop-invert').setAttribute('aria-checked', String(layer.effects.invert));
 
-  // Toggle filter rows based on type (shapes get their own section in Task 6)
-  if (layer.kind !== 'text') {
-    document.querySelectorAll('.filter-image-only').forEach((el) => {
-      (el as HTMLElement).style.display = '';
-    });
-    sectionTextProps.style.display = 'none';
-  } else {
-    document.querySelectorAll('.filter-image-only').forEach((el) => {
-      (el as HTMLElement).style.display = 'none';
-    });
-    sectionTextProps.style.display = 'block';
+  // Per-kind sections: image filters, text settings, shape settings
+  const isImage = layer.kind === 'image';
+  document.querySelectorAll('.filter-image-only').forEach((el) => {
+    (el as HTMLElement).style.display = isImage ? '' : 'none';
+  });
+  sectionTextProps.style.display = layer.kind === 'text' ? 'block' : 'none';
+  sectionShapeProps.style.display = layer.kind === 'shape' ? 'block' : 'none';
 
+  if (layer.kind === 'text') {
     syncVal(propTextContent, layer.text);
     syncVal(propFontFamily, layer.fontFamily);
     syncVal(propFontSize, layer.fontSize.toString());
     fontSizeValueEl.textContent = `${layer.fontSize}px`;
     syncVal(propTextColor, layer.color);
+  } else if (layer.kind === 'shape') {
+    syncVal(propShapeFill, layer.fill ?? '#000000');
+    syncVal(propShapeStroke, layer.stroke ?? '#000000');
+    syncVal(propShapeWidth, String(layer.strokeWidth));
+    $('prop-shape-width-value').textContent = String(layer.strokeWidth);
+    const isRect = layer.shape.kind === 'rect';
+    const isPolygon = layer.shape.kind === 'polygon';
+    $('prop-shape-radius-row').style.display = isRect ? '' : 'none';
+    $('prop-shape-sides-row').style.display = isPolygon ? '' : 'none';
+    if (layer.shape.kind === 'rect') {
+      syncVal(propShapeRadius, String(layer.shape.radius));
+      $('prop-shape-radius-value').textContent = String(Math.round(layer.shape.radius));
+    }
+    if (layer.shape.kind === 'polygon') {
+      syncVal(propShapeSides, String(layer.shape.sides));
+      $('prop-shape-sides-value').textContent = String(layer.shape.sides);
+    }
   }
 }
 
@@ -343,6 +365,48 @@ export function initPropertiesPanel(): void {
     const layer = getActiveLayer();
     if (layer && layer.kind === 'text') {
       history.push(cmdPatchLayer(layer.id, 'Text color', { color: propTextColor.value }, `${layer.id}:color`));
+    }
+  });
+
+  // Shape layer change listeners
+  propShapeFill.addEventListener('input', () => {
+    const layer = getActiveLayer();
+    if (layer && layer.kind === 'shape') {
+      history.push(cmdPatchLayer(layer.id, 'Shape fill', { fill: propShapeFill.value }, `${layer.id}:fill`));
+    }
+  });
+
+  propShapeStroke.addEventListener('input', () => {
+    const layer = getActiveLayer();
+    if (layer && layer.kind === 'shape') {
+      history.push(cmdPatchLayer(layer.id, 'Shape stroke', { stroke: propShapeStroke.value }, `${layer.id}:stroke`));
+    }
+  });
+
+  propShapeWidth.addEventListener('input', () => {
+    const layer = getActiveLayer();
+    if (layer && layer.kind === 'shape') {
+      const width = clampStrokeWidth(Number(propShapeWidth.value));
+      history.push(cmdPatchLayer(layer.id, 'Stroke width', { strokeWidth: width }, `${layer.id}:strokeWidth`));
+      $('prop-shape-width-value').textContent = String(width);
+    }
+  });
+
+  propShapeRadius.addEventListener('input', () => {
+    const layer = getActiveLayer();
+    if (layer && layer.kind === 'shape' && layer.shape.kind === 'rect') {
+      const shape = clampShape({ ...layer.shape, radius: Number(propShapeRadius.value) });
+      history.push(cmdPatchLayer(layer.id, 'Corner radius', { shape }, `${layer.id}:radius`));
+      $('prop-shape-radius-value').textContent = String(Math.round(Number(propShapeRadius.value)));
+    }
+  });
+
+  propShapeSides.addEventListener('input', () => {
+    const layer = getActiveLayer();
+    if (layer && layer.kind === 'shape' && layer.shape.kind === 'polygon') {
+      const shape = clampShape({ ...layer.shape, sides: Number(propShapeSides.value) });
+      history.push(cmdPatchLayer(layer.id, 'Polygon sides', { shape }, `${layer.id}:sides`));
+      $('prop-shape-sides-value').textContent = String(propShapeSides.value);
     }
   });
 

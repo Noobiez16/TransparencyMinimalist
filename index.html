@@ -193,6 +193,37 @@
                   <input type="color" id="prop-text-color" value="#000000">
                 </div>
               </section>
+
+              <section class="config-section" id="section-shape-properties" style="display: none;">
+                <h3>Shape Settings</h3>
+                <div class="control-row inline-row">
+                  <label for="prop-shape-fill">Fill</label>
+                  <input type="color" id="prop-shape-fill" value="#000000">
+                </div>
+
+                <div class="control-row inline-row">
+                  <label for="prop-shape-stroke">Stroke</label>
+                  <input type="color" id="prop-shape-stroke" value="#000000">
+                </div>
+
+                <div class="control-row">
+                  <label for="prop-shape-width">Stroke Width (px)</label>
+                  <input type="range" id="prop-shape-width" min="0" max="100" value="0">
+                  <span class="value-display" id="prop-shape-width-value">0</span>
+                </div>
+
+                <div class="control-row" id="prop-shape-radius-row">
+                  <label for="prop-shape-radius">Corner Radius (px)</label>
+                  <input type="range" id="prop-shape-radius" min="0" max="500" value="0">
+                  <span class="value-display" id="prop-shape-radius-value">0</span>
+                </div>
+
+                <div class="control-row" id="prop-shape-sides-row">
+                  <label for="prop-shape-sides">Sides</label>
+                  <input type="range" id="prop-shape-sides" min="3" max="24" value="5">
+                  <span class="value-display" id="prop-shape-sides-value">5</span>
+                </div>
+              </section>
             </div>
           </div>
           </div>
