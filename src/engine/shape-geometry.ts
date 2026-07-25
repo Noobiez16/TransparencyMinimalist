@@ -59,6 +59,67 @@ export function shapeCommands(shape: ShapeSpec): PathCommand[] {
   return commands;
 }
 
+/** Drag rectangle with Shift (square) and Alt (from centre) applied. */
+export function constrainDragRect(
+  start: Point,
+  current: Point,
+  opts: { square: boolean; fromCenter: boolean }
+): { cx: number; cy: number; w: number; h: number } {
+  let dx = current.x - start.x;
+  let dy = current.y - start.y;
+  if (opts.square) {
+    const size = Math.max(Math.abs(dx), Math.abs(dy));
+    dx = size * (dx < 0 ? -1 : 1);
+    dy = size * (dy < 0 ? -1 : 1);
+  }
+  if (opts.fromCenter) {
+    return { cx: start.x, cy: start.y, w: Math.abs(dx) * 2, h: Math.abs(dy) * 2 };
+  }
+  return { cx: start.x + dx / 2, cy: start.y + dy / 2, w: Math.abs(dx), h: Math.abs(dy) };
+}
+
+const LINE_SNAP_RADIANS = (15 * Math.PI) / 180;
+
+/** Line endpoints as a centre plus delta; `snap` quantises the angle to 15 degrees. */
+export function constrainLine(
+  start: Point,
+  current: Point,
+  snap: boolean
+): { cx: number; cy: number; dx: number; dy: number } {
+  let dx = current.x - start.x;
+  let dy = current.y - start.y;
+  if (snap) {
+    const length = Math.hypot(dx, dy);
+    const angle = Math.round(Math.atan2(dy, dx) / LINE_SNAP_RADIANS) * LINE_SNAP_RADIANS;
+    dx = length * Math.cos(angle);
+    dy = length * Math.sin(angle);
+  }
+  return { cx: start.x + dx / 2, cy: start.y + dy / 2, dx, dy };
+}
+
+export function clampStrokeWidth(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+export function clampShape(shape: ShapeSpec): ShapeSpec {
+  if (shape.kind === 'rect') {
+    const w = Math.abs(shape.w);
+    const h = Math.abs(shape.h);
+    const radius = Math.min(Math.max(0, shape.radius), w / 2, h / 2);
+    return { kind: 'rect', w, h, radius: Number.isFinite(radius) ? radius : 0 };
+  }
+  if (shape.kind === 'ellipse') {
+    return { kind: 'ellipse', rx: Math.abs(shape.rx), ry: Math.abs(shape.ry) };
+  }
+  if (shape.kind === 'line') return { kind: 'line', dx: shape.dx, dy: shape.dy };
+  return {
+    kind: 'polygon',
+    radius: Math.abs(shape.radius),
+    sides: Math.min(24, Math.max(3, Math.round(shape.sides)))
+  };
+}
+
 /** Geometric bounding box, ignoring stroke width (see layerNaturalSize for the stroke floor). */
 export function shapeNaturalSize(shape: ShapeSpec): Size {
   if (shape.kind === 'rect') return { w: Math.abs(shape.w), h: Math.abs(shape.h) };
