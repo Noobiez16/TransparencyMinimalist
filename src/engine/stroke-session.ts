@@ -1,7 +1,8 @@
 import { state, notify } from '../state';
 import { layerNaturalSize, type ImageLayer } from './document';
 import * as history from './history';
-import { documentToBitmap, type Point } from './transform-geometry';
+import { documentToBitmap, documentToBitmapMatrix, type Point } from './transform-geometry';
+import { getSelectionMask } from './selection';
 import { clampRect, stampBounds, stampPoints, unionRects, type Rect } from './stroke-geometry';
 import type { PaintToolId } from '../tools/paint-config';
 import { getTransformSession } from './transform-session';
@@ -161,6 +162,25 @@ export function endStroke(): void {
     emit();
     notify('layerProps', 'composite');
     return;
+  }
+
+  // Clip the stroke to the selection: the mask is document-space, the stroke canvas
+  // is bitmap-space, so render the mask through the layer's inverse affine first.
+  const mask = getSelectionMask();
+  if (mask) {
+    const matrix = documentToBitmapMatrix(layer, layerNaturalSize(layer));
+    const clip = document.createElement('canvas');
+    clip.width = finished.canvas.width;
+    clip.height = finished.canvas.height;
+    const cctx = clip.getContext('2d')!;
+    cctx.setTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+    cctx.drawImage(mask, 0, 0);
+    const sctx = finished.canvas.getContext('2d')!;
+    sctx.save();
+    sctx.setTransform(1, 0, 0, 1, 0, 0);
+    sctx.globalCompositeOperation = 'destination-in';
+    sctx.drawImage(clip, 0, 0);
+    sctx.restore();
   }
 
   const bctx = layer.bitmap.getContext('2d')!;

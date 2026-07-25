@@ -43,6 +43,13 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('stroke commits clip to the active selection', () => {
+  const stroke = readFileSync(resolve(root, 'src/engine/stroke-session.ts'), 'utf8');
+  assert.match(stroke, /getSelectionMask/);
+  assert.match(stroke, /documentToBitmapMatrix/);
+  assert.match(stroke, /destination-in/);
+});
+
 test('the Select menu drives real selection commands', () => {
   assert.match(main, /id:\s*'select\.all'[\s\S]{0,200}?selectAll\(\)/);
   assert.match(main, /id:\s*'select\.deselect'[\s\S]{0,200}?deselect\(\)/);
