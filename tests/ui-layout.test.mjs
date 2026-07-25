@@ -43,6 +43,14 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('the compositor renders shape layers from their command list', () => {
+  const compositor = readFileSync(resolve(root, 'src/engine/compositor.ts'), 'utf8');
+  assert.match(compositor, /shapeCommands/);
+  assert.match(compositor, /case 'arcTo'/);
+  assert.match(compositor, /layer\.fill/);
+  assert.match(compositor, /layer\.stroke/);
+});
+
 test('selection editing commands are registered', () => {
   const edit = readFileSync(resolve(root, 'src/engine/selection-edit.ts'), 'utf8');
   assert.match(edit, /destination-out/);

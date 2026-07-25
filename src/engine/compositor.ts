@@ -1,6 +1,7 @@
 import { type Doc, type Layer, type BlendMode, getFilterString } from './document';
 import { drawCanvasOverlay } from '../canvas-overlay';
 import { getStrokeSession } from './stroke-session';
+import { shapeCommands } from './shape-geometry';
 
 const BLEND_TO_OP: Record<BlendMode, GlobalCompositeOperation> = {
   normal: 'source-over', multiply: 'multiply', screen: 'screen',
@@ -51,8 +52,27 @@ function drawLayer(ctx: CanvasRenderingContext2D, layer: Layer): void {
     const lineHeight = layer.fontSize * 1.2;
     const startY = (-(lines.length - 1) * lineHeight) / 2;
     lines.forEach((line, i) => ctx.fillText(line, 0, startY + i * lineHeight));
+  } else {
+    ctx.beginPath();
+    for (const cmd of shapeCommands(layer.shape)) {
+      switch (cmd.op) {
+        case 'moveTo': ctx.moveTo(cmd.x, cmd.y); break;
+        case 'lineTo': ctx.lineTo(cmd.x, cmd.y); break;
+        case 'arcTo': ctx.arcTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.r); break;
+        case 'ellipse': ctx.ellipse(cmd.cx, cmd.cy, cmd.rx, cmd.ry, 0, 0, Math.PI * 2); break;
+        case 'close': ctx.closePath(); break;
+      }
+    }
+    if (layer.fill) {
+      ctx.fillStyle = layer.fill;
+      ctx.fill();
+    }
+    if (layer.stroke && layer.strokeWidth > 0) {
+      ctx.strokeStyle = layer.stroke;
+      ctx.lineWidth = layer.strokeWidth;
+      ctx.stroke();
+    }
   }
-  // Shape rendering lands in Task 4.
   ctx.restore();
 }
 

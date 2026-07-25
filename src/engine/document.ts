@@ -1,4 +1,5 @@
 import { getLayerQuad, hitTestLayer, type LayerTransform, type Point, type Size } from './transform-geometry';
+import { shapeNaturalSize } from './shape-geometry';
 
 export type { LayerTransform, Point, Size } from './transform-geometry';
 
@@ -172,7 +173,12 @@ export function layerNaturalSize(layer: Layer): Size {
   if (layer.kind === 'image') {
     return layer.bitmap ? { w: layer.bitmap.width, h: layer.bitmap.height } : { w: 0, h: 0 };
   }
-  if (layer.kind === 'shape') return { w: 0, h: 0 };   // real geometry lands in Task 4
+  if (layer.kind === 'shape') {
+    const size = shapeNaturalSize(layer.shape);
+    // Floor by stroke width so a flat line still has a grabbable box.
+    const floor = Math.max(0, layer.strokeWidth);
+    return { w: Math.max(size.w, floor), h: Math.max(size.h, floor) };
+  }
   measureCtx.font = `${layer.fontSize}px ${layer.fontFamily}`;
   const lines = layer.text.split('\n');
   let w = 0;
