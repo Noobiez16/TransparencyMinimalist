@@ -2,6 +2,12 @@
 
 Notable changes to the Transparency editor. Each release was delivered through a written specification and implementation plan; plan documents are removed from the repository once their release ships, so entries reference plans by name only.
 
+## 3.5.0 - 2026-07-20
+
+### Added
+
+- **Vector shape layers**: Rectangle (`U`), Ellipse, Line, and Polygon tools draw resolution-independent shape layers with fill, stroke, stroke width, corner radius, and polygon sides that stay editable in the Properties panel. Shift constrains to squares, circles, and 15° lines; Alt draws from the center. Shapes scale and rotate without resampling, and `Layer > Rasterize Shape` converts one to pixels when you want to paint on it. (Plan: 2026-07-20-shape-layers.)
+
 ## 3.4.0 - 2026-07-19
 
 ### Added
