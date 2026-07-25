@@ -17,7 +17,7 @@ export interface StrokeConfig {
   color: string;
 }
 
-export type StrokeRefusal = 'missing' | 'text-layer' | 'hidden' | 'busy';
+export type StrokeRefusal = 'missing' | 'text-layer' | 'shape-layer' | 'hidden' | 'busy';
 
 interface AllocationSnapshot { x: number; y: number; scaleX: number; scaleY: number }
 
@@ -74,6 +74,7 @@ export function beginStroke(layerId: string, config: StrokeConfig): { ok: true }
   const layer = state.doc.layers.find((l) => l.id === layerId);
   if (!layer) return { ok: false, reason: 'missing' };
   if (layer.kind === 'text') return { ok: false, reason: 'text-layer' };
+  if (layer.kind === 'shape') return { ok: false, reason: 'shape-layer' };
   if (!layer.visible) return { ok: false, reason: 'hidden' };
 
   let allocated = false;

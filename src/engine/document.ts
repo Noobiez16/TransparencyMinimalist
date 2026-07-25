@@ -36,7 +36,21 @@ export interface TextLayer extends LayerBase {
   color: string;
 }
 
-export type Layer = ImageLayer | TextLayer;
+export type ShapeSpec =
+  | { kind: 'rect'; w: number; h: number; radius: number }
+  | { kind: 'ellipse'; rx: number; ry: number }
+  | { kind: 'line'; dx: number; dy: number }
+  | { kind: 'polygon'; radius: number; sides: number };
+
+export interface ShapeLayer extends LayerBase {
+  kind: 'shape';
+  shape: ShapeSpec;
+  fill: string | null;                      // null = no fill
+  stroke: string | null;                    // null = no stroke
+  strokeWidth: number;                      // DOCUMENT pixels, 0-100
+}
+
+export type Layer = ImageLayer | TextLayer | ShapeLayer;
 
 export interface Doc {
   version: 2;
@@ -93,6 +107,22 @@ export function createTextLayer(doc: Doc, name?: string): TextLayer {
   return { ...baseLayer(doc, name ?? `Text Layer ${layerCounter + 1}`), kind: 'text', text: 'Edit me', fontFamily: 'Inter', fontSize: 64, color: '#000000' };
 }
 
+export function createShapeLayer(
+  doc: Doc,
+  shape: ShapeSpec,
+  opts: { fill: string | null; stroke: string | null; strokeWidth: number },
+  name?: string
+): ShapeLayer {
+  return {
+    ...baseLayer(doc, name ?? `Shape Layer ${layerCounter + 1}`),
+    kind: 'shape',
+    shape: { ...shape },
+    fill: opts.fill,
+    stroke: opts.stroke,
+    strokeWidth: opts.strokeWidth
+  };
+}
+
 export function cloneLayer(doc: Doc, layer: Layer): Layer {
   const base = baseLayer(doc, `${layer.name} copy`);
   const common = {
@@ -111,6 +141,9 @@ export function cloneLayer(doc: Doc, layer: Layer): Layer {
     }
     return { ...common, kind: 'image', bitmap, bitmapRev: 0 } as ImageLayer;
   }
+  if (layer.kind === 'shape') {
+    return { ...common, kind: 'shape', shape: { ...layer.shape } } as ShapeLayer;
+  }
   return { ...common, kind: 'text' } as TextLayer;
 }
 
@@ -118,7 +151,7 @@ export function getActiveLayer(doc: Doc): Layer | undefined {
   return doc.layers.find((l) => l.id === doc.activeLayerId);
 }
 
-export function getFilterString(effects: Effects, kind: 'image' | 'text'): string {
+export function getFilterString(effects: Effects, kind: 'image' | 'text' | 'shape'): string {
   const parts: string[] = [];
   const blur = effects.blurOn ? effects.blur : 0;
   if (blur > 0) parts.push(`blur(${blur}px)`);
@@ -139,6 +172,7 @@ export function layerNaturalSize(layer: Layer): Size {
   if (layer.kind === 'image') {
     return layer.bitmap ? { w: layer.bitmap.width, h: layer.bitmap.height } : { w: 0, h: 0 };
   }
+  if (layer.kind === 'shape') return { w: 0, h: 0 };   // real geometry lands in Task 4
   measureCtx.font = `${layer.fontSize}px ${layer.fontFamily}`;
   const lines = layer.text.split('\n');
   let w = 0;

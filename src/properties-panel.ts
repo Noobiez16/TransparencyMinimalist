@@ -204,8 +204,8 @@ function syncPanel(): void {
   EFFECTS.forEach((fx) => syncEffectRow(fx.key, layer));
   $('prop-invert').setAttribute('aria-checked', String(layer.effects.invert));
 
-  // Toggle filter rows based on type
-  if (layer.kind === 'image') {
+  // Toggle filter rows based on type (shapes get their own section in Task 6)
+  if (layer.kind !== 'text') {
     document.querySelectorAll('.filter-image-only').forEach((el) => {
       (el as HTMLElement).style.display = '';
     });

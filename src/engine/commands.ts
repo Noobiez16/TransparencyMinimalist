@@ -1,5 +1,5 @@
 import { state, notify } from '../state';
-import { type Doc, type Layer, type LayerBase, type Effects, type LayerTransform } from './document';
+import { type Doc, type Layer, type LayerBase, type Effects, type LayerTransform, type ShapeSpec } from './document';
 import type { Command } from './history';
 
 function findLayer(id: string): Layer | undefined { return state.doc.layers.find((l) => l.id === id); }
@@ -13,7 +13,10 @@ function captureKeys<T extends object>(target: T, patch: Partial<T>): Partial<T>
 export function cmdPatchLayer(
   layerId: string,
   label: string,
-  patch: Partial<LayerBase & { text: string; fontFamily: string; fontSize: number; color: string }>,
+  patch: Partial<LayerBase & {
+    text: string; fontFamily: string; fontSize: number; color: string;
+    shape: ShapeSpec; fill: string | null; stroke: string | null; strokeWidth: number;
+  }>,
   coalesceKey?: string
 ): Command {
   const layer = findLayer(layerId);

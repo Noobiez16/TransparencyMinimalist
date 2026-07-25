@@ -125,7 +125,7 @@ function updateCard(card: HTMLElement, layer: Layer): void {
       tctx.drawImage(layer.bitmap, (26 - layer.bitmap.width * s) / 2, (26 - layer.bitmap.height * s) / 2, layer.bitmap.width * s, layer.bitmap.height * s);
     }
   } else if (!thumb.querySelector('canvas')) {
-    const glyph = layer.kind === 'image' ? 'IMG' : 'TXT';
+    const glyph = layer.kind === 'image' ? 'IMG' : layer.kind === 'shape' ? 'SHP' : 'TXT';
     if (thumb.textContent !== glyph) thumb.textContent = glyph;
   }
 }

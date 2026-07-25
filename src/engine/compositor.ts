@@ -42,7 +42,7 @@ function drawLayer(ctx: CanvasRenderingContext2D, layer: Layer): void {
         }
       }
     }
-  } else {
+  } else if (layer.kind === 'text') {
     ctx.font = `${layer.fontSize}px ${layer.fontFamily}`;
     ctx.fillStyle = layer.color;
     ctx.textAlign = 'center';
@@ -52,6 +52,7 @@ function drawLayer(ctx: CanvasRenderingContext2D, layer: Layer): void {
     const startY = (-(lines.length - 1) * lineHeight) / 2;
     lines.forEach((line, i) => ctx.fillText(line, 0, startY + i * lineHeight));
   }
+  // Shape rendering lands in Task 4.
   ctx.restore();
 }
 
