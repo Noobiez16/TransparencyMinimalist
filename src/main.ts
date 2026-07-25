@@ -23,6 +23,7 @@ import { initColorPanel } from './panels/color-panel';
 import { initSwatchesPanel } from './panels/swatches-panel';
 import { getForeground, resetColors, swapColors } from './engine/color-state';
 import { clearSelection, cropToSelection, fillSelection } from './engine/selection-edit';
+import { rasterizeShapeLayer } from './engine/shape-raster';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
 import { $ } from './dom';
@@ -129,6 +130,16 @@ registerCommand({
     if (!layer) return;
     const index = state.doc.layers.indexOf(layer);
     history.push(cmdAddLayer(cloneLayer(state.doc, layer), index, 'Duplicate layer'));
+  })
+});
+registerCommand({
+  id: 'layer.rasterizeShape', label: 'Rasterize Shape',
+  enabled: () => {
+    const layer = state.doc.layers.find((l) => l.id === state.doc.activeLayerId);
+    return Boolean(layer && layer.kind === 'shape');
+  },
+  run: () => guardTransformSession(() => {
+    if (!rasterizeShapeLayer(state.doc.activeLayerId ?? '')) toast('Select a shape layer first.');
   })
 });
 registerCommand({ id: 'view.zoomIn', label: 'Zoom In', shortcut: 'Ctrl+=', bindKey: true, run: () => zoomAt(1.25) });

@@ -43,6 +43,14 @@ test('workspace exposes the approved Photoshop-style regions', () => {
   }
 });
 
+test('rasterize shape is registered and reachable from the Layer menu', () => {
+  assert.match(main, /layer\.rasterizeShape/);
+  const menu = readFileSync(resolve(root, 'src/shell/menu-bar.ts'), 'utf8');
+  assert.match(menu, /layer\.rasterizeShape/);
+  const stroke = readFileSync(resolve(root, 'src/engine/stroke-session.ts'), 'utf8');
+  assert.match(stroke, /'shape-layer'/);
+});
+
 test('the properties panel edits shape layers', () => {
   for (const id of ['prop-shape-fill', 'prop-shape-stroke', 'prop-shape-width', 'prop-shape-radius', 'prop-shape-sides']) {
     assert.match(html, new RegExp(`id=["']${id}["']`), `missing control ${id}`);
