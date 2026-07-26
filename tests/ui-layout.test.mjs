@@ -82,8 +82,10 @@ test('shape tools are live in the drawing group', () => {
 
 test('path operations are registered in the menus', () => {
   assert.match(main, /path\.convertToShape/);
+  assert.match(main, /path\.loadAsSelection/);
   const menu = readFileSync(resolve(root, 'src/shell/menu-bar.ts'), 'utf8');
   assert.match(menu, /path\.convertToShape/);
+  assert.match(menu, /path\.loadAsSelection/);
 });
 
 test('the paths panel is a real dock panel', () => {

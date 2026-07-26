@@ -8,7 +8,7 @@ export const MENUS: Array<{ title: string; items: Array<string | '—'> }> = [
   { title: 'Image', items: ['image.canvasSize', 'image.cropToSelection', 'image.imageSize', 'image.mode'] },
   { title: 'Layer', items: ['layer.newImage', 'layer.newText', '—', 'layer.duplicate', 'layer.rasterizeShape', 'path.convertToShape', 'layer.delete', 'layer.group'] },
   { title: 'Type', items: ['type.rasterize', 'type.convertShape'] },
-  { title: 'Select', items: ['select.all', 'select.deselect', 'select.reselect', 'select.inverse', 'select.subject'] },
+  { title: 'Select', items: ['select.all', 'select.deselect', 'select.reselect', 'select.inverse', 'path.loadAsSelection', 'select.subject'] },
   { title: 'Filter', items: ['filter.gallery', 'filter.gaussianBlur', 'filter.liquify'] },
   { title: 'View', items: ['view.zoomIn', 'view.zoomOut', 'view.fit', '—', 'view.snap'] },
   { title: 'Plugins', items: ['plugins.marketplace'] },

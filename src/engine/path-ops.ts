@@ -6,6 +6,7 @@ import { getBackground, getForeground } from './color-state';
 import { getActivePath } from './path-store';
 import { pathBounds, translateSubPath } from './path-geometry';
 import type { SubPath } from './path-model';
+import { commitSelection } from './selection';
 
 function activeSubPaths(): SubPath[] | null {
   const path = getActivePath();
@@ -34,5 +35,13 @@ export function convertPathToShape(): boolean {
   layer.x = cx;
   layer.y = cy;
   history.push(cmdAddLayer(layer, 0, 'Convert path to shape'));
+  return true;
+}
+
+/** Rasterize the active path into the Phase C selection mask. */
+export function loadPathAsSelection(): boolean {
+  const subpaths = activeSubPaths();
+  if (!subpaths) return false;
+  commitSelection({ kind: 'path', subpaths, mode: 'new' }, 'Path to selection');
   return true;
 }

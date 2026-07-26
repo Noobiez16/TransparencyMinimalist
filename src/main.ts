@@ -25,7 +25,7 @@ import { initPathsPanel } from './panels/paths-panel';
 import { getForeground, resetColors, swapColors } from './engine/color-state';
 import { clearSelection, cropToSelection, fillSelection } from './engine/selection-edit';
 import { rasterizeShapeLayer } from './engine/shape-raster';
-import { convertPathToShape } from './engine/path-ops';
+import { convertPathToShape, loadPathAsSelection } from './engine/path-ops';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
 import { $ } from './dom';
@@ -151,6 +151,13 @@ registerCommand({
   enabled: () => Boolean(state.doc.activePathId),
   run: () => guardTransformSession(() => {
     if (!convertPathToShape()) toast('Draw a path with at least two anchors first.');
+  })
+});
+registerCommand({
+  id: 'path.loadAsSelection', label: 'Make Selection from Path',
+  enabled: () => Boolean(state.doc.activePathId),
+  run: () => guardTransformSession(() => {
+    if (!loadPathAsSelection()) toast('Draw a path with at least two anchors first.');
   })
 });
 registerCommand({ id: 'view.zoomIn', label: 'Zoom In', shortcut: 'Ctrl+=', bindKey: true, run: () => zoomAt(1.25) });

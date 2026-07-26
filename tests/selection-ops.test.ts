@@ -50,6 +50,22 @@ test('boundsFromAlpha finds the tight box and nulls when empty', () => {
   expect(boundsFromAlpha(alpha, w, h)).toEqual({ x: 2, y: 1, w: 2, h: 2 });
 });
 
+test('a path op appends like any other shape op and counts its anchors', () => {
+  const pathOp: SelectionOp = {
+    kind: 'path',
+    subpaths: [{ anchors: [
+      { x: 0, y: 0, inDx: 0, inDy: 0, outDx: 0, outDy: 0 },
+      { x: 10, y: 0, inDx: 0, inDy: 0, outDx: 0, outDy: 0 },
+      { x: 10, y: 10, inDx: 0, inDy: 0, outDx: 0, outDy: 0 }
+    ], closed: true }],
+    mode: 'new'
+  };
+  expect(reduceOps([{ kind: 'all' }], pathOp)).toEqual([pathOp]);   // 'new' restarts the list
+  expect(opsPointCount([pathOp])).toBe(3);
+  const added: SelectionOp = { ...pathOp, mode: 'add' };
+  expect(reduceOps([pathOp], added).length).toBe(2);
+});
+
 test('opsPointCount sizes history commands', () => {
   expect(opsPointCount([{ kind: 'all' }])).toBe(1);
   expect(opsPointCount([{ kind: 'shape', shape: rect(0, 0, 1, 1), mode: 'new' }])).toBe(4);

@@ -1,4 +1,5 @@
 import type { Point } from './transform-geometry';
+import type { SubPath } from './path-model';
 
 export type SelectionMode = 'new' | 'add' | 'subtract' | 'intersect';
 
@@ -9,6 +10,7 @@ export type SelectionShape =
 
 export type SelectionOp =
   | { kind: 'shape'; shape: SelectionShape; mode: SelectionMode }
+  | { kind: 'path'; subpaths: SubPath[]; mode: SelectionMode }
   | { kind: 'all' }
   | { kind: 'invert' };
 
@@ -17,7 +19,7 @@ export interface Rect { x: number; y: number; w: number; h: number }
 /** A `new` shape or Select All restarts the list; everything else appends. */
 export function reduceOps(ops: SelectionOp[], op: SelectionOp): SelectionOp[] {
   if (op.kind === 'all') return [op];
-  if (op.kind === 'shape' && op.mode === 'new') return [op];
+  if ((op.kind === 'shape' || op.kind === 'path') && op.mode === 'new') return [op];
   return [...ops, op];
 }
 
@@ -52,7 +54,11 @@ export function boundsFromAlpha(
 export function opsPointCount(ops: SelectionOp[]): number {
   let total = 0;
   for (const op of ops) {
-    if (op.kind !== 'shape') { total += 1; continue; }
+    if (op.kind === 'all' || op.kind === 'invert') { total += 1; continue; }
+    if (op.kind === 'path') {
+      for (const sub of op.subpaths) total += sub.anchors.length;
+      continue;
+    }
     total += op.shape.kind === 'polygon' ? op.shape.points.length : 4;
   }
   return total;

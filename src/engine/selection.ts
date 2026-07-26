@@ -4,6 +4,8 @@ import {
   boundsFromAlpha, compositeOpFor, opsPointCount, reduceOps,
   type Rect, type SelectionOp, type SelectionShape
 } from './selection-ops';
+import { pathToCommands } from './path-geometry';
+import { replayPathCommands } from './path-render';
 
 let ops: SelectionOp[] = [];
 let lastNonEmpty: SelectionOp[] = [];
@@ -83,7 +85,14 @@ function rasterize(): HTMLCanvasElement | null {
       ctx.globalCompositeOperation = compositeOpFor(op.mode);
     }
     ctx.save();
-    drawShape(ctx, op.shape);
+    if (op.kind === 'path') {
+      ctx.beginPath();
+      replayPathCommands(ctx, pathToCommands(op.subpaths));
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      drawShape(ctx, op.shape);
+    }
     ctx.restore();
   }
   ctx.globalCompositeOperation = 'source-over';
