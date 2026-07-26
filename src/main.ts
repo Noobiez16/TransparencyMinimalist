@@ -21,6 +21,7 @@ import { initWorkspace } from './shell/workspace';
 import { registerDockPanel } from './shell/dock';
 import { initColorPanel } from './panels/color-panel';
 import { initSwatchesPanel } from './panels/swatches-panel';
+import { initPathsPanel } from './panels/paths-panel';
 import { getForeground, resetColors, swapColors } from './engine/color-state';
 import { clearSelection, cropToSelection, fillSelection } from './engine/selection-edit';
 import { rasterizeShapeLayer } from './engine/shape-raster';
@@ -261,6 +262,7 @@ registerDockPanel({ id: 'color', title: 'Color', stack: 1, order: 1, fkey: 'F6' 
 registerDockPanel({ id: 'swatches', title: 'Swatches', stack: 1, order: 2 });
 initColorPanel();
 initSwatchesPanel();
+initPathsPanel();
 initWorkspace();
 
 const syncContextStatus = () => {

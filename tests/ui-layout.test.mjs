@@ -80,6 +80,18 @@ test('shape tools are live in the drawing group', () => {
   assert.match(main, /Rectangle · Drag to draw/);
 });
 
+test('the paths panel is a real dock panel', () => {
+  assert.match(html, /id=["']panel-paths["']/);
+  const dock = readFileSync(resolve(root, 'src/shell/dock.ts'), 'utf8');
+  assert.match(dock, /id: 'paths', title: 'Paths'/);
+  assert.doesNotMatch(dock, /id: 'paths'[^}]*phase/, 'the Paths tab is no longer a phase stub');
+  const panel = readFileSync(resolve(root, 'src/panels/paths-panel.ts'), 'utf8');
+  assert.match(panel, /inlineEdit/);
+  assert.match(panel, /duplicateActivePath/);
+  assert.match(panel, /deletePath/);
+  assert.match(main, /initPathsPanel/);
+});
+
 test('path editing tools are live', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
   assert.match(groups, /tool:\s*['"]direct-select['"]/);

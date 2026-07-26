@@ -87,7 +87,7 @@ export function initDock(): void {
   registerDockPanel({ id: 'layers', title: 'Layers', stack: 3, order: 1, fkey: 'F7' });
   registerDockPanel({ id: 'history', title: 'History', stack: 3, order: 2 });
   registerDockPanel({ id: 'channels', title: 'Channels', stack: 3, order: 3, phase: 'E' });
-  registerDockPanel({ id: 'paths', title: 'Paths', stack: 3, order: 4, phase: 'D' });
+  registerDockPanel({ id: 'paths', title: 'Paths', stack: 3, order: 4 });
 
   state.onChange(render);
   document.addEventListener('keydown', (e) => {
