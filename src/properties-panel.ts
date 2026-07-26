@@ -4,6 +4,18 @@ import { $, icons, inlineEdit } from './dom';
 import * as history from './engine/history';
 import { cmdPatchLayer, cmdPatchEffects } from './engine/commands';
 import { clampShape, clampStrokeWidth } from './engine/shape-geometry';
+import { applyStyleToRange, defaultTextStyle, type TextStyle } from './engine/text-model';
+
+/** Whole-layer style edit — the same span path D3b will narrow to a selection. */
+function patchTextStyle(patch: Partial<TextStyle>, label: string, key: string): void {
+  const layer = getActiveLayer();
+  if (!layer || layer.kind !== 'text') return;
+  history.push(cmdPatchLayer(
+    layer.id, label,
+    { spans: applyStyleToRange(layer.spans, 0, layer.text.length, patch, layer.text.length) },
+    `${layer.id}:${key}`
+  ));
+}
 import {
   getTransformProportionsLinked,
   setTransformFieldValue,
@@ -221,11 +233,12 @@ function syncPanel(): void {
   sectionShapeProps.style.display = layer.kind === 'shape' ? 'block' : 'none';
 
   if (layer.kind === 'text') {
+    const textStyle = layer.spans.length ? layer.spans[0].style : defaultTextStyle();
     syncVal(propTextContent, layer.text);
-    syncVal(propFontFamily, layer.fontFamily);
-    syncVal(propFontSize, layer.fontSize.toString());
-    fontSizeValueEl.textContent = `${layer.fontSize}px`;
-    syncVal(propTextColor, layer.color);
+    syncVal(propFontFamily, textStyle.fontFamily);
+    syncVal(propFontSize, String(textStyle.fontSize));
+    fontSizeValueEl.textContent = `${textStyle.fontSize}px`;
+    syncVal(propTextColor, textStyle.color);
   } else if (layer.kind === 'shape') {
     syncVal(propShapeFill, layer.fill ?? '#000000');
     syncVal(propShapeStroke, layer.stroke ?? '#000000');
@@ -345,27 +358,18 @@ export function initPropertiesPanel(): void {
   });
 
   propFontFamily.addEventListener('change', () => {
-    const layer = getActiveLayer();
-    if (layer && layer.kind === 'text') {
-      history.push(cmdPatchLayer(layer.id, 'Font family', { fontFamily: propFontFamily.value }));
-    }
+    patchTextStyle({ fontFamily: propFontFamily.value }, 'Font family', 'fontFamily');
   });
 
   propFontSize.addEventListener('input', () => {
-    const layer = getActiveLayer();
-    if (layer && layer.kind === 'text') {
-      history.push(cmdPatchLayer(layer.id, 'Font size', { fontSize: parseInt(propFontSize.value, 10) }, `${layer.id}:fontSize`));
-      fontSizeValueEl.textContent = `${propFontSize.value}px`;
-    }
+    patchTextStyle({ fontSize: parseInt(propFontSize.value, 10) }, 'Font size', 'fontSize');
+    fontSizeValueEl.textContent = `${propFontSize.value}px`;
   });
   attachChip(propFontSize, fontSizeValueEl, 'px');
   attachReset(propFontSize, PROP_DEFAULTS.fontSize);
 
   propTextColor.addEventListener('input', () => {
-    const layer = getActiveLayer();
-    if (layer && layer.kind === 'text') {
-      history.push(cmdPatchLayer(layer.id, 'Text color', { color: propTextColor.value }, `${layer.id}:color`));
-    }
+    patchTextStyle({ color: propTextColor.value }, 'Text color', 'color');
   });
 
   // Shape layer change listeners

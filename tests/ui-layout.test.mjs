@@ -255,7 +255,9 @@ test('stack one hosts working Color and Swatches panels', () => {
 
 test('color chips are wired with D/X commands and text/background application', () => {
   const chipsSrc = readFileSync(resolve(root, 'src/shell/color-chips.ts'), 'utf8');
-  assert.match(chipsSrc, /cmdPatchLayer[\s\S]{0,120}?:color/);
+  // D3a: the foreground chip writes a style-span patch rather than a flat colour field.
+  assert.match(chipsSrc, /cmdPatchLayer[\s\S]{0,240}?:color/);
+  assert.match(chipsSrc, /applyStyleToRange/);
   assert.match(chipsSrc, /doc:bgColor/);
   assert.match(main, /['"]D['"]/);
   assert.match(main, /['"]X['"]/);

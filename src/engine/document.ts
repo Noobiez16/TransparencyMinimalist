@@ -1,6 +1,8 @@
 import { getLayerQuad, hitTestLayer, type LayerTransform, type Point, type Size } from './transform-geometry';
 import { shapeNaturalSize } from './shape-geometry';
 import type { PathItem, SubPath } from './path-model';
+import { defaultTextStyle, normalizeSpans, type StyleSpan, type TextAlign, type TextStyle } from './text-model';
+import { layoutText } from './text-layout';
 
 export type { LayerTransform, Point, Size } from './transform-geometry';
 
@@ -33,9 +35,8 @@ export interface ImageLayer extends LayerBase {
 export interface TextLayer extends LayerBase {
   kind: 'text';
   text: string;
-  fontFamily: string;
-  fontSize: number;                         // DOCUMENT pixels, 8-512
-  color: string;
+  spans: StyleSpan[];                       // contiguous, sorted, covering [0, text.length)
+  align: TextAlign;
 }
 
 export type ShapeSpec =
@@ -109,8 +110,16 @@ export function createImageLayer(doc: Doc, name?: string): ImageLayer {
   return { ...baseLayer(doc, name ?? `Image Layer ${layerCounter + 1}`), kind: 'image', bitmap: null, bitmapRev: 0, sourceName: null };
 }
 
-export function createTextLayer(doc: Doc, name?: string): TextLayer {
-  return { ...baseLayer(doc, name ?? `Text Layer ${layerCounter + 1}`), kind: 'text', text: 'Edit me', fontFamily: 'Inter', fontSize: 64, color: '#000000' };
+export function createTextLayer(doc: Doc, name?: string, style?: TextStyle): TextLayer {
+  const text = 'Edit me';
+  const applied = style ?? defaultTextStyle();
+  return {
+    ...baseLayer(doc, name ?? `Text Layer ${layerCounter + 1}`),
+    kind: 'text',
+    text,
+    spans: normalizeSpans([{ start: 0, end: text.length, style: applied }], text.length),
+    align: 'center'
+  };
 }
 
 export function createShapeLayer(
@@ -150,7 +159,13 @@ export function cloneLayer(doc: Doc, layer: Layer): Layer {
   if (layer.kind === 'shape') {
     return { ...common, kind: 'shape', shape: { ...layer.shape } } as ShapeLayer;
   }
-  return { ...common, kind: 'text' } as TextLayer;
+  return {
+    ...common,
+    kind: 'text',
+    spans: layer.kind === 'text'
+      ? layer.spans.map((s) => ({ ...s, style: { ...s.style } }))
+      : []
+  } as TextLayer;
 }
 
 export function getActiveLayer(doc: Doc): Layer | undefined {
@@ -184,12 +199,14 @@ export function layerNaturalSize(layer: Layer): Size {
     const floor = Math.max(0, layer.strokeWidth);
     return { w: Math.max(size.w, floor), h: Math.max(size.h, floor) };
   }
-  measureCtx.font = `${layer.fontSize}px ${layer.fontFamily}`;
-  const lines = layer.text.split('\n');
-  let w = 0;
-  for (const line of lines) w = Math.max(w, measureCtx.measureText(line).width);
-  const h = lines.length * layer.fontSize * 1.2;
-  return { w, h };
+  const layout = layoutText(layer.text, layer.spans, layer.align, measureCharForStyle);
+  return { w: layout.width, h: layout.height };
+}
+
+/** Character advance for a style, backed by the module-level measurement context. */
+export function measureCharForStyle(char: string, style: TextStyle): number {
+  measureCtx.font = `${style.fontSize}px ${style.fontFamily}`;
+  return measureCtx.measureText(char).width;
 }
 
 export function layerDisplaySize(layer: Layer): { w: number; h: number } {

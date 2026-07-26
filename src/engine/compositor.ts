@@ -1,4 +1,5 @@
-import { type Doc, type Layer, type BlendMode, getFilterString } from './document';
+import { type Doc, type Layer, type BlendMode, getFilterString, measureCharForStyle } from './document';
+import { layoutText } from './text-layout';
 import { drawCanvasOverlay } from '../canvas-overlay';
 import { getStrokeSession } from './stroke-session';
 import { shapeCommands } from './shape-geometry';
@@ -45,14 +46,27 @@ function drawLayer(ctx: CanvasRenderingContext2D, layer: Layer): void {
       }
     }
   } else if (layer.kind === 'text') {
-    ctx.font = `${layer.fontSize}px ${layer.fontFamily}`;
-    ctx.fillStyle = layer.color;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const lines = layer.text.split('\n');
-    const lineHeight = layer.fontSize * 1.2;
-    const startY = (-(lines.length - 1) * lineHeight) / 2;
-    lines.forEach((line, i) => ctx.fillText(line, 0, startY + i * lineHeight));
+    const layout = layoutText(layer.text, layer.spans, layer.align, measureCharForStyle);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    const originX = -layout.width / 2;
+    const originY = -layout.height / 2;
+    for (const line of layout.lines) {
+      for (const piece of line.pieces) {
+        ctx.font = `${piece.style.fontSize}px ${piece.style.fontFamily}`;
+        ctx.fillStyle = piece.style.color;
+        if (piece.style.tracking === 0) {
+          ctx.fillText(piece.text, originX + piece.x, originY + line.baseline);
+        } else {
+          // Tracking means per-character placement, matching how the layout measured it.
+          let cx = originX + piece.x;
+          for (const char of piece.text) {
+            ctx.fillText(char, cx, originY + line.baseline);
+            cx += ctx.measureText(char).width + piece.style.tracking;
+          }
+        }
+      }
+    }
   } else {
     ctx.beginPath();
     replayPathCommands(ctx, shapeCommands(layer.shape));

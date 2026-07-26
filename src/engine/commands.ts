@@ -1,5 +1,6 @@
 import { state, notify } from '../state';
 import { type Doc, type Layer, type LayerBase, type Effects, type LayerTransform, type ShapeSpec } from './document';
+import type { StyleSpan, TextAlign } from './text-model';
 import type { Command } from './history';
 
 function findLayer(id: string): Layer | undefined { return state.doc.layers.find((l) => l.id === id); }
@@ -14,7 +15,7 @@ export function cmdPatchLayer(
   layerId: string,
   label: string,
   patch: Partial<LayerBase & {
-    text: string; fontFamily: string; fontSize: number; color: string;
+    text: string; spans: StyleSpan[]; align: TextAlign;
     shape: ShapeSpec; fill: string | null; stroke: string | null; strokeWidth: number;
   }>,
   coalesceKey?: string

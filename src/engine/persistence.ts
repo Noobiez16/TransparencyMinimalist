@@ -1,4 +1,5 @@
 import { type Doc, type Layer } from './document';
+import { migrateTextLayer } from './text-model';
 import { state, notify } from '../state';
 import * as history from './history';
 import { toast } from '../toast';
@@ -85,6 +86,10 @@ export async function deserializeDoc(json: string): Promise<Doc> {
     if (sl.kind === 'image') {
       const bitmap = typeof sl.bitmap === 'string' ? await dataUrlToCanvas(sl.bitmap) : null;
       layers.push({ ...(sl as object), bitmap, bitmapRev: 0 } as Layer);
+    } else if (sl.kind === 'text') {
+      // Pre-D3a layers carry flat style fields; migrate them into the span model.
+      const migrated = migrateTextLayer(sl as Record<string, unknown>);
+      layers.push({ ...(sl as object), ...migrated } as Layer);
     } else {
       layers.push({ ...(sl as object) } as Layer);
     }

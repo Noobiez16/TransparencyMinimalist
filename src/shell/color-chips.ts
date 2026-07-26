@@ -6,13 +6,20 @@ import {
   getBackground, getForeground, resetColors, setBackground, setForeground,
   subscribeColors, swapColors
 } from '../engine/color-state';
+import { applyStyleToRange } from '../engine/text-model';
 
 export function wireColorApplication(): void {
   subscribeColors(() => {
     const fg = getForeground();
     const layer = getActiveLayer();
-    if (layer && layer.kind === 'text' && layer.color !== fg) {
-      history.push(cmdPatchLayer(layer.id, 'Text color', { color: fg }, `${layer.id}:color`));
+    const currentColor = layer && layer.kind === 'text' && layer.spans.length
+      ? layer.spans[0].style.color : null;
+    if (layer && layer.kind === 'text' && currentColor !== fg) {
+      history.push(cmdPatchLayer(
+        layer.id, 'Text color',
+        { spans: applyStyleToRange(layer.spans, 0, layer.text.length, { color: fg }, layer.text.length) },
+        `${layer.id}:color`
+      ));
     }
     const bg = getBackground();
     if (state.doc.bgType === 'custom' && state.doc.bgColor !== bg) {

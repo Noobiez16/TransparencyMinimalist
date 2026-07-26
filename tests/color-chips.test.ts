@@ -36,7 +36,11 @@ test('foreground edits recolor the active text layer as one coalesced command', 
   stateModule.state.doc.activeLayerId = layer.id;
   colorState.setForeground('#ff0000');
   colorState.setForeground('#00ff00');
-  expect(layer.color).toBe('#00ff00');
+  // D3a: colour lives on style spans rather than a flat layer field.
+  expect(layer.spans.length).toBe(1);
+  expect(layer.spans[0].style.color).toBe('#00ff00');
+  expect(layer.spans[0].start).toBe(0);
+  expect(layer.spans[0].end).toBe(layer.text.length);
   expect(history.entries().length).toBe(1);
 });
 
