@@ -45,6 +45,7 @@ import { cancelPolygonLasso, finishPolygonLasso, lassoFreeTool, lassoPolyTool, p
 import { shapeEllipseTool, shapeLineTool, shapePolygonTool, shapeRectTool } from './tools/shape-tools';
 import { cancelPenPath, finishPenPath, penInProgress, penTool } from './tools/pen';
 import { directSelectTool, pathSelectTool } from './tools/path-edit-tools';
+import { typeTool } from './tools/type-tool';
 import { nudgeActivePaintSize } from './tools/paint-shared';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
@@ -227,6 +228,7 @@ registerTool(shapePolygonTool);
 registerTool(penTool);
 registerTool(directSelectTool);
 registerTool(pathSelectTool);
+registerTool(typeTool);
 
 // The Crop tool owns exactly one session: entering the tool opens it,
 // leaving the tool (or Enter/Escape below) closes it.
@@ -335,6 +337,7 @@ const syncContextStatus = () => {
     else if (tool.id === 'pen') status.textContent = 'Pen · Click to add anchors · Drag for curves · Enter finishes';
     else if (tool.id === 'direct-select') status.textContent = 'Direct Selection · Drag anchors and handles · Alt converts';
     else if (tool.id === 'path-select') status.textContent = 'Path Selection · Drag to move the whole path';
+    else if (tool.id === 'type') status.textContent = 'Type · Click to add text · Edit in Properties';
     else status.textContent = `${tool.label} · Shift constrains · Ctrl/Cmd bypasses Snap`;
   }
 };

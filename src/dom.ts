@@ -44,7 +44,8 @@ export const icons = {
   shapePolygon: svg('<path d="M8 2.5 13.5 6.6 11.4 13h-6.8L2.5 6.6z"/>'),
   pen: svg('<path d="M8 2.5 12 6.5 6.5 12 3 12.5 3.5 9z"/><line x1="3.5" y1="9" x2="6.5" y2="12"/>'),
   directSelect: svg('<path d="M4 2.5 4 12 6.6 9.6 8.6 13.5 10.4 12.6 8.4 8.9 11.8 8.6z" fill="none"/>'),
-  pathSelect: svg('<path d="M4 2.5 4 12 6.6 9.6 8.6 13.5 10.4 12.6 8.4 8.9 11.8 8.6z"/>')
+  pathSelect: svg('<path d="M4 2.5 4 12 6.6 9.6 8.6 13.5 10.4 12.6 8.4 8.9 11.8 8.6z"/>'),
+  type: svg('<path d="M3 3.5h10"/><line x1="8" y1="3.5" x2="8" y2="12.5"/><path d="M6 12.5h4"/>')
 };
 
 export function inlineEdit(el: HTMLElement, current: string, onCommit: (v: string) => void): void {

@@ -80,6 +80,16 @@ test('shape tools are live in the drawing group', () => {
   assert.match(main, /Rectangle · Drag to draw/);
 });
 
+test('the type tool is live', () => {
+  const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
+  assert.match(groups, /tool:\s*['"]type['"]/);
+  assert.doesNotMatch(groups, /stub: 'Horizontal Type'/, 'Horizontal Type is no longer a stub');
+  const tool = readFileSync(resolve(root, 'src/tools/type-tool.ts'), 'utf8');
+  assert.match(tool, /isEditingSessionLive/);
+  assert.match(tool, /cmdAddLayer/);
+  assert.match(main, /Type · Click to add text/);
+});
+
 test('path operations are registered in the menus', () => {
   assert.match(main, /path\.convertToShape/);
   assert.match(main, /path\.loadAsSelection/);
@@ -266,11 +276,12 @@ test('color chips are wired with D/X commands and text/background application', 
 
 test('the toolbar renders the manual tool groups with grayed future slots', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
-  // Phases B/C/D1/D2 promoted painting, selection, shape, and pen tools to live; these remain grayed.
+  // Phase D is complete through D3a: painting, selection, shape, pen, and type tools are all
+  // live. What remains grayed belongs to Phase E (retouching, adjustments) or later.
   for (const stub of [
     'Object Selection', 'Frame Tool',
     'Spot Healing Brush', 'Clone Stamp', 'Mixer Brush', 'Background Eraser',
-    'Horizontal Type', 'Rotate View'
+    'Rotate View'
   ]) {
     assert.match(groups, new RegExp(stub), `missing stub ${stub}`);
   }
