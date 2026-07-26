@@ -6,6 +6,7 @@ import { getSelectionAlpha } from './engine/selection';
 import { traceContours } from './engine/selection-contour';
 import type { SelectionShape } from './engine/selection-ops';
 import type { PathCommand } from './engine/shape-geometry';
+import { replayPathCommands } from './engine/path-render';
 import { notify } from './state';
 
 const HANDLE_SIZE_PX = 8;
@@ -132,15 +133,7 @@ function drawShapePreview(ctx: CanvasRenderingContext2D, scale: number): void {
   ctx.lineWidth = 1 / scale;
   ctx.setLineDash([4 / scale, 4 / scale]);
   ctx.beginPath();
-  for (const cmd of shapePreview.commands) {
-    switch (cmd.op) {
-      case 'moveTo': ctx.moveTo(cmd.x, cmd.y); break;
-      case 'lineTo': ctx.lineTo(cmd.x, cmd.y); break;
-      case 'arcTo': ctx.arcTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.r); break;
-      case 'ellipse': ctx.ellipse(cmd.cx, cmd.cy, cmd.rx, cmd.ry, 0, 0, Math.PI * 2); break;
-      case 'close': ctx.closePath(); break;
-    }
-  }
+  replayPathCommands(ctx, shapePreview.commands);
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();

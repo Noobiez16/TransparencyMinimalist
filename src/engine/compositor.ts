@@ -2,6 +2,7 @@ import { type Doc, type Layer, type BlendMode, getFilterString } from './documen
 import { drawCanvasOverlay } from '../canvas-overlay';
 import { getStrokeSession } from './stroke-session';
 import { shapeCommands } from './shape-geometry';
+import { replayPathCommands } from './path-render';
 
 const BLEND_TO_OP: Record<BlendMode, GlobalCompositeOperation> = {
   normal: 'source-over', multiply: 'multiply', screen: 'screen',
@@ -54,15 +55,7 @@ function drawLayer(ctx: CanvasRenderingContext2D, layer: Layer): void {
     lines.forEach((line, i) => ctx.fillText(line, 0, startY + i * lineHeight));
   } else {
     ctx.beginPath();
-    for (const cmd of shapeCommands(layer.shape)) {
-      switch (cmd.op) {
-        case 'moveTo': ctx.moveTo(cmd.x, cmd.y); break;
-        case 'lineTo': ctx.lineTo(cmd.x, cmd.y); break;
-        case 'arcTo': ctx.arcTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.r); break;
-        case 'ellipse': ctx.ellipse(cmd.cx, cmd.cy, cmd.rx, cmd.ry, 0, 0, Math.PI * 2); break;
-        case 'close': ctx.closePath(); break;
-      }
-    }
+    replayPathCommands(ctx, shapeCommands(layer.shape));
     if (layer.fill) {
       ctx.fillStyle = layer.fill;
       ctx.fill();

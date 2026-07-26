@@ -2,6 +2,7 @@ import { state, notify } from '../state';
 import * as history from './history';
 import { layerNaturalSize, type ImageLayer, type Layer, type ShapeLayer } from './document';
 import { shapeCommands } from './shape-geometry';
+import { replayPathCommands } from './path-render';
 
 /** Draw a shape layer's geometry into a fresh bitmap at its natural size. */
 function renderShapeBitmap(layer: ShapeLayer): HTMLCanvasElement | null {
@@ -18,15 +19,7 @@ function renderShapeBitmap(layer: ShapeLayer): HTMLCanvasElement | null {
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.beginPath();
-  for (const cmd of shapeCommands(layer.shape)) {
-    switch (cmd.op) {
-      case 'moveTo': ctx.moveTo(cmd.x, cmd.y); break;
-      case 'lineTo': ctx.lineTo(cmd.x, cmd.y); break;
-      case 'arcTo': ctx.arcTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.r); break;
-      case 'ellipse': ctx.ellipse(cmd.cx, cmd.cy, cmd.rx, cmd.ry, 0, 0, Math.PI * 2); break;
-      case 'close': ctx.closePath(); break;
-    }
-  }
+  replayPathCommands(ctx, shapeCommands(layer.shape));
   if (layer.fill) { ctx.fillStyle = layer.fill; ctx.fill(); }
   if (layer.stroke && layer.strokeWidth > 0) {
     ctx.strokeStyle = layer.stroke;

@@ -80,10 +80,24 @@ test('shape tools are live in the drawing group', () => {
   assert.match(main, /Rectangle · Drag to draw/);
 });
 
+test('path commands are replayed through one shared helper', () => {
+  const render = readFileSync(resolve(root, 'src/engine/path-render.ts'), 'utf8');
+  assert.match(render, /case 'bezierCurveTo'/);
+  assert.match(render, /bezierCurveTo\(/);
+  const geometry = readFileSync(resolve(root, 'src/engine/shape-geometry.ts'), 'utf8');
+  assert.match(geometry, /bezierCurveTo/);
+  // Every drawing site delegates instead of re-implementing the switch.
+  for (const file of ['src/engine/compositor.ts', 'src/engine/shape-raster.ts', 'src/layers-panel.ts', 'src/canvas-overlay.ts']) {
+    const src = readFileSync(resolve(root, file), 'utf8');
+    assert.match(src, /replayPathCommands/, `${file} should replay via the shared helper`);
+    assert.doesNotMatch(src, /case 'arcTo'/, `${file} should not re-implement the command switch`);
+  }
+});
+
 test('the compositor renders shape layers from their command list', () => {
   const compositor = readFileSync(resolve(root, 'src/engine/compositor.ts'), 'utf8');
   assert.match(compositor, /shapeCommands/);
-  assert.match(compositor, /case 'arcTo'/);
+  // The command switch itself now lives in path-render.ts (asserted separately).
   assert.match(compositor, /layer\.fill/);
   assert.match(compositor, /layer\.stroke/);
 });

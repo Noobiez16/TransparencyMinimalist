@@ -5,6 +5,7 @@ export type PathCommand =
   | { op: 'moveTo'; x: number; y: number }
   | { op: 'lineTo'; x: number; y: number }
   | { op: 'arcTo'; x1: number; y1: number; x2: number; y2: number; r: number }
+  | { op: 'bezierCurveTo'; c1x: number; c1y: number; c2x: number; c2y: number; x: number; y: number }
   | { op: 'ellipse'; cx: number; cy: number; rx: number; ry: number }
   | { op: 'close' };
 

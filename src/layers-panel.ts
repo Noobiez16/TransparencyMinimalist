@@ -7,6 +7,7 @@ import * as history from './engine/history';
 import type { Command } from './engine/history';
 import { cmdAddLayer, cmdDeleteLayer, cmdPatchLayer, cmdReorderLayer } from './engine/commands';
 import { shapeCommands, shapeNaturalSize } from './engine/shape-geometry';
+import { replayPathCommands } from './engine/path-render';
 import { openProjectFile } from './engine/persistence';
 import { guardTransformSession } from './transform-session-guard';
 
@@ -140,15 +141,7 @@ function updateCard(card: HTMLElement, layer: Layer): void {
       tctx.translate(13, 13);
       tctx.scale(s, s);
       tctx.beginPath();
-      for (const cmd of shapeCommands(layer.shape)) {
-        switch (cmd.op) {
-          case 'moveTo': tctx.moveTo(cmd.x, cmd.y); break;
-          case 'lineTo': tctx.lineTo(cmd.x, cmd.y); break;
-          case 'arcTo': tctx.arcTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.r); break;
-          case 'ellipse': tctx.ellipse(cmd.cx, cmd.cy, cmd.rx, cmd.ry, 0, 0, Math.PI * 2); break;
-          case 'close': tctx.closePath(); break;
-        }
-      }
+      replayPathCommands(tctx, shapeCommands(layer.shape));
       if (layer.fill) { tctx.fillStyle = layer.fill; tctx.fill(); }
       if (layer.stroke && layer.strokeWidth > 0) {
         tctx.strokeStyle = layer.stroke;
