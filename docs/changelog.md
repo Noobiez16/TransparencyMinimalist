@@ -2,6 +2,12 @@
 
 Notable changes to the Transparency editor. Each release was delivered through a written specification and implementation plan; plan documents are removed from the repository once their release ships, so entries reference plans by name only.
 
+## 3.6.0 - 2026-07-21
+
+### Added
+
+- **Pen tool and Paths panel**: draw Bézier paths with the Pen (`P`) — click for corners, drag for curves, click the first anchor to close — then refine them with Direct Selection (`A`) for anchors and handles, Alt-drag to convert between corner and smooth, and Path Selection to move a whole subpath. Clicking a segment inserts an anchor without changing the curve, and Alt-clicking one removes it. The Paths panel lists, renames, duplicates, and deletes document paths. Paths convert to vector shape layers, load as pixel selections, and fill or stroke the active image layer, and a selection can be traced back into an editable work path. Paths are non-printing and never appear in an export. (Plan: 2026-07-21-pen-and-paths.)
+
 ## 3.5.0 - 2026-07-20
 
 ### Added

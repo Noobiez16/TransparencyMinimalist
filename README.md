@@ -20,7 +20,7 @@ Transparency is a browser-based layer image editor with a Photoshop-style spatia
 |---|---|
 | Application menu bar | Eleven Photoshop-style menus (File, Edit, Image, Layer, Type, Select, Filter, View, Plugins, Window, Help); commands from future phases render grayed |
 | Contextual options bar | Active-tool options, background, and document size |
-| Toolbar | Grouped tool slots with nested-tool flyouts (right-click), selection tools (marquees, lassos), painting tools (Brush, Pencil, Eraser) and the Eyedropper, shape tools (rectangle, ellipse, line, polygon), a single/double column toggle, and foreground/background color chips |
+| Toolbar | Grouped tool slots with nested-tool flyouts (right-click), selection tools (marquees, lassos), painting tools (Brush, Pencil, Eraser) and the Eyedropper, shape tools (rectangle, ellipse, line, polygon), the Pen and path-editing tools, a single/double column toggle, and foreground/background color chips |
 | Canvas workspace | Interactive document rendering, a document tab with live zoom, pasteboard shades, selection outline, pan, and zoom |
 | Properties | Selected-layer transforms, opacity, blending, effects, and text settings |
 | Layers / History | Layer stack management and reversible command navigation, tabbed with grayed Channels and Paths slots |
@@ -38,6 +38,8 @@ Paint with the Brush (`B`), Pencil, or Eraser (`E`) on any image layer: each str
 Limit edits to part of the canvas with a selection. Drag a rectangular or elliptical marquee (`M`), or trace a region with the freehand or polygonal lasso (`L`); hold `Shift` while dragging to add to the selection, `Alt` to subtract, and both to intersect, or pick a mode in the options bar. A dashed marching-ants outline marks the active selection. While one is live, brush, pencil, and eraser strokes affect only the pixels inside it, `Delete` clears them, `Shift+F5` fills them with the foreground color, and `Image > Crop to Selection` trims the document to the selection bounds. The Select menu offers Select All (`Ctrl+A`), Deselect (`Ctrl+D`), Reselect (`Shift+Ctrl+D`), and Inverse (`Shift+Ctrl+I`). Every selection change is a single undoable step.
 
 Draw vector shapes with the Rectangle tool (`U`) and its nested Ellipse, Line, and Polygon tools. Hold `Shift` to constrain a rectangle to a square, an ellipse to a circle, or a line to 15° steps, and `Alt` to draw outward from the center. New shapes take their fill from the foreground chip and their stroke from the background chip; afterwards the Properties panel edits fill, stroke, stroke width, corner radius, and polygon sides on the selected layer. Shape layers stay vector, so scaling and rotating them never softens an edge. When you want to paint on one, `Layer > Rasterize Shape` converts it to pixels in a single undoable step.
+
+Draw Bézier paths with the Pen (`P`): click to place a corner anchor, click and drag to place a smooth anchor and pull its handles, and click the first anchor to close the path. `Enter` finishes an open path and `Escape` discards it; clicking a segment inserts an anchor without changing the curve, and Alt-clicking an anchor removes it. Refine a path with Direct Selection (`A`) — drag anchors and handles, or Alt-drag an anchor to convert it between corner and smooth — and move a whole subpath with Path Selection. The Paths panel lists, renames, duplicates, and deletes the document's paths. A path can become a vector shape layer, a pixel selection, or painted directly onto an image layer with Fill Path and Stroke Path, and a selection can be traced back into an editable work path. **Paths are non-printing:** they guide your work on screen and never appear in an exported PNG.
 
 The Crop tool (`C`) frames a non-destructive document crop: choose a free, original, preset, or custom aspect ratio, drag the handles or the window, and confirm with `Enter` (or the Apply button). Cropping only changes the document bounds and layer positions, never layer pixels, so a single undo restores the previous geometry exactly.
 
@@ -76,6 +78,8 @@ npm run build
 | Clear selected pixels | `Delete` |
 | Fill selection with foreground | `Shift+F5` |
 | Rectangle (shape) tool | `U` |
+| Pen tool | `P` |
+| Direct Selection tool | `A` |
 | Brush tool | `B` |
 | Eraser tool | `E` |
 | Eyedropper tool | `I` |
