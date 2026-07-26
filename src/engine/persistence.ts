@@ -89,7 +89,12 @@ export async function deserializeDoc(json: string): Promise<Doc> {
       layers.push({ ...(sl as object) } as Layer);
     }
   }
-  return { ...parsed.doc, version: 2, layers } as unknown as Doc;
+  // Files saved before D2 have no paths; default them rather than bumping the file version.
+  const rawPaths = (parsed.doc as { paths?: unknown }).paths;
+  const paths = Array.isArray(rawPaths) ? rawPaths : [];
+  const rawActive = (parsed.doc as { activePathId?: unknown }).activePathId;
+  const activePathId = typeof rawActive === 'string' ? rawActive : null;
+  return { ...parsed.doc, version: 2, layers, paths, activePathId } as unknown as Doc;
 }
 
 export async function saveProject(): Promise<void> {

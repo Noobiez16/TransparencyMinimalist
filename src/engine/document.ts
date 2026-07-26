@@ -1,5 +1,6 @@
 import { getLayerQuad, hitTestLayer, type LayerTransform, type Point, type Size } from './transform-geometry';
 import { shapeNaturalSize } from './shape-geometry';
+import type { PathItem } from './path-model';
 
 export type { LayerTransform, Point, Size } from './transform-geometry';
 
@@ -61,6 +62,8 @@ export interface Doc {
   bgColor: string;
   layers: Layer[];                          // index 0 = TOPMOST (matches panel order)
   activeLayerId: string | null;
+  paths: PathItem[];                        // document-level pen paths (non-printing)
+  activePathId: string | null;
 }
 
 export function defaultEffects(): Effects {
@@ -96,7 +99,8 @@ export function createDoc(width = 1024, height = 1024): Doc {
   return {
     version: 2, width, height,
     bgType: 'transparent', bgColor: '#ffffff',
-    layers: [], activeLayerId: null
+    layers: [], activeLayerId: null,
+    paths: [], activePathId: null
   };
 }
 
