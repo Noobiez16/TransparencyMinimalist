@@ -192,6 +192,27 @@
                   <label for="prop-text-color">Text Color</label>
                   <input type="color" id="prop-text-color" value="#000000">
                 </div>
+
+                <div class="control-row">
+                  <label for="prop-text-align">Alignment</label>
+                  <select id="prop-text-align">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+
+                <div class="control-row">
+                  <label for="prop-text-leading">Leading (px)</label>
+                  <input type="range" id="prop-text-leading" min="1" max="1000" value="77">
+                  <span class="value-display" id="prop-text-leading-value">77</span>
+                </div>
+
+                <div class="control-row">
+                  <label for="prop-text-tracking">Tracking</label>
+                  <input type="range" id="prop-text-tracking" min="-100" max="500" value="0">
+                  <span class="value-display" id="prop-text-tracking-value">0</span>
+                </div>
               </section>
 
               <section class="config-section" id="section-shape-properties" style="display: none;">

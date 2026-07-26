@@ -80,6 +80,19 @@ test('shape tools are live in the drawing group', () => {
   assert.match(main, /Rectangle · Drag to draw/);
 });
 
+test('type style controls exist on both surfaces', () => {
+  for (const id of ['prop-text-align', 'prop-text-leading', 'prop-text-tracking']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`), `missing control ${id}`);
+  }
+  const tool = readFileSync(resolve(root, 'src/tools/type-tool.ts'), 'utf8');
+  for (const key of ['type-family', 'type-size', 'type-align', 'type-leading', 'type-tracking']) {
+    assert.match(tool, new RegExp(`['"]${key}['"]`), `missing option ${key}`);
+  }
+  const props = readFileSync(resolve(root, 'src/properties-panel.ts'), 'utf8');
+  assert.match(props, /applyStyleToRange/);
+  assert.match(props, /prop-text-align/);
+});
+
 test('the type tool is live', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
   assert.match(groups, /tool:\s*['"]type['"]/);

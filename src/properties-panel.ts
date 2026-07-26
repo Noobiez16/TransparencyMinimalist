@@ -4,7 +4,7 @@ import { $, icons, inlineEdit } from './dom';
 import * as history from './engine/history';
 import { cmdPatchLayer, cmdPatchEffects } from './engine/commands';
 import { clampShape, clampStrokeWidth } from './engine/shape-geometry';
-import { applyStyleToRange, defaultTextStyle, type TextStyle } from './engine/text-model';
+import { applyStyleToRange, defaultTextStyle, type TextAlign, type TextStyle } from './engine/text-model';
 
 /** Whole-layer style edit — the same span path D3b will narrow to a selection. */
 function patchTextStyle(patch: Partial<TextStyle>, label: string, key: string): void {
@@ -43,6 +43,9 @@ const propTextContent = $('prop-text-content') as HTMLTextAreaElement;
 const propFontFamily = $('prop-font-family') as HTMLSelectElement;
 const propFontSize = $('prop-font-size') as HTMLInputElement;
 const propTextColor = $('prop-text-color') as HTMLInputElement;
+const propTextAlign = $('prop-text-align') as HTMLSelectElement;
+const propTextLeading = $('prop-text-leading') as HTMLInputElement;
+const propTextTracking = $('prop-text-tracking') as HTMLInputElement;
 
 const sectionShapeProps = $('section-shape-properties');
 const propShapeFill = $('prop-shape-fill') as HTMLInputElement;
@@ -239,6 +242,11 @@ function syncPanel(): void {
     syncVal(propFontSize, String(textStyle.fontSize));
     fontSizeValueEl.textContent = `${textStyle.fontSize}px`;
     syncVal(propTextColor, textStyle.color);
+    syncVal(propTextAlign, layer.align);
+    syncVal(propTextLeading, String(Math.round(textStyle.leading)));
+    $('prop-text-leading-value').textContent = String(Math.round(textStyle.leading));
+    syncVal(propTextTracking, String(Math.round(textStyle.tracking)));
+    $('prop-text-tracking-value').textContent = String(Math.round(textStyle.tracking));
   } else if (layer.kind === 'shape') {
     syncVal(propShapeFill, layer.fill ?? '#000000');
     syncVal(propShapeStroke, layer.stroke ?? '#000000');
@@ -370,6 +378,23 @@ export function initPropertiesPanel(): void {
 
   propTextColor.addEventListener('input', () => {
     patchTextStyle({ color: propTextColor.value }, 'Text color', 'color');
+  });
+
+  propTextAlign.addEventListener('change', () => {
+    const layer = getActiveLayer();
+    if (layer && layer.kind === 'text') {
+      history.push(cmdPatchLayer(layer.id, 'Text alignment', { align: propTextAlign.value as TextAlign }));
+    }
+  });
+
+  propTextLeading.addEventListener('input', () => {
+    patchTextStyle({ leading: Number(propTextLeading.value) }, 'Leading', 'leading');
+    $('prop-text-leading-value').textContent = propTextLeading.value;
+  });
+
+  propTextTracking.addEventListener('input', () => {
+    patchTextStyle({ tracking: Number(propTextTracking.value) }, 'Tracking', 'tracking');
+    $('prop-text-tracking-value').textContent = propTextTracking.value;
   });
 
   // Shape layer change listeners
