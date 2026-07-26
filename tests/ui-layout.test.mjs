@@ -88,6 +88,15 @@ test('path operations are registered in the menus', () => {
   assert.match(menu, /path\.loadAsSelection/);
 });
 
+test('path painting operations are registered', () => {
+  assert.match(main, /path\.fill/);
+  assert.match(main, /path\.stroke/);
+  assert.match(main, /path\.makeWorkPath/);
+  const opsSrc = readFileSync(resolve(root, 'src/engine/path-ops.ts'), 'utf8');
+  assert.match(opsSrc, /traceContours/);
+  assert.match(opsSrc, /documentToBitmapMatrix/);
+});
+
 test('the paths panel is a real dock panel', () => {
   assert.match(html, /id=["']panel-paths["']/);
   const dock = readFileSync(resolve(root, 'src/shell/dock.ts'), 'utf8');

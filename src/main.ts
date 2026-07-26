@@ -25,7 +25,9 @@ import { initPathsPanel } from './panels/paths-panel';
 import { getForeground, resetColors, swapColors } from './engine/color-state';
 import { clearSelection, cropToSelection, fillSelection } from './engine/selection-edit';
 import { rasterizeShapeLayer } from './engine/shape-raster';
-import { convertPathToShape, loadPathAsSelection } from './engine/path-ops';
+import {
+  convertPathToShape, fillPath, loadPathAsSelection, makeWorkPathFromSelection, strokePath
+} from './engine/path-ops';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
 import { $ } from './dom';
@@ -158,6 +160,27 @@ registerCommand({
   enabled: () => Boolean(state.doc.activePathId),
   run: () => guardTransformSession(() => {
     if (!loadPathAsSelection()) toast('Draw a path with at least two anchors first.');
+  })
+});
+registerCommand({
+  id: 'path.fill', label: 'Fill Path',
+  enabled: () => Boolean(state.doc.activePathId) && Boolean(state.doc.activeLayerId),
+  run: () => guardTransformSession(() => {
+    if (!fillPath()) toast('Select an image layer and draw a path first.');
+  })
+});
+registerCommand({
+  id: 'path.stroke', label: 'Stroke Path',
+  enabled: () => Boolean(state.doc.activePathId) && Boolean(state.doc.activeLayerId),
+  run: () => guardTransformSession(() => {
+    if (!strokePath()) toast('Select an image layer and draw a path first.');
+  })
+});
+registerCommand({
+  id: 'path.makeWorkPath', label: 'Make Work Path from Selection',
+  enabled: () => hasSelection(),
+  run: () => guardTransformSession(() => {
+    if (!makeWorkPathFromSelection()) toast('Make a selection first.');
   })
 });
 registerCommand({ id: 'view.zoomIn', label: 'Zoom In', shortcut: 'Ctrl+=', bindKey: true, run: () => zoomAt(1.25) });
