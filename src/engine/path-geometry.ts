@@ -80,6 +80,129 @@ export function bezierPointAt(from: Anchor, to: Anchor, t: number): Point {
   };
 }
 
+const cloneSubs = (subpaths: SubPath[]): SubPath[] =>
+  subpaths.map((sub) => ({ closed: sub.closed, anchors: sub.anchors.map((a) => ({ ...a })) }));
+
+/**
+ * Split a segment at parameter t using De Casteljau, so the visible curve is
+ * unchanged: the two halves together reproduce the original exactly.
+ */
+export function insertAnchorOnSegment(subpaths: SubPath[], hit: SegmentHit): SubPath[] {
+  const next = cloneSubs(subpaths);
+  const sub = next[hit.sub];
+  if (!sub) return next;
+  const i = hit.segment;
+  const j = (i + 1) % sub.anchors.length;
+  const from = sub.anchors[i];
+  const to = sub.anchors[j];
+  if (!from || !to) return next;
+  const t = hit.t;
+
+  const p0 = { x: from.x, y: from.y };
+  const p1 = { x: from.x + from.outDx, y: from.y + from.outDy };
+  const p2 = { x: to.x + to.inDx, y: to.y + to.inDy };
+  const p3 = { x: to.x, y: to.y };
+  const lerp = (a: Point, b: Point) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+
+  const a = lerp(p0, p1);
+  const b = lerp(p1, p2);
+  const c = lerp(p2, p3);
+  const d = lerp(a, b);
+  const e = lerp(b, c);
+  const mid = lerp(d, e);
+
+  from.outDx = a.x - from.x;
+  from.outDy = a.y - from.y;
+  to.inDx = c.x - to.x;
+  to.inDy = c.y - to.y;
+  const inserted: Anchor = {
+    x: mid.x, y: mid.y,
+    inDx: d.x - mid.x, inDy: d.y - mid.y,
+    outDx: e.x - mid.x, outDy: e.y - mid.y
+  };
+  sub.anchors.splice(i + 1, 0, inserted);
+  return next;
+}
+
+export function deleteAnchor(subpaths: SubPath[], ref: AnchorRef): SubPath[] {
+  const next = cloneSubs(subpaths);
+  const sub = next[ref.sub];
+  if (!sub) return next;
+  sub.anchors.splice(ref.anchor, 1);
+  return next.filter((s) => s.anchors.length > 0);
+}
+
+export function setAnchorSmooth(subpaths: SubPath[], ref: AnchorRef, dx: number, dy: number): SubPath[] {
+  const next = cloneSubs(subpaths);
+  const anchor = next[ref.sub]?.anchors[ref.anchor];
+  if (!anchor) return next;
+  anchor.outDx = dx; anchor.outDy = dy;
+  anchor.inDx = -dx; anchor.inDy = -dy;
+  return next;
+}
+
+export function setAnchorCorner(subpaths: SubPath[], ref: AnchorRef): SubPath[] {
+  const next = cloneSubs(subpaths);
+  const anchor = next[ref.sub]?.anchors[ref.anchor];
+  if (!anchor) return next;
+  anchor.inDx = 0; anchor.inDy = 0; anchor.outDx = 0; anchor.outDy = 0;
+  return next;
+}
+
+export function moveAnchor(subpaths: SubPath[], ref: AnchorRef, x: number, y: number): SubPath[] {
+  const next = cloneSubs(subpaths);
+  const anchor = next[ref.sub]?.anchors[ref.anchor];
+  if (!anchor) return next;
+  anchor.x = x; anchor.y = y;   // handles are relative, so they follow for free
+  return next;
+}
+
+export function moveHandle(
+  subpaths: SubPath[], ref: HandleRef, x: number, y: number, mirror: boolean
+): SubPath[] {
+  const next = cloneSubs(subpaths);
+  const anchor = next[ref.sub]?.anchors[ref.anchor];
+  if (!anchor) return next;
+  const dx = x - anchor.x;
+  const dy = y - anchor.y;
+  if (ref.which === 'out') {
+    anchor.outDx = dx; anchor.outDy = dy;
+    if (mirror) { anchor.inDx = -dx; anchor.inDy = -dy; }
+  } else {
+    anchor.inDx = dx; anchor.inDy = dy;
+    if (mirror) { anchor.outDx = -dx; anchor.outDy = -dy; }
+  }
+  return next;
+}
+
+export function translateSubPath(subpaths: SubPath[], sub: number, dx: number, dy: number): SubPath[] {
+  const next = cloneSubs(subpaths);
+  const target = next[sub];
+  if (!target) return next;
+  for (const anchor of target.anchors) { anchor.x += dx; anchor.y += dy; }
+  return next;
+}
+
+export function pathBounds(subpaths: SubPath[]): { x: number; y: number; w: number; h: number } | null {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const sub of subpaths) {
+    for (const a of sub.anchors) {
+      for (const p of [
+        { x: a.x, y: a.y },
+        { x: a.x + a.inDx, y: a.y + a.inDy },
+        { x: a.x + a.outDx, y: a.y + a.outDy }
+      ]) {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      }
+    }
+  }
+  if (minX === Infinity) return null;
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
 const SEGMENT_SAMPLES = 24;
 
 export function hitTestSegment(subpaths: SubPath[], point: Point, radius: number): SegmentHit | null {
