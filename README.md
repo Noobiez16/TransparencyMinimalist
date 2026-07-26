@@ -20,7 +20,7 @@ Transparency is a browser-based layer image editor with a Photoshop-style spatia
 |---|---|
 | Application menu bar | Eleven Photoshop-style menus (File, Edit, Image, Layer, Type, Select, Filter, View, Plugins, Window, Help); commands from future phases render grayed |
 | Contextual options bar | Active-tool options, background, and document size |
-| Toolbar | Grouped tool slots with nested-tool flyouts (right-click), selection tools (marquees, lassos), painting tools (Brush, Pencil, Eraser) and the Eyedropper, shape tools (rectangle, ellipse, line, polygon), the Pen and path-editing tools, a single/double column toggle, and foreground/background color chips |
+| Toolbar | Grouped tool slots with nested-tool flyouts (right-click), selection tools (marquees, lassos), painting tools (Brush, Pencil, Eraser) and the Eyedropper, shape tools (rectangle, ellipse, line, polygon), the Pen and path-editing tools, the Type tool, a single/double column toggle, and foreground/background color chips |
 | Canvas workspace | Interactive document rendering, a document tab with live zoom, pasteboard shades, selection outline, pan, and zoom |
 | Properties | Selected-layer transforms, opacity, blending, effects, and text settings |
 | Layers / History | Layer stack management and reversible command navigation, tabbed with grayed Channels and Paths slots |
@@ -40,6 +40,8 @@ Limit edits to part of the canvas with a selection. Drag a rectangular or ellipt
 Draw vector shapes with the Rectangle tool (`U`) and its nested Ellipse, Line, and Polygon tools. Hold `Shift` to constrain a rectangle to a square, an ellipse to a circle, or a line to 15° steps, and `Alt` to draw outward from the center. New shapes take their fill from the foreground chip and their stroke from the background chip; afterwards the Properties panel edits fill, stroke, stroke width, corner radius, and polygon sides on the selected layer. Shape layers stay vector, so scaling and rotating them never softens an edge. When you want to paint on one, `Layer > Rasterize Shape` converts it to pixels in a single undoable step.
 
 Draw Bézier paths with the Pen (`P`): click to place a corner anchor, click and drag to place a smooth anchor and pull its handles, and click the first anchor to close the path. `Enter` finishes an open path and `Escape` discards it; clicking a segment inserts an anchor without changing the curve, and Alt-clicking an anchor removes it. Refine a path with Direct Selection (`A`) — drag anchors and handles, or Alt-drag an anchor to convert it between corner and smooth — and move a whole subpath with Path Selection. The Paths panel lists, renames, duplicates, and deletes the document's paths. A path can become a vector shape layer, a pixel selection, or painted directly onto an image layer with Fill Path and Stroke Path, and a selection can be traced back into an editable work path. **Paths are non-printing:** they guide your work on screen and never appear in an exported PNG.
+
+Add text with the Type tool (`T`): click the canvas to place a text layer, or click an existing one to select it. Font family, size, colour, alignment, leading (line spacing), and tracking (letter spacing) are all editable from the options bar and the Properties panel, and text layers store their styling as spans, so a single layer can carry more than one style. `Type > Rasterize Type` converts a text layer to pixels when you want to paint on it, and `Type > Convert to Shape` turns it into an editable vector shape — note that this traces the rendered glyphs rather than reading true font outlines, so it is crisp at display sizes and stair-steps on small text. Projects saved before this release migrate automatically.
 
 The Crop tool (`C`) frames a non-destructive document crop: choose a free, original, preset, or custom aspect ratio, drag the handles or the window, and confirm with `Enter` (or the Apply button). Cropping only changes the document bounds and layer positions, never layer pixels, so a single undo restores the previous geometry exactly.
 
@@ -78,6 +80,7 @@ npm run build
 | Clear selected pixels | `Delete` |
 | Fill selection with foreground | `Shift+F5` |
 | Rectangle (shape) tool | `U` |
+| Type tool | `T` |
 | Pen tool | `P` |
 | Direct Selection tool | `A` |
 | Brush tool | `B` |

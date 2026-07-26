@@ -2,6 +2,12 @@
 
 Notable changes to the Transparency editor. Each release was delivered through a written specification and implementation plan; plan documents are removed from the repository once their release ships, so entries reference plans by name only.
 
+## 3.7.0 - 2026-07-22
+
+### Added
+
+- **Type engine**: text layers now carry styled spans instead of a single style, laid out by a new engine that supports left/center/right alignment, leading, and tracking. The Type tool (`T`) places text on the canvas, and font, size, colour, alignment, leading, and tracking are editable from both the options bar and the Properties panel. `Type > Rasterize Type` converts text to pixels, and `Type > Convert to Shape` traces the rendered glyphs into an editable vector shape. Projects saved before this release migrate automatically. (Plan: 2026-07-22-type-engine.)
+
 ## 3.6.0 - 2026-07-21
 
 ### Added
