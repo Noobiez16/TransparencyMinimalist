@@ -1,5 +1,6 @@
 import type { ShapeSpec } from './document';
 import type { Point, Size } from './transform-geometry';
+import { pathBounds, pathToCommands } from './path-geometry';
 
 export type PathCommand =
   | { op: 'moveTo'; x: number; y: number }
@@ -53,6 +54,7 @@ export function shapeCommands(shape: ShapeSpec): PathCommand[] {
       { op: 'lineTo', x: shape.dx / 2, y: shape.dy / 2 }
     ];
   }
+  if (shape.kind === 'path') return pathToCommands(shape.subpaths);
   const points = polygonPoints(shape.radius, shape.sides);
   const commands: PathCommand[] = [{ op: 'moveTo', x: points[0].x, y: points[0].y }];
   for (const point of points.slice(1)) commands.push({ op: 'lineTo', x: point.x, y: point.y });
@@ -114,6 +116,8 @@ export function clampShape(shape: ShapeSpec): ShapeSpec {
     return { kind: 'ellipse', rx: Math.abs(shape.rx), ry: Math.abs(shape.ry) };
   }
   if (shape.kind === 'line') return { kind: 'line', dx: shape.dx, dy: shape.dy };
+  // Path geometry is authored by the pen tools and needs no parameter clamping.
+  if (shape.kind === 'path') return { kind: 'path', subpaths: shape.subpaths };
   return {
     kind: 'polygon',
     radius: Math.abs(shape.radius),
@@ -126,6 +130,10 @@ export function shapeNaturalSize(shape: ShapeSpec): Size {
   if (shape.kind === 'rect') return { w: Math.abs(shape.w), h: Math.abs(shape.h) };
   if (shape.kind === 'ellipse') return { w: Math.abs(shape.rx) * 2, h: Math.abs(shape.ry) * 2 };
   if (shape.kind === 'line') return { w: Math.abs(shape.dx), h: Math.abs(shape.dy) };
+  if (shape.kind === 'path') {
+    const bounds = pathBounds(shape.subpaths);
+    return bounds ? { w: bounds.w, h: bounds.h } : { w: 0, h: 0 };
+  }
   const points = polygonPoints(shape.radius, shape.sides);
   const xs = points.map((p) => p.x);
   const ys = points.map((p) => p.y);

@@ -1,6 +1,6 @@
 import { getLayerQuad, hitTestLayer, type LayerTransform, type Point, type Size } from './transform-geometry';
 import { shapeNaturalSize } from './shape-geometry';
-import type { PathItem } from './path-model';
+import type { PathItem, SubPath } from './path-model';
 
 export type { LayerTransform, Point, Size } from './transform-geometry';
 
@@ -42,7 +42,8 @@ export type ShapeSpec =
   | { kind: 'rect'; w: number; h: number; radius: number }
   | { kind: 'ellipse'; rx: number; ry: number }
   | { kind: 'line'; dx: number; dy: number }
-  | { kind: 'polygon'; radius: number; sides: number };
+  | { kind: 'polygon'; radius: number; sides: number }
+  | { kind: 'path'; subpaths: SubPath[] };
 
 export interface ShapeLayer extends LayerBase {
   kind: 'shape';

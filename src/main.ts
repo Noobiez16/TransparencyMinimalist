@@ -25,6 +25,7 @@ import { initPathsPanel } from './panels/paths-panel';
 import { getForeground, resetColors, swapColors } from './engine/color-state';
 import { clearSelection, cropToSelection, fillSelection } from './engine/selection-edit';
 import { rasterizeShapeLayer } from './engine/shape-raster';
+import { convertPathToShape } from './engine/path-ops';
 import { initOptionsBar } from './options-bar';
 import * as history from './engine/history';
 import { $ } from './dom';
@@ -143,6 +144,13 @@ registerCommand({
   },
   run: () => guardTransformSession(() => {
     if (!rasterizeShapeLayer(state.doc.activeLayerId ?? '')) toast('Select a shape layer first.');
+  })
+});
+registerCommand({
+  id: 'path.convertToShape', label: 'Convert Path to Shape',
+  enabled: () => Boolean(state.doc.activePathId),
+  run: () => guardTransformSession(() => {
+    if (!convertPathToShape()) toast('Draw a path with at least two anchors first.');
   })
 });
 registerCommand({ id: 'view.zoomIn', label: 'Zoom In', shortcut: 'Ctrl+=', bindKey: true, run: () => zoomAt(1.25) });
