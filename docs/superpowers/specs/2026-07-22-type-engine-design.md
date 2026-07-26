@@ -99,9 +99,18 @@ width and height, so Free Transform, snapping, crop, and hit-testing keep workin
 ### Migration
 
 A pre-D3 layer `{ text, fontFamily, fontSize, color }` becomes one span covering the whole string
-with `tracking: 0`, `leading: fontSize × 1.2`, and `align: 'center'` — **exactly today's
-rendering**, so existing documents look identical. The project file version stays at 2; the change
-is additive, as in D1 and D2.
+with `tracking: 0`, `leading: fontSize × 1.2`, and `align: 'center'` — preserving the text, font,
+size, colour, line spacing, and centred alignment exactly. The project file version stays at 2;
+the change is additive, as in D1 and D2.
+
+**One honest caveat.** Today's renderer centres each line vertically
+(`textBaseline: 'middle'`); a runs model must instead share an **alphabetic baseline** across a
+line, or mixed font sizes within a line would not sit on a common baseline. Migrated documents
+therefore keep identical content, styling, and geometry, but a line's glyphs shift vertically by a
+fraction of the font size. Baseline placement uses `lineTop + 0.8 × maxFontSize`, the standard
+ascent approximation available without font metrics. The regression check is "a pre-D3 document
+reopens with identical text, spans, alignment, and layer size, and renders equivalently" — not
+pixel-identical.
 
 ### Type tool
 
@@ -161,7 +170,8 @@ Layer > Rasterize Type first."*
   lines horizontally; leading changes block height; Rasterize Type yields a paintable image layer
   and one undo restores the text layer; Convert to Shape yields a path shape layer with anchors;
   a save/open round-trip preserves text, spans, and alignment; and **a document saved before D3a
-  reopens rendering identically**.
+  reopens with identical text, spans, alignment, and layer size** (see the baseline caveat under
+  Migration).
 
 ## Out of scope (D3a)
 
