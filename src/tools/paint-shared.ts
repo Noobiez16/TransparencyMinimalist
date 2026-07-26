@@ -10,7 +10,7 @@ import { getPaintSetting, nudgeSize, setPaintSetting, type PaintToolId } from '.
 
 const REASONS: Record<StrokeRefusal, string> = {
   missing: 'Select a layer to paint on.',
-  'text-layer': "Text layers can't be painted — Rasterize Type arrives in Phase D",
+  'text-layer': "Text layers can't be painted — use Layer > Rasterize Type first.",
   'shape-layer': "Shape layers can't be painted — use Layer > Rasterize Shape first.",
   hidden: 'Layer is hidden.',
   busy: 'Finish the current session before painting.'

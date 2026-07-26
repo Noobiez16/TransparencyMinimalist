@@ -80,6 +80,14 @@ test('shape tools are live in the drawing group', () => {
   assert.match(main, /Rectangle · Drag to draw/);
 });
 
+test('type commands are real, not phase stubs', () => {
+  assert.match(main, /id:\s*'type\.rasterize'[\s\S]{0,300}?rasterizeTextLayer\(/);
+  assert.match(main, /id:\s*'type\.convertShape'[\s\S]{0,300}?convertTextToShape\(/);
+  const paint = readFileSync(resolve(root, 'src/tools/paint-shared.ts'), 'utf8');
+  assert.match(paint, /Layer > Rasterize Type/);
+  assert.doesNotMatch(paint, /arrives in Phase D/, 'the stale promise is replaced');
+});
+
 test('type style controls exist on both surfaces', () => {
   for (const id of ['prop-text-align', 'prop-text-leading', 'prop-text-tracking']) {
     assert.match(html, new RegExp(`id=["']${id}["']`), `missing control ${id}`);
@@ -314,8 +322,8 @@ test('menu commands cover working actions and phase-labeled stubs', () => {
   ]) {
     assert.match(main, new RegExp(id.replaceAll('.', '\\.')), `missing registration ${id}`);
   }
-  // Phase C shipped its commands, so no 'C'-phase stubs remain; later phases stay labeled.
-  assert.match(main, /phase:\s*'D'/);
+  // Phases C and D shipped their commands, so no 'C'- or 'D'-phase stubs remain;
+  // later phases stay labeled.
   assert.match(main, /phase:\s*'E'/);
   assert.match(main, /phase:\s*'F'/);
 });

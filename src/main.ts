@@ -46,6 +46,7 @@ import { shapeEllipseTool, shapeLineTool, shapePolygonTool, shapeRectTool } from
 import { cancelPenPath, finishPenPath, penInProgress, penTool } from './tools/pen';
 import { directSelectTool, pathSelectTool } from './tools/path-edit-tools';
 import { typeTool } from './tools/type-tool';
+import { convertTextToShape, rasterizeTextLayer } from './engine/text-raster';
 import { nudgeActivePaintSize } from './tools/paint-shared';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
@@ -188,8 +189,26 @@ registerCommand({ id: 'view.zoomIn', label: 'Zoom In', shortcut: 'Ctrl+=', bindK
 registerCommand({ id: 'view.zoomOut', label: 'Zoom Out', shortcut: 'Ctrl+-', bindKey: true, run: () => zoomAt(0.8) });
 registerCommand({ id: 'view.fit', label: 'Fit on Screen', shortcut: 'Ctrl+0', bindKey: true, run: () => resetView() });
 registerCommand({ id: 'view.snap', label: 'Snap To', checked: () => getSnapEnabled(), run: () => setSnapEnabled(!getSnapEnabled()) });
-registerCommand({ id: 'type.rasterize', label: 'Rasterize Type', phase: 'D' });
-registerCommand({ id: 'type.convertShape', label: 'Convert to Shape', phase: 'D' });
+registerCommand({
+  id: 'type.rasterize', label: 'Rasterize Type',
+  enabled: () => {
+    const layer = state.doc.layers.find((l) => l.id === state.doc.activeLayerId);
+    return Boolean(layer && layer.kind === 'text');
+  },
+  run: () => guardTransformSession(() => {
+    if (!rasterizeTextLayer(state.doc.activeLayerId ?? '')) toast('Select a text layer with some text first.');
+  })
+});
+registerCommand({
+  id: 'type.convertShape', label: 'Convert to Shape',
+  enabled: () => {
+    const layer = state.doc.layers.find((l) => l.id === state.doc.activeLayerId);
+    return Boolean(layer && layer.kind === 'text');
+  },
+  run: () => guardTransformSession(() => {
+    if (!convertTextToShape(state.doc.activeLayerId ?? '')) toast('Select a text layer with some text first.');
+  })
+});
 registerCommand({ id: 'select.all', label: 'Select All', shortcut: 'Ctrl+A', bindKey: true, run: () => selectAll() });
 registerCommand({ id: 'select.deselect', label: 'Deselect', shortcut: 'Ctrl+D', bindKey: true, enabled: () => hasSelection(), run: () => deselect() });
 registerCommand({ id: 'select.reselect', label: 'Reselect', shortcut: 'Shift+Ctrl+D', bindKey: true, enabled: () => !hasSelection(), run: () => reselect() });
