@@ -80,6 +80,17 @@ test('shape tools are live in the drawing group', () => {
   assert.match(main, /Rectangle · Drag to draw/);
 });
 
+test('path editing tools are live', () => {
+  const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
+  assert.match(groups, /tool:\s*['"]direct-select['"]/);
+  assert.match(groups, /tool:\s*['"]path-select['"]/);
+  const tools = readFileSync(resolve(root, 'src/tools/path-edit-tools.ts'), 'utf8');
+  assert.match(tools, /moveHandle/);
+  assert.match(tools, /setAnchorSmooth|setAnchorCorner/);
+  assert.match(tools, /translateSubPath/);
+  assert.match(tools, /coalesce|Key/);
+});
+
 test('the pen tool is live with auto add and delete', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
   assert.match(groups, /tool:\s*['"]pen['"]/);
