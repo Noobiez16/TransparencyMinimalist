@@ -72,12 +72,23 @@ test('shape tools are live in the drawing group', () => {
   for (const live of ['shape-rect', 'shape-ellipse', 'shape-line', 'shape-polygon']) {
     assert.match(groups, new RegExp(`tool:\\s*['"]${live}['"]`), `missing live tool ${live}`);
   }
-  assert.match(groups, /stub: 'Pen'/);   // Pen stays grayed for D2
+  // Pen went live in D2; the shape tools remain their own live entries.
   const shared = readFileSync(resolve(root, 'src/tools/shape-shared.ts'), 'utf8');
   assert.match(shared, /constrainDragRect/);
   assert.match(shared, /isEditingSessionLive/);
   assert.match(shared, /cmdAddLayer/);
   assert.match(main, /Rectangle · Drag to draw/);
+});
+
+test('the pen tool is live with auto add and delete', () => {
+  const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
+  assert.match(groups, /tool:\s*['"]pen['"]/);
+  assert.doesNotMatch(groups, /stub: 'Pen'/, 'Pen is no longer a stub');
+  const pen = readFileSync(resolve(root, 'src/tools/pen.ts'), 'utf8');
+  assert.match(pen, /insertAnchorOnSegment/);
+  assert.match(pen, /deleteAnchor/);
+  assert.match(pen, /isEditingSessionLive/);
+  assert.match(main, /Pen · Click to add anchors/);
 });
 
 test('paths draw in the overlay and never in the compositor', () => {
@@ -213,11 +224,11 @@ test('color chips are wired with D/X commands and text/background application', 
 
 test('the toolbar renders the manual tool groups with grayed future slots', () => {
   const groups = readFileSync(resolve(root, 'src/shell/toolbar-groups.ts'), 'utf8');
-  // Phases B/C/D1 promoted painting, selection, and shape tools to live; these remain grayed.
+  // Phases B/C/D1/D2 promoted painting, selection, shape, and pen tools to live; these remain grayed.
   for (const stub of [
     'Object Selection', 'Frame Tool',
     'Spot Healing Brush', 'Clone Stamp', 'Mixer Brush', 'Background Eraser',
-    'Pen', 'Horizontal Type', 'Rotate View'
+    'Horizontal Type', 'Rotate View'
   ]) {
     assert.match(groups, new RegExp(stub), `missing stub ${stub}`);
   }

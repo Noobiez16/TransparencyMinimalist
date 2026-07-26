@@ -9,7 +9,7 @@ export const TOOL_GROUPS: Array<{ id: string; entries: GroupEntry[] }> = [
   { id: 'retouch', entries: [{ stub: 'Spot Healing Brush', key: 'J', phase: 'B' }, { stub: 'Clone Stamp', key: 'S', phase: 'B' }] },
   { id: 'paint', entries: [{ tool: 'brush' }, { tool: 'pencil' }, { stub: 'Mixer Brush', key: 'B', phase: 'E' }] },
   { id: 'erase', entries: [{ tool: 'eraser' }, { stub: 'Background Eraser', key: 'E', phase: 'E' }] },
-  { id: 'draw', entries: [{ stub: 'Pen', key: 'P', phase: 'D' }, { tool: 'shape-rect' }, { tool: 'shape-ellipse' }, { tool: 'shape-line' }, { tool: 'shape-polygon' }] },
+  { id: 'draw', entries: [{ tool: 'pen' }, { tool: 'shape-rect' }, { tool: 'shape-ellipse' }, { tool: 'shape-line' }, { tool: 'shape-polygon' }] },
   { id: 'type', entries: [{ stub: 'Horizontal Type', key: 'T', phase: 'D' }] },
   { id: 'nav', entries: [{ tool: 'hand' }, { tool: 'zoom' }, { stub: 'Rotate View', key: 'R', phase: 'D' }] }
 ];

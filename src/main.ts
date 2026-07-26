@@ -39,6 +39,7 @@ import { eyedropperTool } from './tools/eyedropper';
 import { marqueeEllipseTool, marqueeRectTool } from './tools/marquee';
 import { cancelPolygonLasso, finishPolygonLasso, lassoFreeTool, lassoPolyTool, polygonInProgress } from './tools/lasso';
 import { shapeEllipseTool, shapeLineTool, shapePolygonTool, shapeRectTool } from './tools/shape-tools';
+import { cancelPenPath, finishPenPath, penInProgress, penTool } from './tools/pen';
 import { nudgeActivePaintSize } from './tools/paint-shared';
 import { initAutosave, tryRestoreOffer } from './engine/persistence';
 import { applyTransform, beginTransform, cancelTransform, getTransformSession, subscribeTransformSession } from './engine/transform-session';
@@ -183,6 +184,7 @@ registerTool(shapeRectTool);
 registerTool(shapeEllipseTool);
 registerTool(shapeLineTool);
 registerTool(shapePolygonTool);
+registerTool(penTool);
 
 // The Crop tool owns exactly one session: entering the tool opens it,
 // leaving the tool (or Enter/Escape below) closes it.
@@ -210,6 +212,8 @@ document.addEventListener('keydown', (e) => {
   if (!buttonLikeFocused) {
     if (polygonInProgress() && e.key === 'Enter') { e.preventDefault(); finishPolygonLasso(); return; }
     if (polygonInProgress() && e.key === 'Escape') { e.preventDefault(); cancelPolygonLasso(); return; }
+    if (penInProgress() && e.key === 'Enter') { e.preventDefault(); finishPenPath(); return; }
+    if (penInProgress() && e.key === 'Escape') { e.preventDefault(); cancelPenPath(); return; }
     const transformSession = getTransformSession();
     if (transformSession?.mode === 'explicit' && e.key === 'Enter') { e.preventDefault(); applyTransform(); return; }
     if (transformSession?.mode === 'explicit' && e.key === 'Escape') { e.preventDefault(); cancelTransform(); return; }
@@ -285,6 +289,7 @@ const syncContextStatus = () => {
     else if (tool.id === 'shape-ellipse') status.textContent = 'Ellipse · Drag to draw · Shift circles · Alt from center';
     else if (tool.id === 'shape-line') status.textContent = 'Line · Drag to draw · Shift snaps to 15°';
     else if (tool.id === 'shape-polygon') status.textContent = 'Polygon · Drag to draw · Sides set in the options bar';
+    else if (tool.id === 'pen') status.textContent = 'Pen · Click to add anchors · Drag for curves · Enter finishes';
     else status.textContent = `${tool.label} · Shift constrains · Ctrl/Cmd bypasses Snap`;
   }
 };

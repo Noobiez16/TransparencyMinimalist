@@ -41,7 +41,10 @@ export const icons = {
   shapeRect: svg('<rect x="2.5" y="4.5" width="11" height="7" rx="1.5"/>'),
   shapeEllipse: svg('<ellipse cx="8" cy="8" rx="5.5" ry="4"/>'),
   shapeLine: svg('<line x1="3" y1="12.5" x2="13" y2="3.5"/>'),
-  shapePolygon: svg('<path d="M8 2.5 13.5 6.6 11.4 13h-6.8L2.5 6.6z"/>')
+  shapePolygon: svg('<path d="M8 2.5 13.5 6.6 11.4 13h-6.8L2.5 6.6z"/>'),
+  pen: svg('<path d="M8 2.5 12 6.5 6.5 12 3 12.5 3.5 9z"/><line x1="3.5" y1="9" x2="6.5" y2="12"/>'),
+  directSelect: svg('<path d="M4 2.5 4 12 6.6 9.6 8.6 13.5 10.4 12.6 8.4 8.9 11.8 8.6z" fill="none"/>'),
+  pathSelect: svg('<path d="M4 2.5 4 12 6.6 9.6 8.6 13.5 10.4 12.6 8.4 8.9 11.8 8.6z"/>')
 };
 
 export function inlineEdit(el: HTMLElement, current: string, onCommit: (v: string) => void): void {
