@@ -7,6 +7,8 @@ import { traceContours } from './engine/selection-contour';
 import type { SelectionShape } from './engine/selection-ops';
 import type { PathCommand } from './engine/shape-geometry';
 import { replayPathCommands } from './engine/path-render';
+import { getActivePath } from './engine/path-store';
+import { pathToCommands, type AnchorRef } from './engine/path-geometry';
 import { notify } from './state';
 
 const HANDLE_SIZE_PX = 8;
@@ -136,6 +138,61 @@ function drawShapePreview(ctx: CanvasRenderingContext2D, scale: number): void {
   replayPathCommands(ctx, shapePreview.commands);
   ctx.stroke();
   ctx.setLineDash([]);
+  ctx.restore();
+}
+
+let pathSelection: AnchorRef | null = null;
+
+export function setPathSelection(ref: AnchorRef | null): void { pathSelection = ref; }
+
+const ANCHOR_PX = 6;
+const HANDLE_PX = 5;
+
+/** Paths are non-printing: they are drawn here and never by the compositor. */
+function drawActivePath(ctx: CanvasRenderingContext2D, scale: number): void {
+  const path = getActivePath();
+  if (!path || path.subpaths.length === 0) return;
+  const anchorSize = ANCHOR_PX / scale;
+  const handleRadius = HANDLE_PX / scale;
+
+  ctx.save();
+  ctx.lineWidth = 1 / scale;
+  ctx.strokeStyle = 'rgba(20, 24, 32, 0.9)';
+  ctx.beginPath();
+  replayPathCommands(ctx, pathToCommands(path.subpaths));
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.setLineDash([3 / scale, 3 / scale]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  path.subpaths.forEach((sub, si) => {
+    sub.anchors.forEach((anchor, ai) => {
+      const selected = pathSelection?.sub === si && pathSelection?.anchor === ai;
+      if (selected) {
+        // Handles are only shown — and only grabbable — on the selected anchor.
+        for (const h of [{ x: anchor.x + anchor.inDx, y: anchor.y + anchor.inDy },
+                         { x: anchor.x + anchor.outDx, y: anchor.y + anchor.outDy }]) {
+          if (h.x === anchor.x && h.y === anchor.y) continue;
+          ctx.strokeStyle = 'rgba(90, 160, 255, 0.95)';
+          ctx.beginPath();
+          ctx.moveTo(anchor.x, anchor.y);
+          ctx.lineTo(h.x, h.y);
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(90, 160, 255, 0.95)';
+          ctx.beginPath();
+          ctx.arc(h.x, h.y, handleRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.fillStyle = selected ? 'rgba(90, 160, 255, 0.95)' : 'rgba(255, 255, 255, 0.96)';
+      ctx.strokeStyle = 'rgba(20, 24, 32, 0.95)';
+      ctx.beginPath();
+      ctx.rect(anchor.x - anchorSize / 2, anchor.y - anchorSize / 2, anchorSize, anchorSize);
+      ctx.fill();
+      ctx.stroke();
+    });
+  });
   ctx.restore();
 }
 
@@ -321,6 +378,7 @@ export function drawCanvasOverlay(
   drawSelectionAnts(ctx, doc, scale);
   drawSelectionPreview(ctx, scale);
   drawShapePreview(ctx, scale);
+  drawActivePath(ctx, scale);
   drawPaintCursor(ctx, scale); // before the transformable-layer early return
   const target = transformableLayer(doc);
   if (!target) return;

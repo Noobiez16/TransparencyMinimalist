@@ -80,6 +80,14 @@ test('shape tools are live in the drawing group', () => {
   assert.match(main, /Rectangle · Drag to draw/);
 });
 
+test('paths draw in the overlay and never in the compositor', () => {
+  const overlay = readFileSync(resolve(root, 'src/canvas-overlay.ts'), 'utf8');
+  assert.match(overlay, /getActivePath/);
+  assert.match(overlay, /pathToCommands/);
+  const compositor = readFileSync(resolve(root, 'src/engine/compositor.ts'), 'utf8');
+  assert.doesNotMatch(compositor, /pathToCommands|getActivePath/, 'paths must stay non-printing');
+});
+
 test('path commands are replayed through one shared helper', () => {
   const render = readFileSync(resolve(root, 'src/engine/path-render.ts'), 'utf8');
   assert.match(render, /case 'bezierCurveTo'/);
