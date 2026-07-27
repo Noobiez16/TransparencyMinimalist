@@ -1,5 +1,6 @@
 import { state, notify } from './state';
 import { createTextLayer, createImageLayer, cloneLayer } from './engine/document';
+import { setTextContent } from './engine/text-model';
 import { cmdAddLayer } from './engine/commands';
 import { initCanvas } from './canvas';
 import { initLayersPanel } from './layers-panel';
@@ -391,7 +392,7 @@ function syncAntsAnimation(): void {
 subscribeSelection(syncAntsAnimation);
 
 const text = createTextLayer(state.doc, 'Text Overlay');
-text.text = 'Minimalist Editor';
+setTextContent(text, 'Minimalist Editor');
 text.y = state.doc.height / 2 - state.doc.height * 0.1;
 state.doc.layers.push(text);
 const image = createImageLayer(state.doc, 'Background Image');

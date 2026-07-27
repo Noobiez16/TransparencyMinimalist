@@ -4,7 +4,9 @@ import { $, icons, inlineEdit } from './dom';
 import * as history from './engine/history';
 import { cmdPatchLayer, cmdPatchEffects } from './engine/commands';
 import { clampShape, clampStrokeWidth } from './engine/shape-geometry';
-import { applyStyleToRange, defaultTextStyle, type TextAlign, type TextStyle } from './engine/text-model';
+import {
+  applyStyleToRange, defaultTextStyle, normalizeSpans, type TextAlign, type TextStyle
+} from './engine/text-model';
 
 /** Whole-layer style edit — the same span path D3b will narrow to a selection. */
 function patchTextStyle(patch: Partial<TextStyle>, label: string, key: string): void {
@@ -361,7 +363,13 @@ export function initPropertiesPanel(): void {
   propTextContent.addEventListener('input', () => {
     const layer = getActiveLayer();
     if (layer && layer.kind === 'text') {
-      history.push(cmdPatchLayer(layer.id, 'Edit text', { text: propTextContent.value }, `${layer.id}:text`));
+      // Spans must be re-fitted with the text, or they keep covering the old length.
+      const text = propTextContent.value;
+      history.push(cmdPatchLayer(
+        layer.id, 'Edit text',
+        { text, spans: normalizeSpans(layer.spans, text.length) },
+        `${layer.id}:text`
+      ));
     }
   });
 

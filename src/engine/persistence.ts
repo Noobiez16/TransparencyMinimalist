@@ -87,9 +87,12 @@ export async function deserializeDoc(json: string): Promise<Doc> {
       const bitmap = typeof sl.bitmap === 'string' ? await dataUrlToCanvas(sl.bitmap) : null;
       layers.push({ ...(sl as object), bitmap, bitmapRev: 0 } as Layer);
     } else if (sl.kind === 'text') {
-      // Pre-D3a layers carry flat style fields; migrate them into the span model.
+      // Pre-D3a layers carry flat style fields; migrate them into the span model and drop
+      // the legacy keys so they aren't carried into every future save.
       const migrated = migrateTextLayer(sl as Record<string, unknown>);
-      layers.push({ ...(sl as object), ...migrated } as Layer);
+      const { fontFamily, fontSize, color, ...rest } = sl as Record<string, unknown>;
+      void fontFamily; void fontSize; void color;
+      layers.push({ ...rest, ...migrated } as Layer);
     } else {
       layers.push({ ...(sl as object) } as Layer);
     }

@@ -113,6 +113,17 @@ export function applyStyleToRange(
   return normalizeSpans(out, textLength);
 }
 
+/**
+ * Replace a text layer's string, keeping its spans covering exactly the new length.
+ * Changing `text` without this leaves spans sized to the old string, which still renders
+ * (styleAt falls back to the trailing span) but breaks the invariant that caret and
+ * selection indices rely on.
+ */
+export function setTextContent(layer: { text: string; spans: StyleSpan[] }, text: string): void {
+  layer.text = text;
+  layer.spans = normalizeSpans(layer.spans, text.length);
+}
+
 /** Convert a pre-D3 text layer (flat style fields) into the span model. */
 export function migrateTextLayer(
   raw: Record<string, unknown>

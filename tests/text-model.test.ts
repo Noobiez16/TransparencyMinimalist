@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import {
-  applyStyleToRange, clampTextStyle, defaultTextStyle, normalizeSpans, styleAt,
+  applyStyleToRange, clampTextStyle, defaultTextStyle, normalizeSpans, setTextContent, styleAt,
   type StyleSpan, type TextStyle
 } from '../src/engine/text-model';
 
@@ -75,6 +75,38 @@ test('applyStyleToRange splits a span and merges identical results', () => {
 
   const merged = applyStyleToRange(out, 0, 10, { color: '#000000' }, 10);
   expect(merged.length).toBe(1);
+});
+
+test('setTextContent keeps spans covering the new text length', () => {
+  const layer = { text: 'Edit me', spans: normalizeSpans([{ start: 0, end: 7, style: style({ color: '#ff0000' }) }], 7) };
+
+  // Growing the text must extend coverage using the trailing style.
+  setTextContent(layer, 'Minimalist Editor');
+  expect(layer.text).toBe('Minimalist Editor');
+  expect(layer.spans[0].start).toBe(0);
+  expect(layer.spans[layer.spans.length - 1].end).toBe(17);
+  expect(styleAt(layer.spans, 16).color).toBe('#ff0000');
+
+  // Shrinking must clamp rather than leave spans pointing past the end.
+  setTextContent(layer, 'Hi');
+  expect(layer.spans[layer.spans.length - 1].end).toBe(2);
+
+  // Emptying leaves no spans at all.
+  setTextContent(layer, '');
+  expect(layer.spans).toEqual([]);
+});
+
+test('setTextContent preserves distinct styles within the surviving range', () => {
+  const spans = normalizeSpans([
+    { start: 0, end: 3, style: style({ color: '#ff0000' }) },
+    { start: 3, end: 10, style: style({ color: '#0000ff' }) }
+  ], 10);
+  const layer = { text: '0123456789', spans };
+  setTextContent(layer, '0123456789 more');
+  expect(styleAt(layer.spans, 1).color).toBe('#ff0000');
+  expect(styleAt(layer.spans, 5).color).toBe('#0000ff');
+  expect(styleAt(layer.spans, 14).color).toBe('#0000ff');   // tail inherits the last style
+  expect(layer.spans[layer.spans.length - 1].end).toBe(15);
 });
 
 test('applyStyleToRange clamps the range and ignores empty ranges', () => {
